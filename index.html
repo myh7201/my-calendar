@@ -6,7 +6,7 @@
      ============================================ -->
 <script>
   window.FIREBASE_CONFIG = {
-   apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
+  apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
   authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
   projectId: "my-calendar-app-9a3c8",
   storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
@@ -1173,8 +1173,17 @@ function renderWeekView(){
       }).join('')}
     </div>`;
   }
-  html += `</div></div>`;
+   html += `</div></div>`;
   c.innerHTML = html;
+  lucide.createIcons();
+
+  // ★ 自動滾動到「今天」的位置
+  setTimeout(() => {
+    const todayEl = document.querySelector('.schedule-date-col.today');
+    if (todayEl) {
+      todayEl.scrollIntoView({ behavior: 'auto', block: 'center' });
+    }
+  }, 50);
 }
 
 /* ============ 日視圖 ============ */
