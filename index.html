@@ -1701,5 +1701,95 @@ window.onload = function(){
   }
   updateStorageHint(false);
 </script>
+  <script>
+(function() {
+  // ========== 通知權限 ==========
+  if (!('Notification' in window)) {
+    console.log('此瀏覽器不支援通知');
+    return;
+  }
+  if (Notification.permission === 'default') {
+    // 等使用者有互動後再請求（避免瀏覽器擋掉）
+    document.addEventListener('click', function askOnce() {
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          console.log('通知權限已允許');
+        }
+      });
+      document.removeEventListener('click', askOnce);
+    }, { once: true });
+  }
+
+  // ========== 已提醒記錄 ==========
+  const REMINDER_KEY = 'calendar_reminders_v1';
+  function loadReminded() {
+    try {
+      const s = localStorage.getItem(REMINDER_KEY);
+      return s ? new Set(JSON.parse(s)) : new Set();
+    } catch(e) { return new Set(); }
+  }
+  function saveReminded(set) {
+    const arr = Array.from(set).slice(-500);
+    try { localStorage.setItem(REMINDER_KEY, JSON.stringify(arr)); } catch(e) {}
+  }
+  let reminded = loadReminded();
+
+  // ========== 發送通知 ==========
+  function sendNotification(title, body) {
+    if (Notification.permission !== 'granted') return;
+    try {
+      const notif = new Notification(title, {
+        body: body,
+        tag: title + '|' + body,
+        requireInteraction: false,
+        silent: false
+      });
+      notif.onclick = () => { window.focus(); notif.close(); };
+    } catch(e) {
+      console.error('通知發送失敗:', e);
+    }
+  }
+
+  // ========== 提醒點 ==========
+  const REMINDER_POINTS = [
+    { ms: 24 * 60 * 60 * 1000, label: '明天', type: 'day' },
+    { ms: 60 * 60 * 1000, label: '1 小時後', type: 'hour' },
+    { ms: 10 * 60 * 1000, label: '10 分鐘後', type: 'min' }
+  ];
+  const TOLERANCE_MS = 5 * 60 * 1000; // 容錯 5 分鐘
+
+  // ========== 檢查邏輯 ==========
+  function checkReminders() {
+    if (!window.state || !Array.isArray(window.state.events)) return;
+    const now = Date.now();
+
+    window.state.events.forEach(evt => {
+      if (evt.allDay) return; // 全天事件跳過
+      const startTime = new Date(evt.start).getTime();
+      if (isNaN(startTime)) return;
+
+      REMINDER_POINTS.forEach(point => {
+        const reminderTime = startTime - point.ms;
+        const key = `${evt.id}:${point.type}`;
+
+        // 現在時間在提醒點之後、且不超過容錯範圍 → 提醒
+        if (now >= reminderTime && now < reminderTime + TOLERANCE_MS && !reminded.has(key)) {
+          sendNotification(
+            `📅 ${evt.title}`,
+            `${point.label}開始${evt.location ? ' · ' + evt.location : ''}`
+          );
+          reminded.add(key);
+          saveReminded(reminded);
+        }
+      });
+    });
+  }
+
+  // ========== 定時檢查 ==========
+  setInterval(checkReminders, 30 * 1000); // 每 30 秒
+  setTimeout(checkReminders, 5000);        // 載入後 5 秒先檢查一次
+  console.log('📅 通知提醒已啟動');
+})();
+</script>
 </body>
 </html>
