@@ -2858,14 +2858,23 @@ window.onload = function(){
   // ⚠️ 請將下方替換成你自己的 Firebase 專案設定
   // 到 Firebase 控制台 → 專案設定 → 你的應用 → 複製設定
   // ========================================================
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
+ // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
+  authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
+  projectId: "my-calendar-app-9a3c8",
+  storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
+  messagingSenderId: "83579238529",
+  appId: "1:83579238529:web:51fb1a9f84fe6158ccb580"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
   // ========================================================
 
   const app = initializeApp(firebaseConfig);
