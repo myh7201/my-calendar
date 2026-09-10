@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-TW" class="h-full">
 <head>
-<!-- ============================================
-     ⚙️ Firebase 設定（唯一需要修改的地方）
-     ============================================ -->
 <script>
   window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
+   apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
   authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
   projectId: "my-calendar-app-9a3c8",
   storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
@@ -14,8 +11,6 @@
   appId: "1:83579238529:web:51fb1a9f84fe6158ccb580"
   };
 </script>
-<!-- ============================================ -->
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>日曆</title>
@@ -48,7 +43,6 @@ tailwind.config = {
   ::-webkit-scrollbar-track{background:transparent}
   ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:9999px;border:2px solid transparent;background-clip:content-box}
   ::-webkit-scrollbar-thumb:hover{background:rgba(148,163,184,.6);background-clip:content-box}
-
   html,body{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
   body{
     background:radial-gradient(1200px 600px at 100% -10%, rgba(99,102,241,.08), transparent 60%),radial-gradient(900px 500px at -10% 110%, rgba(168,85,247,.06), transparent 60%),#f6f7fb;
@@ -57,7 +51,6 @@ tailwind.config = {
   .dark body{
     background:radial-gradient(1200px 600px at 100% -10%, rgba(99,102,241,.12), transparent 60%),radial-gradient(900px 500px at -10% 110%, rgba(168,85,247,.08), transparent 60%),#0b1020;
   }
-
   .cat-chip{
     background-color:color-mix(in srgb, var(--c, #6366f1) 12%, transparent);
     color:color-mix(in srgb, var(--c, #6366f1) 78%, #0f172a);
@@ -68,7 +61,6 @@ tailwind.config = {
     color:color-mix(in srgb, var(--c, #6366f1) 65%, #ffffff);
     border-color:color-mix(in srgb, var(--c, #6366f1) 38%, transparent);
   }
-
   .month-event-block{
     background-color:color-mix(in srgb, var(--c, #3b82f6) 15%, #ffffff);
     color:color-mix(in srgb, var(--c, #3b82f6) 80%, #1e293b);
@@ -79,7 +71,6 @@ tailwind.config = {
     background-color:color-mix(in srgb, var(--c, #3b82f6) 25%, #1e293b);
     color:color-mix(in srgb, var(--c, #3b82f6) 90%, #e2e8f0);
   }
-
   .schedule-item{display:flex;gap:12px;padding:12px 4px 12px 0}
   .schedule-date-col{width:64px;flex-shrink:0;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
   .schedule-date-col .weekday{font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.05em}
@@ -90,11 +81,9 @@ tailwind.config = {
   .dark .schedule-date-col .lunar{color:#64748b}
   .schedule-date-col.today .daynum{color:#2563eb}
   .dark .schedule-date-col.today .daynum{color:#60a5fa}
-
   .now-line{display:flex;align-items:center;gap:8px;padding:4px 0 4px 72px;position:relative}
   .now-line::before{content:'';position:absolute;left:76px;right:0;top:50%;height:1px;background:#f59e0b}
   .now-line .now-badge{background:#f59e0b;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:9999px;z-index:1;position:relative;margin-left:76px}
-
   .schedule-card{
     background:color-mix(in srgb, var(--c, #6366f1) 8%, #ffffff);
     border-left:4px solid var(--c, #6366f1);
@@ -104,23 +93,18 @@ tailwind.config = {
   }
   .schedule-card:hover{transform:translateX(2px);box-shadow:0 4px 12px -4px rgba(15,23,42,.15)}
   .dark .schedule-card{background:color-mix(in srgb, var(--c, #6366f1) 15%, #0f172a)}
-
   .empty-day{display:flex;align-items:center;gap:12px;padding:12px 4px 12px 0;cursor:pointer;border-radius:12px;transition:background .15s ease}
   .empty-day:hover{background:rgba(99,102,241,.05)}
   .empty-day .empty-text{color:#94a3b8;font-size:14px;font-weight:500}
-
   .fab{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));right:24px;width:56px;height:56px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px -4px rgba(37,99,235,.5);transition:transform .15s ease;z-index:40;border:none;cursor:pointer}
   .fab:hover{transform:scale(1.06)}
   .fab:active{transform:scale(0.96)}
-
   .glass{background:rgba(255,255,255,.72);backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4)}
   .dark .glass{background:rgba(15,23,42,.72)}
-
   .month-grid{border-top:1px solid rgba(148,163,184,.15);border-left:1px solid rgba(148,163,184,.15)}
   .month-cell{border-right:1px solid rgba(148,163,184,.15);border-bottom:1px solid rgba(148,163,184,.15)}
   .dark .month-grid{border-top-color:rgba(148,163,184,.12);border-left-color:rgba(148,163,184,.12)}
   .dark .month-cell{border-right-color:rgba(148,163,184,.12);border-bottom-color:rgba(148,163,184,.12)}
-
   @keyframes floatIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
   .anim-in{animation:floatIn .35s cubic-bezier(.2,.8,.2,1) both}
   .hour-row:hover{background:rgba(99,102,241,.035)}
@@ -128,28 +112,23 @@ tailwind.config = {
   input[type="datetime-local"]::-webkit-calendar-picker-indicator,input[type="date"]::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}
   .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,.dark input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.85)}
   .fade-in{animation:floatIn .4s ease both}
-
   .color-swatch{width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;padding:0;position:relative;transition:transform .15s ease}
   .color-swatch:hover{transform:scale(1.12)}
   .color-swatch.on{transform:scale(1.12)}
   .color-swatch.on::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid currentColor}
-
   .donut-chart{width:140px;height:140px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .donut-chart::after{content:'';position:absolute;width:70px;height:70px;background:#fff;border-radius:50%}
   .dark .donut-chart::after{background:#1e293b}
   .donut-inner{position:relative;z-index:1;text-align:center}
   .donut-inner .total{font-size:20px;font-weight:800;line-height:1.1}
   .donut-inner .label{font-size:9px;color:#94a3b8}
-
   .ics-preview-item{display:flex;align-items:center;gap:12px;padding:10px 0}
   .ics-preview-item select{font-size:12px;padding:4px 8px;border-radius:8px;max-width:140px}
-
   .day-drawer-overlay{position:fixed;inset:0;background:rgba(2,6,23,0.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:80;opacity:0;transition:opacity .25s ease;pointer-events:none}
   .day-drawer-overlay.open{opacity:1;pointer-events:auto}
   .day-drawer-panel{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:24px 24px 0 0;z-index:81;transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(2,6,23,0.15)}
   .dark .day-drawer-panel{background:#1e293b}
   .day-drawer-panel.open{transform:translateY(0)}
-
   @media (max-width: 640px){
     .month-grid{grid-template-columns:repeat(7,1fr) !important}
     .month-header{grid-template-columns:repeat(7,1fr) !important}
@@ -162,7 +141,6 @@ tailwind.config = {
     .view-btn{padding:4px 8px !important;font-size:11px !important}
     .desktop-only{display:none !important}
   }
-
   .swipe-container{position:relative;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none;will-change:transform}
   .swipe-container .month-view-wrapper{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
   .swipe-container.dragging .month-view-wrapper{transition:none}
@@ -171,7 +149,6 @@ tailwind.config = {
   .swipe-shadow-right::after{right:0;background:linear-gradient(to left, rgba(99,102,241,.15), transparent)}
   .swipe-container.can-swipe-left.swipe-shadow-left::before{opacity:1}
   .swipe-container.can-swipe-right.swipe-shadow-right::after{opacity:1}
-
   @keyframes monthSlideInLeft{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
   @keyframes monthSlideInRight{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
   .month-slide-left{animation:monthSlideInLeft .28s cubic-bezier(.2,.8,.2,1)}
@@ -180,13 +157,10 @@ tailwind.config = {
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
 
-<!-- ===== Header ===== -->
 <header class="glass border-b border-ink-200/70 dark:border-ink-800/70 px-3 md:px-4 py-2 md:py-3 flex flex-wrap items-center justify-between gap-2 md:gap-3 shrink-0 shadow-soft z-30">
   <div class="flex items-center space-x-2 md:space-x-4">
     <div class="flex items-center space-x-2">
-      <div class="p-1.5 md:p-2 bg-gradient-to-tr from-brand-500 to-fuchsia-500 text-white rounded-xl md:rounded-2xl shadow-glow">
-        <i data-lucide="calendar-days" class="w-4 h-4 md:w-5 md:h-5"></i>
-      </div>
+      <div class="p-1.5 md:p-2 bg-gradient-to-tr from-brand-500 to-fuchsia-500 text-white rounded-xl md:rounded-2xl shadow-glow"><i data-lucide="calendar-days" class="w-4 h-4 md:w-5 md:h-5"></i></div>
       <span class="font-extrabold text-base md:text-lg tracking-tight text-ink-700 dark:text-ink-100">日曆</span>
     </div>
     <div class="h-5 w-px bg-ink-200 dark:bg-ink-700 hidden md:block"></div>
@@ -200,14 +174,12 @@ tailwind.config = {
       <div id="currentDateSubtitle" class="text-[9px] md:text-xs text-ink-500 font-medium min-w-[100px] md:min-w-[130px] mt-0.5 hidden md:block"></div>
     </div>
   </div>
-
   <div class="flex-1 max-w-xs mx-2 hidden md:block desktop-only">
     <div class="relative group">
       <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 group-focus-within:text-brand-500 transition"></i>
       <input type="text" id="searchInput" placeholder="搜尋日程或事件..." class="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white/70 dark:bg-ink-900/60 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-400 transition placeholder:text-ink-400">
     </div>
   </div>
-
   <div class="flex items-center space-x-1.5 md:space-x-3 w-full md:w-auto justify-end mt-1 md:mt-0">
     <div class="bg-ink-100/80 dark:bg-ink-800/70 p-0.5 md:p-1 rounded-xl flex space-x-0.5 md:space-x-1 text-[11px] md:text-xs font-semibold text-ink-600 dark:text-ink-300">
       <button data-view="month" class="view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition">月</button>
@@ -216,9 +188,9 @@ tailwind.config = {
       <button data-view="schedule" class="view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition">日程</button>
     </div>
     <div class="hidden lg:flex items-center border border-ink-200 dark:border-ink-700 rounded-xl p-1 space-x-1 bg-white/60 dark:bg-ink-900/50">
-      <button data-device="full" class="device-btn p-1.5 rounded-lg text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/40" title="全螢幕"><i data-lucide="monitor" class="w-4 h-4"></i></button>
-      <button data-device="tablet" class="device-btn p-1.5 rounded-lg text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-700" title="平板"><i data-lucide="tablet" class="w-4 h-4"></i></button>
-      <button data-device="mobile" class="device-btn p-1.5 rounded-lg text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-700" title="手機"><i data-lucide="smartphone" class="w-4 h-4"></i></button>
+      <button data-device="full" class="device-btn p-1.5 rounded-lg text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/40"><i data-lucide="monitor" class="w-4 h-4"></i></button>
+      <button data-device="tablet" class="device-btn p-1.5 rounded-lg text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-700"><i data-lucide="tablet" class="w-4 h-4"></i></button>
+      <button data-device="mobile" class="device-btn p-1.5 rounded-lg text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-700"><i data-lucide="smartphone" class="w-4 h-4"></i></button>
     </div>
     <button id="addEventBtn" class="flex items-center space-x-1 px-2.5 md:px-3.5 py-1.5 md:py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 text-white rounded-xl text-xs md:text-sm font-semibold shadow-glow active:scale-95 transition">
       <i data-lucide="plus" class="w-3.5 h-3.5 md:w-4 md:h-4"></i><span class="hidden sm:inline">新增</span>
@@ -240,7 +212,6 @@ tailwind.config = {
   </div>
 </header>
 
-<!-- ===== 主體 ===== -->
 <div id="appViewport" class="flex-1 flex overflow-hidden relative">
   <aside id="sidebar" class="w-72 bg-white/70 dark:bg-ink-900/60 backdrop-blur-xl border-r border-ink-200/70 dark:border-ink-800/70 p-4 flex flex-col space-y-5 shrink-0 transition-all duration-300 z-10 hidden md:flex">
     <div class="bg-gradient-to-b from-ink-50 to-white dark:from-ink-800/60 dark:to-ink-900/60 p-3.5 rounded-2xl border border-ink-100 dark:border-ink-800 shadow-soft">
@@ -304,7 +275,6 @@ tailwind.config = {
   </main>
 </div>
 
-<!-- ===== 新增/編輯日程 Modal ===== -->
 <div id="eventModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-200">
   <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-200">
     <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-gradient-to-r from-ink-50 to-white dark:from-ink-800/60 dark:to-ink-900/60">
@@ -315,16 +285,16 @@ tailwind.config = {
       <input type="hidden" id="eventId">
       <div>
         <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">日程標題</label>
-        <input type="text" id="eventTitle" required placeholder="例如：團隊週會、產品發佈會" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-400 transition">
+        <input type="text" id="eventTitle" required placeholder="例如：團隊週會" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 transition">
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">開始時間</label>
-          <input type="datetime-local" id="eventStart" required class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-400 transition">
+          <input type="datetime-local" id="eventStart" required class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 transition">
         </div>
         <div>
           <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">結束時間</label>
-          <input type="datetime-local" id="eventEnd" required class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-400 transition">
+          <input type="datetime-local" id="eventEnd" required class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 transition">
         </div>
       </div>
       <div class="flex items-center justify-between pt-1">
@@ -337,18 +307,18 @@ tailwind.config = {
         </div>
       </div>
       <div>
-        <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">地點 / 線上會議連結</label>
+        <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">地點</label>
         <div class="relative">
           <i data-lucide="map-pin" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
-          <input type="text" id="eventLocation" placeholder="例如：3樓會議室 或 Google Meet" class="w-full pl-9 pr-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-400 transition">
+          <input type="text" id="eventLocation" placeholder="例如：3樓會議室" class="w-full pl-9 pr-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 transition">
         </div>
       </div>
       <div>
-        <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">備註說明</label>
-        <textarea id="eventDescription" rows="3" placeholder="補充細節或會議大綱..." class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-400 transition resize-none"></textarea>
+        <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">備註</label>
+        <textarea id="eventDescription" rows="3" placeholder="補充細節..." class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 transition resize-none"></textarea>
       </div>
       <div class="flex items-center justify-between pt-4 border-t border-ink-200/70 dark:border-ink-800">
-        <button type="button" id="deleteEventBtn" class="px-3.5 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition hidden"><i data-lucide="trash-2" class="w-4 h-4 inline -mt-0.5 mr-1"></i>刪除日程</button>
+        <button type="button" id="deleteEventBtn" class="px-3.5 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition hidden"><i data-lucide="trash-2" class="w-4 h-4 inline -mt-0.5 mr-1"></i>刪除</button>
         <div class="flex space-x-2 ml-auto">
           <button type="button" id="cancelModalBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">取消</button>
           <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 rounded-xl shadow-glow transition">儲存</button>
@@ -358,7 +328,6 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- ===== 新增/編輯分類 Modal ===== -->
 <div id="categoryModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden opacity-0 transition-opacity duration-200">
   <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200">
     <div class="flex items-center justify-between">
@@ -367,7 +336,7 @@ tailwind.config = {
     </div>
     <div>
       <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">分類名稱</label>
-      <input type="text" id="newCatName" maxlength="12" placeholder="例如：閱讀、進修" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-400 transition">
+      <input type="text" id="newCatName" maxlength="12" placeholder="例如：閱讀" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 transition">
       <p class="text-[10px] text-ink-400 mt-1">最多 12 個字</p>
     </div>
     <div>
@@ -381,46 +350,40 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- ===== 資料備份 Modal ===== -->
 <div id="dataModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
   <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-md p-6 space-y-5 anim-in max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between border-b border-ink-200/70 dark:border-ink-800 pb-3">
       <h3 class="text-base font-bold flex items-center space-x-2"><i data-lucide="database" class="w-5 h-5 text-brand-500"></i><span>資料備份與還原</span></h3>
       <button id="closeDataModalBtn" class="text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
-    <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">所有日程與分類都儲存在這個瀏覽器的本機儲存空間。你可以匯出成 JSON 或 ICS 檔案，或從這些檔案匯入資料。</p>
     <div class="space-y-2.5">
-      <div class="text-[10px] font-bold text-ink-400 uppercase tracking-widest mt-2">匯出</div>
-      <button id="exportJsonBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition group">
+      <div class="text-[10px] font-bold text-ink-400 uppercase tracking-widest">匯出</div>
+      <button id="exportJsonBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition">
         <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><i data-lucide="download" class="w-4 h-4"></i></span><span>匯出 JSON 備份檔</span></span>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i>
       </button>
-      <button id="exportIcsBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition group">
+      <button id="exportIcsBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition">
         <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-up" class="w-4 h-4"></i></span><span>匯出 ICS 檔案</span></span>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i>
       </button>
       <div class="text-[10px] font-bold text-ink-400 uppercase tracking-widest mt-4">匯入</div>
-      <label class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition cursor-pointer group">
+      <label class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition cursor-pointer">
         <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="upload" class="w-4 h-4"></i></span><span>匯入 JSON 檔案</span></span>
-        <input type="file" id="importJsonInput" accept=".json" class="hidden"><i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i>
+        <input type="file" id="importJsonInput" accept=".json" class="hidden">
       </label>
-      <label class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition cursor-pointer group">
+      <label class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition cursor-pointer">
         <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-down" class="w-4 h-4"></i></span><span>匯入 ICS 檔案</span></span>
-        <input type="file" id="importIcsInput" accept=".ics" class="hidden"><i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i>
+        <input type="file" id="importIcsInput" accept=".ics" class="hidden">
       </label>
       <div class="text-[10px] font-bold text-ink-400 uppercase tracking-widest mt-4">重置</div>
-      <button id="resetDemoBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-sm font-semibold transition group">
+      <button id="resetDemoBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-sm font-semibold transition">
         <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500"><i data-lucide="refresh-cw" class="w-4 h-4"></i></span><span>清空所有日程</span></span>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i>
       </button>
     </div>
   </div>
 </div>
 
-<!-- ===== ICS 匯入預覽 Modal ===== -->
 <div id="icsImportModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[80] hidden opacity-0 transition-opacity duration-200">
   <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] transform scale-95 transition-transform duration-200">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-gradient-to-r from-ink-50 to-white dark:from-ink-800/60 dark:to-ink-900/60 shrink-0">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 shrink-0">
       <h3 class="text-lg font-bold tracking-tight flex items-center space-x-2"><i data-lucide="calendar-arrow-down" class="w-5 h-5 text-sky-500"></i><span>匯入 ICS 日程</span></h3>
       <button id="closeIcsImportBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
@@ -428,22 +391,20 @@ tailwind.config = {
       <div class="text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">批次設定</div>
       <div class="flex items-center gap-2">
         <select id="bulkCategorySelect" class="flex-1 px-3 py-2 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select>
-        <button id="applyBulkCategory" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 rounded-xl shadow-glow transition whitespace-nowrap">套用至全部</button>
+        <button id="applyBulkCategory" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow transition whitespace-nowrap">套用至全部</button>
       </div>
-      <p class="text-[10px] text-ink-400 mt-2">你也可以在下方列表個別調整每個日程的分類</p>
     </div>
     <div id="icsPreviewList" class="flex-1 overflow-y-auto px-6 py-2 divide-y divide-ink-100 dark:divide-ink-800"></div>
-    <div class="px-6 py-4 border-t border-ink-200/70 dark:border-ink-800 flex items-center justify-between shrink-0 bg-white dark:bg-ink-900">
+    <div class="px-6 py-4 border-t border-ink-200/70 dark:border-ink-800 flex items-center justify-between shrink-0">
       <span id="icsImportCount" class="text-xs text-ink-400 font-medium"></span>
       <div class="flex space-x-2">
         <button id="cancelIcsImport" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">取消</button>
-        <button id="confirmIcsImport" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 rounded-xl shadow-glow transition">確認匯入</button>
+        <button id="confirmIcsImport" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow transition">確認匯入</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== 底部日期詳情面板 ===== -->
 <div id="dayDrawerOverlay" class="day-drawer-overlay"></div>
 <div id="dayDrawerPanel" class="day-drawer-panel">
   <div class="flex justify-center pt-3 pb-1 shrink-0"><div class="w-10 h-1 rounded-full bg-ink-300 dark:bg-ink-600"></div></div>
@@ -451,63 +412,53 @@ tailwind.config = {
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0 flex-1">
         <div class="flex items-baseline space-x-2 flex-wrap">
-          <h3 id="drawerDateTitle" class="text-xl font-extrabold tracking-tight">2027年1月8日 週五</h3>
-          <span id="drawerLunarText" class="text-xs text-ink-400 font-medium">臘月初一</span>
+          <h3 id="drawerDateTitle" class="text-xl font-extrabold tracking-tight">今天</h3>
+          <span id="drawerLunarText" class="text-xs text-ink-400 font-medium"></span>
         </div>
         <p id="drawerEventCount" class="text-[11px] text-ink-400 mt-1">尚無事件</p>
       </div>
       <div class="flex items-center space-x-1 shrink-0">
-        <button id="drawerEditIconBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-500 transition hidden" title="編輯"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-        <button id="drawerAddIconBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-500 transition" title="新增"><i data-lucide="plus-circle" class="w-4 h-4"></i></button>
-        <button id="drawerCloseIconBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-500 transition" title="關閉"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <button id="drawerEditIconBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-500 transition hidden"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+        <button id="drawerAddIconBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-500 transition"><i data-lucide="plus-circle" class="w-4 h-4"></i></button>
+        <button id="drawerCloseIconBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-500 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
     </div>
   </div>
   <div id="drawerContent" class="flex-1 overflow-y-auto p-5"></div>
 </div>
 
-<!-- ===== Toast ===== -->
 <div id="toast" class="fixed bottom-5 right-5 bg-ink-900 text-white dark:bg-white dark:text-ink-900 px-4 py-3 rounded-2xl shadow-pop text-xs font-semibold flex items-center space-x-2 z-[100] transform translate-y-10 opacity-0 transition-all duration-300 pointer-events-none">
   <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 dark:text-emerald-600"></i>
   <span id="toastMsg">已完成操作</span>
 </div>
 <script>
-/* ============ 分類常數 ============ */
+/* ============ 常數 ============ */
 const CAT_KEY = 'calendar_categories_v1';
 const ACTIVE_CAT_KEY = 'calendar_active_cats_v1';
-
 const COLOR_PALETTE = ['#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#f97316','#f59e0b','#eab308','#84cc16','#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#64748b'];
-
 const DEFAULT_CATEGORIES = [
-  { id:'work',        name:'工作職業',     color:'#6366f1' },
-  { id:'personal',    name:'個人生活',     color:'#10b981' },
-  { id:'family',      name:'家庭聚會',     color:'#f59e0b' },
-  { id:'health',      name:'健康運動',     color:'#d946ef' },
-  { id:'holiday',     name:'節假日',       color:'#f43f5e' },
+  { id:'work', name:'工作職業', color:'#6366f1' },
+  { id:'personal', name:'個人生活', color:'#10b981' },
+  { id:'family', name:'家庭聚會', color:'#f59e0b' },
+  { id:'health', name:'健康運動', color:'#d946ef' },
+  { id:'holiday', name:'節假日', color:'#f43f5e' },
   { id:'anniversary', name:'生日和紀念日', color:'#f97316' }
 ];
-
 const HOLIDAY_CAT_ID = 'holiday';
 const ANNIVERSARY_CAT_ID = 'anniversary';
 
-/* ============ 節氣 ============ */
 const SOLAR_TERMS = {
   '1-5':'小寒','1-20':'大寒','2-4':'立春','2-19':'雨水','3-6':'驚蟄','3-21':'春分',
   '4-5':'清明','4-20':'穀雨','5-6':'立夏','5-21':'小滿','6-6':'芒種','6-21':'夏至',
   '7-7':'小暑','7-23':'大暑','8-8':'立秋','8-23':'處暑','9-8':'白露','9-23':'秋分',
   '10-8':'寒露','10-23':'霜降','11-7':'立冬','11-22':'小雪','12-7':'大雪','12-21':'冬至'
 };
-function getSolarTerm(date){
-  const key = `${date.getMonth()+1}-${date.getDate()}`;
-  return SOLAR_TERMS[key] || null;
-}
+function getSolarTerm(date){ const key = `${date.getMonth()+1}-${date.getDate()}`; return SOLAR_TERMS[key] || null; }
 
-/* ============ 農曆工具 ============ */
 function lunarDayToChinese(n){
   const digits = ['','一','二','三','四','五','六','七','八','九','十'];
   if(n >= 1 && n <= 10) return '初' + digits[n];
-  if(n === 20) return '二十';
-  if(n === 30) return '三十';
+  if(n === 20) return '二十'; if(n === 30) return '三十';
   if(n > 10 && n < 20) return '十' + digits[n - 10];
   if(n > 20 && n < 30) return '廿' + digits[n - 20];
   return '';
@@ -516,8 +467,7 @@ function parseChineseMonth(s){
   s = String(s).replace(/月$/, '');
   const map = { '正':1,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'十一':11,'十二':12 };
   if(map[s] !== undefined) return map[s];
-  const n = parseInt(s, 10);
-  return isNaN(n) ? null : n;
+  const n = parseInt(s, 10); return isNaN(n) ? null : n;
 }
 function parseChineseDay(s){
   s = String(s).replace(/日$/, '');
@@ -540,8 +490,7 @@ function getLunarMonthDay(date){
 }
 const LUNAR_FESTIVALS = {'1-1':'春節','1-15':'元宵','5-5':'端午','7-7':'七夕','8-15':'中秋','9-9':'重陽','12-8':'臘八'};
 function getLunarFestival(date){
-  const md = getLunarMonthDay(date);
-  if(!md) return null;
+  const md = getLunarMonthDay(date); if(!md) return null;
   const key = `${md.month}-${md.day}`;
   if(LUNAR_FESTIVALS[key]) return LUNAR_FESTIVALS[key];
   if(md.month === 12 && (md.day === 29 || md.day === 30)){
@@ -559,8 +508,6 @@ function getLunarInfo(date){
     return { full: fmtFull.format(date), day: dayChinese };
   } catch (e) { return { full: '', day: dayChinese }; }
 }
-
-/* ============ 第幾週 ============ */
 function getWeekNumber(date){
   const startOfYear = new Date(date.getFullYear(), 0, 1);
   const days = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000));
@@ -581,15 +528,12 @@ let newCatColor = COLOR_PALETTE[0];
 
 /* ============ 儲存 ============ */
 function loadCategories(){
-  try{
-    const s = localStorage.getItem(CAT_KEY);
-    if(s){ const arr = JSON.parse(s); if(Array.isArray(arr) && arr.length) return arr; }
-  }catch(e){}
+  try { const s = localStorage.getItem(CAT_KEY); if(s){ const arr = JSON.parse(s); if(Array.isArray(arr) && arr.length) return arr; } } catch(e){}
   return DEFAULT_CATEGORIES.map(c=>({...c}));
 }
 function saveCategories(){ localStorage.setItem(CAT_KEY, JSON.stringify(state.categories)); }
 function loadActiveCats(){
-  try{ const s = localStorage.getItem(ACTIVE_CAT_KEY); if(s){ const arr = JSON.parse(s); if(Array.isArray(arr)) return arr; } }catch(e){}
+  try { const s = localStorage.getItem(ACTIVE_CAT_KEY); if(s){ const arr = JSON.parse(s); if(Array.isArray(arr)) return arr; } } catch(e){}
   return null;
 }
 function saveActiveCats(){ localStorage.setItem(ACTIVE_CAT_KEY, JSON.stringify(state.activeCategories)); }
@@ -599,7 +543,6 @@ const EVT_KEY = 'calendar_events_v1';
 function loadSavedEvents(){
   const saved = localStorage.getItem(EVT_KEY);
   if(saved){ try{ return JSON.parse(saved); }catch(e){ console.error(e); } }
-  localStorage.setItem(EVT_KEY, JSON.stringify([]));
   return [];
 }
 function saveEvents(){ localStorage.setItem(EVT_KEY, JSON.stringify(state.events)); }
@@ -656,16 +599,16 @@ function generateIcsContent() {
   const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Local Calendar//ICS Export//ZH-TW','CALSCALE:GREGORIAN'];
   state.events.forEach(evt => {
     lines.push('BEGIN:VEVENT');
-    lines.push(`UID:${evt.id || 'evt-' + Date.now() + Math.random().toString(36).substr(2, 9)}@local.calendar`);
+    lines.push(`UID:${evt.id || 'evt-' + Date.now()}@local.calendar`);
     lines.push(`DTSTAMP:${formatIcsDate(new Date().toISOString(), false)}`);
     const isAllDay = evt.allDay;
     lines.push(`DTSTART${isAllDay ? ';VALUE=DATE' : ''}:${formatIcsDate(evt.start, isAllDay)}`);
     if (evt.end) lines.push(`DTEND${isAllDay ? ';VALUE=DATE' : ''}:${formatIcsDate(evt.end, isAllDay)}`);
-    lines.push(`SUMMARY:${(evt.title || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')}`);
-    if (evt.description) lines.push(`DESCRIPTION:${evt.description.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')}`);
-    if (evt.location) lines.push(`LOCATION:${evt.location.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')}`);
+    lines.push(`SUMMARY:${(evt.title || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,')}`);
+    if (evt.description) lines.push(`DESCRIPTION:${evt.description.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,')}`);
+    if (evt.location) lines.push(`LOCATION:${evt.location.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,')}`);
     const cat = getCat(evt.category);
-    if (cat && cat.name) lines.push(`CATEGORIES:${cat.name.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')}`);
+    if (cat && cat.name) lines.push(`CATEGORIES:${cat.name}`);
     lines.push('END:VEVENT');
   });
   lines.push('END:VCALENDAR');
@@ -683,16 +626,16 @@ function parseIcsDate(dateStr, isAllDay) {
   const colonIdx = dateStr.indexOf(':');
   let cleanStr = colonIdx !== -1 ? dateStr.substring(colonIdx + 1).trim() : dateStr.trim();
   if (isAllDay || /^\d{8}$/.test(cleanStr)) {
-    const y = parseInt(cleanStr.substr(0, 4)), m = parseInt(cleanStr.substr(4, 2)) - 1, d = parseInt(cleanStr.substr(6, 2));
+    const y = parseInt(cleanStr.substr(0,4)), m = parseInt(cleanStr.substr(4,2)) - 1, d = parseInt(cleanStr.substr(6,2));
     return new Date(y, m, d, 0, 0, 0).toISOString();
   }
   if (cleanStr.endsWith('Z')) {
-    const y = parseInt(cleanStr.substr(0, 4)), mo = parseInt(cleanStr.substr(4, 2)) - 1, d = parseInt(cleanStr.substr(6, 2));
-    const h = parseInt(cleanStr.substr(9, 2)), mi = parseInt(cleanStr.substr(11, 2)), s = parseInt(cleanStr.substr(13, 2));
+    const y = parseInt(cleanStr.substr(0,4)), mo = parseInt(cleanStr.substr(4,2)) - 1, d = parseInt(cleanStr.substr(6,2));
+    const h = parseInt(cleanStr.substr(9,2)), mi = parseInt(cleanStr.substr(11,2)), s = parseInt(cleanStr.substr(13,2));
     return new Date(Date.UTC(y, mo, d, h, mi, s)).toISOString();
   } else {
-    const y = parseInt(cleanStr.substr(0, 4)), mo = parseInt(cleanStr.substr(4, 2)) - 1, d = parseInt(cleanStr.substr(6, 2));
-    const h = parseInt(cleanStr.substr(9, 2)), mi = parseInt(cleanStr.substr(11, 2)), s = parseInt(cleanStr.substr(13, 2));
+    const y = parseInt(cleanStr.substr(0,4)), mo = parseInt(cleanStr.substr(4,2)) - 1, d = parseInt(cleanStr.substr(6,2));
+    const h = parseInt(cleanStr.substr(9,2)), mi = parseInt(cleanStr.substr(11,2)), s = parseInt(cleanStr.substr(13,2));
     return new Date(y, mo, d, h, mi, s).toISOString();
   }
 }
@@ -701,7 +644,7 @@ function parseIcsContent(text) {
   const lines = [];
   for (let i = 0; i < rawLines.length; i++) {
     const line = rawLines[i];
-    if ((line.startsWith(' ') || line.startsWith('\t')) && lines.length > 0) lines[lines.length - 1] += line.substring(1);
+    if ((line.startsWith(' ') || line.startsWith('\t')) && lines.length > 0) lines[lines.length-1] += line.substring(1);
     else lines.push(line);
   }
   const events = []; let currentEvent = null;
@@ -721,21 +664,18 @@ function parseIcsContent(text) {
         else if (key === 'DESCRIPTION') currentEvent.description = unescapedValue;
         else if (key === 'LOCATION') currentEvent.location = unescapedValue;
         else if (key === 'CATEGORIES') currentEvent.categories = unescapedValue;
-        else if (key === 'UID') currentEvent.uid = value;
       }
     }
   });
   return events;
 }
-
-/* ============ ICS 匯入預覽 ============ */
 function formatIcsPreviewDate(evt){
   const st = new Date(evt.start);
   const wd = ['日','一','二','三','四','五','六'][st.getDay()];
   const pad = n => String(n).padStart(2,'0');
   if(evt.allDay) return `${st.getFullYear()}/${pad(st.getMonth()+1)}/${pad(st.getDate())} 週${wd} · 全天`;
   const et = new Date(evt.end);
-  return `${st.getFullYear()}/${pad(st.getMonth()+1)}/${pad(st.getDate())} 週${wd} · ${pad(st.getHours())}:${pad(st.getMinutes())} - ${pad(et.getHours())}:${pad(et.getMinutes())}`;
+  return `${st.getFullYear()}/${pad(st.getMonth()+1)}/${pad(st.getDate())} 週${wd} · ${pad(st.getHours())}:${pad(st.getMinutes())}`;
 }
 function openIcsImportPreview(icsEvents){
   state.pendingIcsEvents = icsEvents.map(evt => ({
@@ -762,7 +702,7 @@ function renderIcsPreviewList(){
         <div class="font-bold text-sm text-ink-800 dark:text-ink-100 truncate">${escapeHtml(evt.title)}</div>
         <div class="text-[10px] text-ink-400 mt-0.5">${formatIcsPreviewDate(evt)}</div>
       </div>
-      <select class="ics-cat-select px-2 py-1.5 text-xs rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" data-idx="${idx}">
+      <select class="ics-cat-select px-2 py-1.5 text-xs rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" data-idx="${idx}">
         ${state.categories.map(c => `<option value="${c.id}" ${c.id === evt.userCategory ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
       </select>
     </div>`;
@@ -788,18 +728,18 @@ async function confirmIcsImport(){
   const count = state.pendingIcsEvents.length;
   if (window.currentUser && typeof window.saveEventToCloud === 'function') {
     for (const evt of state.pendingIcsEvents) {
-      const newEvt = { id: `evt-ics-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`, title: evt.title, start: evt.start, end: evt.end, allDay: evt.allDay, category: evt.userCategory || state.categories[0].id, location: evt.location, description: evt.description };
+      const newEvt = { id: `evt-ics-${Date.now()}-${Math.random().toString(36).substr(2,5)}`, title: evt.title, start: evt.start, end: evt.end, allDay: evt.allDay, category: evt.userCategory || state.categories[0].id, location: evt.location, description: evt.description };
       try { await window.saveEventToCloud(newEvt); } catch(e) { console.error(e); }
     }
     closeIcsImportModal(); showToast(`已匯入 ${count} 個日程到雲端`); return;
   }
   state.pendingIcsEvents.forEach(evt => {
-    state.events.push({ id: `evt-ics-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`, title: evt.title, start: evt.start, end: evt.end, allDay: evt.allDay, category: evt.userCategory || state.categories[0].id, location: evt.location, description: evt.description });
+    state.events.push({ id: `evt-ics-${Date.now()}-${Math.random().toString(36).substr(2,5)}`, title: evt.title, start: evt.start, end: evt.end, allDay: evt.allDay, category: evt.userCategory || state.categories[0].id, location: evt.location, description: evt.description });
   });
   saveEvents(); closeIcsImportModal(); renderAll(); showToast(`已成功匯入 ${count} 個日程`);
 }
 
-/* ============ 底部日期詳情面板 ============ */
+/* ============ 底部日期面板 ============ */
 function openDayDetail(dateStr){
   const date = new Date(dateStr);
   state.drawerDate = date;
@@ -821,7 +761,6 @@ function openDayDetail(dateStr){
         <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
           <path d="M35 20 L35 50 L10 50 L10 80 L90 80 L90 50 L65 50 L65 20 Z" stroke="currentColor" stroke-width="2" fill="none" class="text-ink-400 dark:text-ink-500"/>
           <path d="M45 30 Q50 15 60 25 Q65 35 55 40 Q50 45 45 30 Z" fill="none" stroke="currentColor" stroke-width="2" class="text-ink-400 dark:text-ink-500"/>
-          <path d="M45 30 L55 40" stroke="currentColor" stroke-width="1.5" class="text-ink-400 dark:text-ink-500"/>
           <line x1="60" y1="20" x2="60" y2="40" stroke="currentColor" stroke-width="1.5" class="text-ink-400 dark:text-ink-500"/>
           <circle cx="60" cy="20" r="2" fill="currentColor" class="text-ink-400 dark:text-ink-500"/>
         </svg>
@@ -833,9 +772,7 @@ function openDayDetail(dateStr){
       </button>
     </div>`;
     lucide.createIcons();
-    document.getElementById('drawerEmptyCreateBtn').addEventListener('click', () => {
-      closeDayDetail(); setTimeout(() => openEventModal(null, date), 250);
-    });
+    document.getElementById('drawerEmptyCreateBtn').addEventListener('click', () => { closeDayDetail(); setTimeout(() => openEventModal(null, date), 250); });
   } else {
     content.innerHTML = `<div class="space-y-1">
       ${dayEvents.map(evt => {
@@ -846,10 +783,8 @@ function openDayDetail(dateStr){
           <div class="w-1 self-stretch rounded-full shrink-0 mt-1" style="background:${cat.color}"></div>
           <div class="flex-1 min-w-0">
             <div class="font-bold text-sm text-ink-800 dark:text-ink-100">${escapeHtml(evt.title)}</div>
-            ${evt.location ? `<div class="text-[10px] text-ink-400 mt-0.5 flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></div>` : ''}
-            ${evt.description ? `<div class="text-[10px] text-ink-400 mt-0.5 line-clamp-2">${escapeHtml(evt.description)}</div>` : ''}
+            ${evt.location ? `<div class="text-[10px] text-ink-400 mt-0.5">${escapeHtml(evt.location)}</div>` : ''}
           </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-ink-300 shrink-0 mt-1"></i>
         </div>`;
       }).join('')}
     </div>`;
@@ -861,9 +796,8 @@ function openDayDetail(dateStr){
       });
     });
   }
-  const overlay = document.getElementById('dayDrawerOverlay');
-  const panel = document.getElementById('dayDrawerPanel');
-  overlay.classList.add('open'); panel.classList.add('open');
+  document.getElementById('dayDrawerOverlay').classList.add('open');
+  document.getElementById('dayDrawerPanel').classList.add('open');
   const editBtn = document.getElementById('drawerEditIconBtn');
   if(dayEvents.length === 1){
     editBtn.classList.remove('hidden');
@@ -888,8 +822,8 @@ function renderCategories(){
         <span class="text-xs font-medium text-ink-700 dark:text-ink-300 truncate">${escapeHtml(cat.name)}</span>
       </label>
       <div class="flex items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition shrink-0 mr-1">
-        <button class="cat-edit-btn p-1.5 rounded-lg text-ink-300 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30" data-cat="${cat.id}" title="編輯"><i data-lucide="pencil" class="w-3.5 h-3.5 pointer-events-none"></i></button>
-        <button class="cat-del-btn p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30" data-cat="${cat.id}" title="刪除"><i data-lucide="x" class="w-3.5 h-3.5 pointer-events-none"></i></button>
+        <button class="cat-edit-btn p-1.5 rounded-lg text-ink-300 hover:text-brand-600 hover:bg-brand-50" data-cat="${cat.id}"><i data-lucide="pencil" class="w-3.5 h-3.5 pointer-events-none"></i></button>
+        <button class="cat-del-btn p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50" data-cat="${cat.id}"><i data-lucide="x" class="w-3.5 h-3.5 pointer-events-none"></i></button>
       </div>
     </div>`;
   }).join('');
@@ -901,12 +835,8 @@ function renderCategories(){
       saveActiveCats(); renderMainView();
     });
   });
-  c.querySelectorAll('.cat-edit-btn').forEach(btn=>{
-    btn.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); openCategoryModal(btn.dataset.cat); });
-  });
-  c.querySelectorAll('.cat-del-btn').forEach(btn=>{
-    btn.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); deleteCategory(btn.dataset.cat); });
-  });
+  c.querySelectorAll('.cat-edit-btn').forEach(btn=>{ btn.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); openCategoryModal(btn.dataset.cat); }); });
+  c.querySelectorAll('.cat-del-btn').forEach(btn=>{ btn.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); deleteCategory(btn.dataset.cat); }); });
   const select = document.getElementById('eventCategory');
   const currentVal = select.value;
   select.innerHTML = state.categories.map(cat=>`<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');
@@ -915,8 +845,7 @@ function renderCategories(){
 }
 async function deleteCategory(id){
   if(state.categories.length <= 1){ showToast('至少需要保留一個分類'); return; }
-  const cat = state.categories.find(c=>c.id===id);
-  if(!cat) return;
+  const cat = state.categories.find(c=>c.id===id); if(!cat) return;
   const count = state.events.filter(e=>e.category === id).length;
   const msg = count > 0 ? `分類「${cat.name}」下有 ${count} 個日程，刪除後將歸入其他分類，確定要刪除嗎？` : `確定要刪除分類「${cat.name}」嗎？`;
   if(!confirm(msg)) return;
@@ -926,19 +855,14 @@ async function deleteCategory(id){
   state.events.forEach(e=>{ if(e.category === id){ e.category = fallbackId; moved++; } });
   if(moved){
     if (window.currentUser && typeof window.saveEventToCloud === 'function') {
-      for (const e of state.events.filter(e=>e.category === fallbackId)) {
-        try { await window.saveEventToCloud(e); } catch(err) { console.error(err); }
-      }
+      for (const e of state.events.filter(e=>e.category === fallbackId)) { try { await window.saveEventToCloud(e); } catch(err) {} }
     } else { saveEvents(); }
   }
   state.categories = remaining;
   state.activeCategories = state.activeCategories.filter(x=>x!==id);
-  saveCategories(); saveActiveCats();
-  renderCategories(); renderAll();
+  saveCategories(); saveActiveCats(); renderCategories(); renderAll();
   showToast(moved > 0 ? `分類已刪除，${moved} 個日程已歸入「${remaining[0].name}」` : '分類已刪除');
 }
-
-/* ============ 分類 Modal ============ */
 function openCategoryModal(catId = null){
   editingCategoryId = catId;
   const modal = document.getElementById('categoryModal');
@@ -946,8 +870,7 @@ function openCategoryModal(catId = null){
   const confirmBtn = document.getElementById('confirmCategoryBtn');
   const nameInput = document.getElementById('newCatName');
   if(catId){
-    const cat = state.categories.find(c=>c.id === catId);
-    if(!cat) return;
+    const cat = state.categories.find(c=>c.id === catId); if(!cat) return;
     titleEl.textContent = '編輯分類'; confirmBtn.textContent = '儲存';
     nameInput.value = cat.name; newCatColor = cat.color;
   } else {
@@ -956,16 +879,11 @@ function openCategoryModal(catId = null){
   }
   renderPalette();
   modal.classList.remove('hidden');
-  setTimeout(()=>{
-    modal.classList.remove('opacity-0');
-    modal.querySelector('div').classList.remove('scale-95');
-    nameInput.focus(); nameInput.select();
-  },10);
+  setTimeout(()=>{ modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); nameInput.focus(); nameInput.select(); },10);
 }
 function closeCategoryModal(){
   const m = document.getElementById('categoryModal');
-  m.classList.add('opacity-0');
-  m.querySelector('div').classList.add('scale-95');
+  m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
   setTimeout(()=>{ m.classList.add('hidden'); editingCategoryId = null; },200);
 }
 function renderPalette(){
@@ -980,17 +898,14 @@ function saveCategory(){
   const dup = state.categories.some(c => c.name === name && c.id !== editingCategoryId);
   if(dup){ showToast('已有同名分類'); nameEl.focus(); return; }
   if(editingCategoryId){
-    const cat = state.categories.find(c=>c.id === editingCategoryId);
-    if(!cat) return;
+    const cat = state.categories.find(c=>c.id === editingCategoryId); if(!cat) return;
     cat.name = name; cat.color = newCatColor;
-    saveCategories(); renderCategories(); renderAll();
-    closeCategoryModal(); showToast('分類已更新');
+    saveCategories(); renderCategories(); renderAll(); closeCategoryModal(); showToast('分類已更新');
   } else {
     const id = 'cat_' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
     state.categories.push({ id, name, color: newCatColor });
     state.activeCategories.push(id);
-    saveCategories(); saveActiveCats(); renderCategories(); renderAll();
-    closeCategoryModal(); showToast('已新增分類');
+    saveCategories(); saveActiveCats(); renderCategories(); renderAll(); closeCategoryModal(); showToast('已新增分類');
   }
 }
 
@@ -1025,8 +940,6 @@ function renderStats(){
   document.getElementById('statMonthCount').textContent = monthCount;
   document.getElementById('statTodayCount').textContent = todayCount;
 }
-
-/* ============ 篩選 ============ */
 function getFilteredEvents(){
   return state.events.filter(evt=>{
     if(!state.activeCategories.includes(evt.category)) return false;
@@ -1037,18 +950,8 @@ function getFilteredEvents(){
     return true;
   });
 }
-
-/* ============ 月份切換 ============ */
-function goToPrevMonth(){
-  state.currentDate.setMonth(state.currentDate.getMonth()-1);
-  state.currentDate.setDate(1);
-  updateHeaderInfo(); renderMiniCalendar(); renderStats(); renderMainView('right');
-}
-function goToNextMonth(){
-  state.currentDate.setMonth(state.currentDate.getMonth()+1);
-  state.currentDate.setDate(1);
-  updateHeaderInfo(); renderMiniCalendar(); renderStats(); renderMainView('left');
-}
+function goToPrevMonth(){ state.currentDate.setMonth(state.currentDate.getMonth()-1); state.currentDate.setDate(1); updateHeaderInfo(); renderMiniCalendar(); renderStats(); renderMainView('right'); }
+function goToNextMonth(){ state.currentDate.setMonth(state.currentDate.getMonth()+1); state.currentDate.setDate(1); updateHeaderInfo(); renderMiniCalendar(); renderStats(); renderMainView('left'); }
 
 /* ============ 月視圖 ============ */
 function renderMonthView(){
@@ -1094,11 +997,8 @@ function renderMonthView(){
   c.innerHTML = html;
   initMonthSwipe();
 }
-
-/* ============ 滑動 ============ */
 function initMonthSwipe(){
-  const container = document.getElementById('monthSwipeContainer');
-  if(!container) return;
+  const container = document.getElementById('monthSwipeContainer'); if(!container) return;
   const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   if(!isTouchDevice) return;
   container.addEventListener('touchstart', (e) => {
@@ -1123,7 +1023,7 @@ function initMonthSwipe(){
       else if(dx < -30) container.classList.add('can-swipe-left');
     }
   }, { passive: true });
-  container.addEventListener('touchend', (e) => {
+  container.addEventListener('touchend', () => {
     container.classList.remove('dragging', 'can-swipe-left', 'can-swipe-right');
     if(!state.swiping){ state.swiping = false; return; }
     const dx = state.swipeCurrentX - state.swipeStartX;
@@ -1157,7 +1057,7 @@ function renderWeekView(){
         let dateCls = 'text-base ';
         if(isToday) dateCls += 'font-extrabold text-brand-600 dark:text-brand-400';
         else if(isHoliday) dateCls += 'font-extrabold text-rose-600 dark:text-rose-400';
-        return `<div><div class="text-[10px] font-semibold">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="${dateCls}">${d.getDate()}</div>${sub.text ? `<div class="${subTextClass(sub.type, 'text-[9px]')}">${escapeHtml(sub.text)}</div>` : ''}</div>`;
+        return `<div><div class="text-[10px] font-semibold">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="${dateCls}">${d.getDate()}</div>${sub.text ? `<div class="${subTextClass(sub.type,'text-[9px]')}">${escapeHtml(sub.text)}</div>` : ''}</div>`;
       }).join('')}
     </div>
     <div class="flex-1 overflow-y-auto relative">`;
@@ -1173,17 +1073,8 @@ function renderWeekView(){
       }).join('')}
     </div>`;
   }
-   html += `</div></div>`;
+  html += `</div></div>`;
   c.innerHTML = html;
-  lucide.createIcons();
-
-  // ★ 自動滾動到「今天」的位置
-  setTimeout(() => {
-    const todayEl = document.querySelector('.schedule-date-col.today');
-    if (todayEl) {
-      todayEl.scrollIntoView({ behavior: 'auto', block: 'center' });
-    }
-  }, 50);
 }
 
 /* ============ 日視圖 ============ */
@@ -1253,9 +1144,7 @@ function renderScheduleView(){
     if(!groups[key]) groups[key] = { date: d, events: [] };
     groups[key].events.push(evt);
   });
-  // ★ 強制加入「今天」
-  const todayMidnight = new Date();
-  todayMidnight.setHours(0,0,0,0);
+  const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
   const todayKey = `${todayMidnight.getFullYear()}-${String(todayMidnight.getMonth()+1).padStart(2,'0')}-${String(todayMidnight.getDate()).padStart(2,'0')}`;
   if (!groups[todayKey]) groups[todayKey] = { date: todayMidnight, events: [] };
   const sortedKeys = Object.keys(groups).sort();
@@ -1267,10 +1156,6 @@ function renderScheduleView(){
     <h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3>
     <span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span>
   </div>`;
-  if(sortedKeys.length === 0){
-    html += `<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="inbox" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">沒有符合條件的日程項目</p><p class="text-xs mt-1 opacity-70">點擊右下角 + 按鈕新增一個吧</p></div></div>`;
-    c.innerHTML = html; lucide.createIcons(); return;
-  }
   html += `<div class="space-y-6">`;
   sortedKeys.forEach(key=>{
     const group = groups[key];
@@ -1282,7 +1167,7 @@ function renderScheduleView(){
     let daynumCls = '';
     if(isToday) daynumCls = 'text-brand-600 dark:text-brand-400';
     else if(isHoliday) daynumCls = 'text-rose-600 dark:text-rose-400';
-    html += `<div class="schedule-item">`;
+    html += `<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}>`;
     html += `<div class="schedule-date-col ${isToday?'today':''}">
       <div class="weekday">週${weekday}</div>
       <div class="daynum ${daynumCls}">${d.getDate()}</div>
@@ -1301,14 +1186,12 @@ function renderScheduleView(){
           <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5">
             <span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>
             ${evt.location ? `<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>` : ''}
-            ${evt.description ? `<span class="flex items-center space-x-1"><i data-lucide="file-text" class="w-3 h-3"></i></span>` : ''}
           </div>
           ${evt.description ? `<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>` : ''}
         </div>`;
       });
     }
     html += `</div></div>`;
-    // ★ 今天一定顯示當前時間線
     if(isToday){
       html += `<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;
     }
@@ -1316,9 +1199,13 @@ function renderScheduleView(){
   html += `</div></div>`;
   c.innerHTML = html;
   lucide.createIcons();
+  setTimeout(() => {
+    const todayEl = document.getElementById('todayScheduleItem');
+    if (todayEl) todayEl.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }, 100);
 }
 
-/* ============ 我的頁面 ============ */
+/* ============ 我的 ============ */
 function renderMyView(){
   const c = document.getElementById('calendarViewContainer');
   const today = new Date();
@@ -1382,10 +1269,8 @@ function renderMyView(){
 
 /* ============ 渲染路由 ============ */
 function renderMainView(animationDir){
-  if(state.view === 'my'){
-    document.getElementById('sidebar').classList.add('hidden');
-    renderMyView(); return;
-  } else {
+  if(state.view === 'my'){ document.getElementById('sidebar').classList.add('hidden'); renderMyView(); return; }
+  else {
     const sidebar = document.getElementById('sidebar');
     if(window.innerWidth >= 768) sidebar.classList.remove('hidden');
     else sidebar.classList.add('hidden');
@@ -1411,7 +1296,6 @@ function renderMainView(animationDir){
 }
 window.renderMainView = renderMainView;
 
-/* ============ 頂部標題 ============ */
 function updateHeaderInfo(){
   const d = state.currentDate;
   const y = d.getFullYear(), m = d.getMonth()+1;
@@ -1434,7 +1318,6 @@ function renderAll(){
 }
 window.renderAll = renderAll;
 
-/* ============ 日程 Modal ============ */
 function openEventModal(eventObj=null, defaultDate=null){
   const modal = document.getElementById('eventModal');
   const form = document.getElementById('eventForm');
@@ -1471,8 +1354,6 @@ function closeEventModal(){
   modal.querySelector('div').classList.add('scale-95');
   setTimeout(()=>modal.classList.add('hidden'),200);
 }
-
-/* ============ 動態綁定 ============ */
 function bindDynamicEvents(){
   document.querySelectorAll('.cell-day').forEach(cell=>{
     cell.addEventListener('click', e=>{
@@ -1500,8 +1381,6 @@ function bindDynamicEvents(){
     el.addEventListener('click', ()=>{ openDayDetail(el.dataset.date); });
   });
 }
-
-/* ============ 裝置模式 ============ */
 function setDeviceMode(mode){
   state.deviceMode = mode;
   const vp = document.getElementById('appViewport');
@@ -1516,8 +1395,6 @@ function setDeviceMode(mode){
   else { sidebar.classList.remove('hidden'); }
   renderMainView();
 }
-
-/* ============ 事件監聽 ============ */
 function initEventListeners(){
   document.getElementById('todayBtn').addEventListener('click',()=>{ state.currentDate = new Date(); state.miniDate = new Date(); renderAll(); });
   document.getElementById('prevBtn').addEventListener('click',()=>{
@@ -1551,23 +1428,16 @@ function initEventListeners(){
     e.preventDefault();
     const id = document.getElementById('eventId').value || `evt-${Date.now()}`;
     const evt = {
-      id,
-      title: document.getElementById('eventTitle').value,
-      start: document.getElementById('eventStart').value,
-      end: document.getElementById('eventEnd').value,
-      allDay: document.getElementById('eventAllDay').checked,
-      category: document.getElementById('eventCategory').value,
-      location: document.getElementById('eventLocation').value,
-      description: document.getElementById('eventDescription').value
+      id, title: document.getElementById('eventTitle').value,
+      start: document.getElementById('eventStart').value, end: document.getElementById('eventEnd').value,
+      allDay: document.getElementById('eventAllDay').checked, category: document.getElementById('eventCategory').value,
+      location: document.getElementById('eventLocation').value, description: document.getElementById('eventDescription').value
     };
     if (window.currentUser && typeof window.saveEventToCloud === 'function') {
       try {
-        await window.saveEventToCloud(evt);
-        showToast('已同步至雲端');
-        closeEventModal();
+        await window.saveEventToCloud(evt); showToast('已同步至雲端'); closeEventModal();
       } catch (err) {
-        console.error('雲端儲存失敗:', err);
-        showToast('雲端儲存失敗，已儲存到本地');
+        console.error('雲端儲存失敗:', err); showToast('雲端儲存失敗，已儲存到本地');
         const idx = state.events.findIndex(x=>x.id===id);
         if(idx>=0){ state.events[idx] = evt; } else { state.events.push(evt); }
         saveEvents(); closeEventModal(); renderAll();
@@ -1584,15 +1454,10 @@ function initEventListeners(){
     const id = document.getElementById('eventId').value;
     if(!id) return;
     if (window.currentUser && typeof window.deleteEventFromCloud === 'function') {
-      try {
-        await window.deleteEventFromCloud(id);
-        showToast('日程已從雲端刪除');
-        closeEventModal();
-      } catch (err) {
-        console.error('雲端刪除失敗:', err);
-        showToast('雲端刪除失敗，已從本地移除');
-        state.events = state.events.filter(x=>x.id!==id);
-        saveEvents(); closeEventModal(); renderAll();
+      try { await window.deleteEventFromCloud(id); showToast('日程已從雲端刪除'); closeEventModal(); }
+      catch (err) {
+        console.error('雲端刪除失敗:', err); showToast('雲端刪除失敗，已從本地移除');
+        state.events = state.events.filter(x=>x.id!==id); saveEvents(); closeEventModal(); renderAll();
       }
     } else {
       state.events = state.events.filter(x=>x.id!==id);
@@ -1618,15 +1483,13 @@ function initEventListeners(){
     a.click();
     showToast('已匯出 JSON 備份檔');
   });
-
   document.getElementById('exportIcsBtn').addEventListener('click', () => {
     if (state.events.length === 0) { showToast('沒有日程可以匯出'); return; }
     downloadIcs(); showToast('已匯出 ICS 檔案');
   });
 
   document.getElementById('importJsonInput').addEventListener('change', async e=>{
-    const file = e.target.files[0];
-    if(!file) return;
+    const file = e.target.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onload = async evt=>{
       try{
@@ -1636,24 +1499,21 @@ function initEventListeners(){
         else if(Array.isArray(data)){ importedEvents = data; }
         else throw new Error('格式錯誤');
         if (window.currentUser && typeof window.saveEventToCloud === 'function') {
-          for (const evt of importedEvents) { try { await window.saveEventToCloud(evt); } catch(err) { console.error(err); } }
+          for (const evt of importedEvents) { try { await window.saveEventToCloud(evt); } catch(err) {} }
           showToast(`已匯入 ${importedEvents.length} 個日程到雲端`);
         } else {
           state.events = importedEvents; saveEvents(); renderAll(); showToast('已成功匯入 JSON');
         }
         state.activeCategories = state.activeCategories.filter(id => state.categories.some(c=>c.id === id));
         if(state.activeCategories.length === 0) state.activeCategories = state.categories.map(c=>c.id);
-        saveCategories(); saveActiveCats(); renderCategories();
-        dataModal.classList.add('hidden');
+        saveCategories(); saveActiveCats(); renderCategories(); dataModal.classList.add('hidden');
       }catch(err){ alert('JSON 格式不正確：' + err.message); }
     };
-    reader.readAsText(file);
-    e.target.value = '';
+    reader.readAsText(file); e.target.value = '';
   });
 
   document.getElementById('importIcsInput').addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = evt => {
       try {
@@ -1671,12 +1531,10 @@ function initEventListeners(){
           return { title: icsEvt.title, start: icsEvt.start, end: end, allDay: !!icsEvt.allDay, location: icsEvt.location || '', description: icsEvt.description || '', suggestedCategory };
         }).filter(Boolean);
         if (prepared.length === 0) { showToast('沒有有效的日程可匯入'); return; }
-        dataModal.classList.add('hidden');
-        openIcsImportPreview(prepared);
+        dataModal.classList.add('hidden'); openIcsImportPreview(prepared);
       } catch (err) { alert('ICS 檔案解析失敗：' + err.message); }
     };
-    reader.readAsText(file);
-    e.target.value = '';
+    reader.readAsText(file); e.target.value = '';
   });
 
   document.getElementById('closeIcsImportBtn').addEventListener('click', closeIcsImportModal);
@@ -1692,7 +1550,7 @@ function initEventListeners(){
     if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。')) return;
     if (window.currentUser && typeof window.deleteEventFromCloud === 'function') {
       const ids = state.events.map(e => e.id);
-      for (const id of ids) { try { await window.deleteEventFromCloud(id); } catch(err) { console.error(err); } }
+      for (const id of ids) { try { await window.deleteEventFromCloud(id); } catch(err) {} }
       showToast('已清空雲端所有日程');
     } else {
       state.events = []; saveEvents(); renderAll(); showToast('已清空所有日程');
@@ -1709,7 +1567,6 @@ function initEventListeners(){
   });
 }
 
-/* ============ 啟動 ============ */
 window.onload = function(){
   state.categories = loadCategories();
   const savedActive = loadActiveCats();
@@ -1723,7 +1580,6 @@ window.onload = function(){
 };
 </script>
 
-<!-- ============ Firebase 整合 ============ -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -1744,7 +1600,6 @@ window.onload = function(){
     try { await signInWithPopup(auth, googleProvider); }
     catch (error) { console.error("登入失敗:", error); alert("登入失敗：" + error.message); }
   };
-
   window.signOutUser = async function() {
     try { await signOut(auth); } catch (error) { console.error("登出失敗:", error); }
   };
@@ -1761,19 +1616,17 @@ window.onload = function(){
           const snapshot = await getDocs(q);
           const localEvents = (window.state && window.state.events) || [];
           if (snapshot.empty && localEvents.length > 0) {
-            console.log("雲端為空，上傳本地資料...");
             for (const evt of localEvents) {
               const ref = doc(db, "events", evt.id);
               await setDoc(ref, { ...evt, userId: user.uid });
             }
           }
           hasMigratedLocal = true;
-        } catch (e) { console.error("遷移本地資料失敗:", e); }
+        } catch (e) { console.error("遷移失敗:", e); }
       }
       startListeningToEvents();
       updateStorageHint(true);
     } else {
-      console.log("未登入");
       updateLoginUI(null);
       if (unsubscribeEvents) { unsubscribeEvents(); unsubscribeEvents = null; }
       if (window.state) {
@@ -1801,7 +1654,6 @@ window.onload = function(){
         try { localStorage.setItem('calendar_events_v1', JSON.stringify(cloudEvents)); } catch(e) {}
         if (typeof window.renderAll === 'function') window.renderAll();
       }
-      console.log("雲端資料已同步，共", cloudEvents.length, "筆");
     }, (error) => { console.error("監聽失敗:", error); });
   }
 
@@ -1809,13 +1661,10 @@ window.onload = function(){
     if (!currentUser) throw new Error("未登入");
     const ref = doc(db, "events", event.id);
     await setDoc(ref, { ...event, userId: currentUser.uid });
-    console.log("已儲存到雲端:", event.id);
   };
-
   window.deleteEventFromCloud = async function(eventId) {
     if (!currentUser) throw new Error("未登入");
     await deleteDoc(doc(db, "events", eventId));
-    console.log("已從雲端刪除:", eventId);
   };
 
   function updateLoginUI(user) {
@@ -1844,7 +1693,6 @@ window.onload = function(){
       if (sideUserSub) sideUserSub.textContent = '資料僅存於此裝置';
     }
   }
-
   function updateStorageHint(isLoggedIn) {
     const hint = document.getElementById('storageHint');
     if (!hint) return;
