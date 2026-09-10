@@ -3,7 +3,7 @@
 <head>
 <script>
 window.FIREBASE_CONFIG = {
- apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
+  apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
   authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
   projectId: "my-calendar-app-9a3c8",
   storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
@@ -498,7 +498,32 @@ function renderMyView(){
         </div>
       </div>
     </div>
-
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200">日曆與分類</h3>
+        <button id="myAddCatBtn" class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/40 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="space-y-1">
+        ${state.categories.map(cat => `
+          <div class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
+            <div class="flex items-center space-x-2.5 min-w-0">
+              <span class="w-3 h-3 rounded-full shrink-0" style="background:${cat.color}"></span>
+              <span class="text-sm font-medium truncate">${escapeHtml(cat.name)}</span>
+            </div>
+            <div class="flex items-center space-x-1 shrink-0">
+              <button class="my-cat-edit-btn p-1.5 rounded-lg text-ink-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 transition" data-cat="${cat.id}">
+                <i data-lucide="pencil" class="w-3.5 h-3.5 pointer-events-none"></i>
+              </button>
+              <button class="my-cat-del-btn p-1.5 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-cat="${cat.id}">
+                <i data-lucide="x" class="w-3.5 h-3.5 pointer-events-none"></i>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
       <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">近期生日和紀念日</h3>
       <div class="space-y-4">
@@ -573,6 +598,19 @@ function renderMyView(){
   });
   document.getElementById('myIcsBtn').addEventListener('click', () => {
     openIcsModal();
+  });
+  document.getElementById('myAddCatBtn').addEventListener('click', () => {
+    openCategoryModal(null);
+  });
+  document.querySelectorAll('.my-cat-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openCategoryModal(btn.dataset.cat);
+    });
+  });
+  document.querySelectorAll('.my-cat-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteCategory(btn.dataset.cat);
+    });
   });
 
   const signOutBtn = document.getElementById('mySignOutBtn');
