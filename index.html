@@ -3,7 +3,7 @@
 <head>
 <script>
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
+ apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
   authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
   projectId: "my-calendar-app-9a3c8",
   storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
@@ -132,14 +132,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <div id="userInfo" class="hidden items-center space-x-1.5 md:space-x-2 pl-1 md:pl-2 border-l border-ink-200 dark:border-ink-700">
 <img id="userAvatar" class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-ink-200 dark:border-ink-700 shrink-0" src="" referrerpolicy="no-referrer">
 <span id="userName" class="text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hidden lg:inline max-w-[100px] truncate"></span>
-<button onclick="signOutUser()" class="p-1.5 md:p-2 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-ink-500 hover:text-rose-600 transition"><i data-lucide="log-out" class="w-3.5 h-3.5 md:w-4 md:h-4"></i></button>
 </div>
 <button id="myPageBtn" class="p-1.5 md:p-2 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-600 dark:text-ink-300 transition"><i data-lucide="user" class="w-3.5 h-3.5 md:w-4 md:h-4"></i></button>
-<button id="notifBtn" class="p-1.5 md:p-2 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-600 dark:text-ink-300 transition" title="開啟通知"><i data-lucide="bell" class="w-3.5 h-3.5 md:w-4 md:h-4"></i></button>
-<button id="themeToggleBtn" class="p-1.5 md:p-2 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-600 dark:text-ink-300 transition">
-<i data-lucide="moon" class="w-3.5 h-3.5 md:w-4 md:h-4 dark:hidden"></i><i data-lucide="sun" class="w-3.5 h-3.5 md:w-4 md:h-4 hidden dark:block"></i>
-</button>
-<button id="dataBtn" class="p-1.5 md:p-2 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-600 dark:text-ink-300 transition"><i data-lucide="database" class="w-3.5 h-3.5 md:w-4 md:h-4"></i></button>
 </div>
 </header>
 
@@ -314,6 +308,47 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 </div>
 
 <div id="dayDrawerOverlay" class="day-drawer-overlay"></div>
+<div id="icsModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden opacity-0 transition-opacity duration-200">
+  <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] transform scale-95 transition-transform duration-200">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800">
+      <h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="calendar-arrow-down" class="w-5 h-5 text-sky-500"></i><span>ICS 匯入匯出</span></h3>
+      <button id="closeIcsModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div id="icsMainPanel" class="p-6 space-y-3">
+      <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">ICS 是通用的日曆格式，可以與 Google 日曆、Apple 日曆、Outlook 互相匯入匯出。</p>
+      <button id="icsExportBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition">
+        <span class="flex items-center space-x-2.5">
+          <span class="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-up" class="w-4 h-4"></i></span>
+          <span>匯出 ICS 檔案</span>
+        </span>
+      </button>
+      <label class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition cursor-pointer">
+        <span class="flex items-center space-x-2.5">
+          <span class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="calendar-arrow-down" class="w-4 h-4"></i></span>
+          <span>匯入 ICS 檔案</span>
+        </span>
+        <input type="file" id="icsImportInput" accept=".ics" class="hidden">
+      </label>
+    </div>
+    <div id="icsPreviewPanel" class="hidden flex-1 overflow-hidden flex flex-col">
+      <div class="px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-ink-50/60 dark:bg-ink-900/30 shrink-0">
+        <div class="text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">批次設定</div>
+        <div class="flex items-center gap-2">
+          <select id="bulkCategorySelect" class="flex-1 px-3 py-2 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950"></select>
+          <button id="applyBulkCategory" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow whitespace-nowrap">套用至全部</button>
+        </div>
+      </div>
+      <div id="icsPreviewList" class="flex-1 overflow-y-auto px-6 py-2 divide-y divide-ink-100 dark:divide-ink-800"></div>
+      <div class="px-6 py-4 border-t border-ink-200/70 dark:border-ink-800 flex items-center justify-between shrink-0">
+        <span id="icsImportCount" class="text-xs text-ink-400 font-medium"></span>
+        <div class="flex space-x-2">
+          <button id="icsBackBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">返回</button>
+          <button id="confirmIcsImport" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow transition">確認匯入</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="dayDrawerPanel" class="day-drawer-panel">
 <div class="flex justify-center pt-3 pb-1 shrink-0"><div class="w-10 h-1 rounded-full bg-ink-300 dark:bg-ink-600"></div></div>
 <div class="px-5 pt-2 pb-4 border-b border-ink-200/70 dark:border-ink-800/70 shrink-0">
@@ -396,7 +431,157 @@ function initMonthSwipe(){const container=document.getElementById('monthSwipeCon
 function renderWeekView(){const c=document.getElementById('calendarViewContainer');const curr=new Date(state.currentDate);const first=curr.getDate()-curr.getDay();const weekDays=[];const today=new Date();for(let i=0;i<7;i++){const d=new Date(curr);d.setDate(first+i);weekDays.push(d)}const events=getFilteredEvents();let html=`<div class="h-full flex flex-col min-w-[720px] anim-in"><div class="grid grid-cols-8 border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center py-2.5 text-[11px] font-bold shrink-0"><div class="text-ink-400">時間</div>${weekDays.map(d=>{const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const sub=getDaySubText(d);let dateCls='text-base ';if(isToday)dateCls+='font-extrabold text-brand-600 dark:text-brand-400';else if(isHoliday)dateCls+='font-extrabold text-rose-600 dark:text-rose-400';return`<div><div class="text-[10px] font-semibold">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="${dateCls}">${d.getDate()}</div>${sub.text?`<div class="${subTextClass(sub.type,'text-[9px]')}">${escapeHtml(sub.text)}</div>`:''}</div>`}).join('')}</div><div class="flex-1 overflow-y-auto relative">`;for(let h=0;h<24;h++){const ts=(h<10?'0'+h:h)+':00';html+=`<div class="grid grid-cols-8 min-h-[56px] hour-row border-b border-ink-100/70 dark:border-ink-800/50"><div class="text-[10px] text-ink-400 p-1.5 text-center border-r border-ink-200/70 dark:border-ink-800/70 tabular-nums">${ts}</div>${weekDays.map(d=>{const cellEvents=events.filter(e=>{const st=new Date(e.start);return isSameDay(st,d)&&st.getHours()===h});return`<div class="border-r border-ink-200/70 dark:border-ink-800/70 p-0.5 hover:bg-brand-50/40 dark:hover:bg-brand-950/20 cell-hour" data-date="${d.toISOString()}" data-hour="${h}">${cellEvents.map(evt=>{const cat=getCat(evt.category);return`<div class="event-pill cat-chip text-[10px] p-1.5 rounded-md border font-medium truncate mb-1" style="--c:${cat.color}" data-id="${evt.id}">${escapeHtml(evt.title)}</div>`}).join('')}</div>`}).join('')}</div>`}html+=`</div></div>`;c.innerHTML=html}
 function renderDayView(){const c=document.getElementById('calendarViewContainer');const d=state.currentDate;const events=getFilteredEvents().filter(e=>isSameDay(new Date(e.start),d));const today=new Date();const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const sub=getDaySubText(d);let subLine=`週${['日','一','二','三','四','五','六'][d.getDay()]}`;if(lunar.full)subLine+=` · ${escapeHtml(lunar.full)}`;if(sub.type==='term'||sub.type==='festival')subLine+=` · ${escapeHtml(sub.text)}`;subLine+=` · 第${weekNum}週`;let dateCls='text-2xl font-extrabold tracking-tight ';if(isHoliday)dateCls+='text-rose-600 dark:text-rose-400';let html=`<div class="h-full flex flex-col p-5 max-w-3xl mx-auto w-full anim-in"><div class="flex items-center justify-between pb-5 border-b border-ink-200/70 dark:border-ink-800/70 mb-5"><div><h3 class="${dateCls} flex items-center space-x-2"><span>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>${isToday?'<span class="text-[10px] px-2 py-1 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-full font-bold">今天</span>':''}${isHoliday?'<span class="text-[10px] px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full font-bold">節假日</span>':''}</h3><p class="text-xs text-ink-500 mt-1.5">${subLine}</p><p class="text-xs text-ink-400 mt-0.5">共 ${events.length} 個日程</p></div><button id="addDayEventBtn" class="px-4 py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl text-xs font-semibold shadow-glow">+ 新建</button></div><div class="flex-1 overflow-y-auto space-y-3 pr-2">`;if(events.length===0){html+=`<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="calendar-x" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">今日尚無規劃日程</p></div>`}else{html+=events.map(evt=>{const cat=getCat(evt.category);return`<div class="event-pill cat-chip p-4 rounded-2xl border cursor-pointer flex items-start justify-between" style="--c:${cat.color}" data-id="${evt.id}"><div class="space-y-1.5 min-w-0"><div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><h4 class="font-bold text-base truncate">${escapeHtml(evt.title)}</h4></div><div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs opacity-80"><span class="flex items-center space-x-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="tabular-nums">${evt.allDay?'全天':`${formatTime(evt.start)} - ${formatTime(evt.end)}`}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<p class="text-xs opacity-90 pt-1">${escapeHtml(evt.description)}</p>`:''}</div><i data-lucide="chevron-right" class="w-5 h-5 opacity-40 shrink-0"></i></div>`}).join('')}html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();const addBtn=document.getElementById('addDayEventBtn');if(addBtn)addBtn.addEventListener('click',()=>openEventModal(null,d))}
 function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const events=getFilteredEvents().sort((a,b)=>new Date(a.start)-new Date(b.start));const groups={};events.forEach(evt=>{const d=new Date(evt.start);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt)});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(group.events.length===0){const emptyMsg=isToday?'今天沒有計劃。點擊建立。':'沒有計劃。點擊建立。';html+=`<div class="empty-day" data-date="${d.toISOString()}"><span class="empty-text">${emptyMsg}</span></div>`}else{group.events.forEach(evt=>{const cat=getCat(evt.category);const timeStr=evt.allDay?'全天':`${formatTime(evt.start)} - ${formatTime(evt.end)}`;html+=`<div class="schedule-card" style="--c:${cat.color}" data-id="${evt.id}"><div class="font-bold text-sm leading-snug">${escapeHtml(evt.title)}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`})}html+=`</div></div>`;if(isToday){html+=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`}});html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();setTimeout(()=>{const el=document.getElementById('todayScheduleItem');if(el)el.scrollIntoView({behavior:'auto',block:'start'})},100)}
-function renderMyView(){const c=document.getElementById('calendarViewContainer');const today=new Date();const todayEvents=state.events.filter(e=>{const d=new Date(e.start);return d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate()});const totalEvents=state.events.length;const dayCounts=[0,0,0,0,0,0,0];state.events.forEach(e=>{dayCounts[new Date(e.start).getDay()]++});const maxCount=Math.max(...dayCounts);const weekdays=['週日','週一','週二','週三','週四','週五','週六'];const busiestDay=maxCount>0?weekdays[dayCounts.indexOf(maxCount)]:'無';const catCounts={};state.categories.forEach(cat=>catCounts[cat.id]=0);state.events.forEach(e=>{if(catCounts[e.category]!==undefined)catCounts[e.category]++});const catData=state.categories.map(cat=>({...cat,count:catCounts[cat.id]})).filter(cat=>cat.count>0).sort((a,b)=>b.count-a.count);const totalCatCount=catData.reduce((s,c)=>s+c.count,0);let gp=[],cp=0;catData.forEach(cat=>{const p=(cat.count/totalCatCount)*100;const e=cp+p;gp.push(`${cat.color} ${cp}% ${e}%`);cp=e});const gradientStyle=gp.length>0?`conic-gradient(${gp.join(', ')})`:'conic-gradient(#e2e8f0 0% 100%)';const tm=new Date();tm.setHours(0,0,0,0);const anniversaries=state.events.filter(e=>{const cat=getCat(e.category);return e.category===ANNIVERSARY_CAT_ID||(cat&&(cat.name.includes('生日')||cat.name.includes('紀念日')))}).map(e=>{const ed=new Date(e.start);ed.setHours(0,0,0,0);const ey=new Date(tm.getFullYear(),ed.getMonth(),ed.getDate());let dd=Math.round((ey-tm)/86400000);if(dd<0){const ny=new Date(tm.getFullYear()+1,ed.getMonth(),ed.getDate());dd=Math.round((ny-tm)/86400000)}return{title:e.title,date:ed,diffDays:dd}}).sort((a,b)=>a.diffDays-b.diffDays).slice(0,5);const formatAnnDate=d=>{const wd=['日','一','二','三','四','五','六'][d.getDay()];return`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 週${wd}`};let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in"><div class="flex items-center justify-between mb-6"><h2 class="text-2xl font-extrabold tracking-tight">我的</h2></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">摘要</h3><div class="grid grid-cols-2 gap-4"><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center"><i data-lucide="calendar-check" class="w-5 h-5 text-orange-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">今日事件</div><div class="text-xl font-extrabold tabular-nums">${todayEvents.length}</div></div></div><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center"><i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">所有事件</div><div class="text-xl font-extrabold tabular-nums">${totalEvents}</div></div></div><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center"><i data-lucide="briefcase" class="w-5 h-5 text-emerald-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">最忙碌的一天</div><div class="text-base font-extrabold">${busiestDay}</div></div></div><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center"><i data-lucide="file-pen" class="w-5 h-5 text-rose-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">總備忘錄數</div><div class="text-xl font-extrabold tabular-nums">0</div></div></div></div></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">事件&行事曆分類</h3><div class="flex items-center justify-center md:justify-start gap-6"><div class="donut-chart" style="background: ${gradientStyle};"><div class="donut-inner"><div class="total">${totalCatCount}</div><div class="label">總數</div></div></div><div class="flex-1 space-y-2">${catData.length>0?catData.map(cat=>`<div class="flex items-center justify-between text-xs"><div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-sm" style="background:${cat.color}"></span><span class="font-medium text-ink-700 dark:text-ink-300">${escapeHtml(cat.name)}</span></div><span class="font-semibold tabular-nums text-ink-500">${cat.count}</span></div>`).join(''):'<div class="text-xs text-ink-400">暫無分類數據</div>'}</div></div></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">近期生日和紀念日</h3><div class="space-y-4">${anniversaries.length>0?anniversaries.map(a=>{const dd=a.diffDays===0?'今天':`${a.diffDays} D`;return`<div class="flex items-center justify-between"><div><div class="font-bold text-sm text-ink-800 dark:text-ink-100">${escapeHtml(a.title)}</div><div class="text-[10px] text-ink-400 mt-0.5">${formatAnnDate(a.date)}</div></div><div class="text-base font-extrabold tabular-nums ${a.diffDays===0?'text-rose-500':'text-ink-800 dark:text-ink-100'}">${dd}</div></div>`}).join(''):'<div class="text-xs text-ink-400 text-center py-4">暫無生日或紀念日</div>'}</div></div><button id="backToCalendarBtn" class="w-full py-3 rounded-2xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 text-sm font-semibold hover:bg-ink-200 dark:hover:bg-ink-700 transition mb-4">返回日曆</button></div>`;c.innerHTML=html;lucide.createIcons();document.getElementById('backToCalendarBtn').addEventListener('click',()=>{state.view='month';renderAll()})}
+function renderMyView(){
+  const c = document.getElementById('calendarViewContainer');
+  const today = new Date();
+  const todayEvents = state.events.filter(e => { const d = new Date(e.start); return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate(); });
+  const totalEvents = state.events.length;
+  const dayCounts = [0,0,0,0,0,0,0];
+  state.events.forEach(e => { dayCounts[new Date(e.start).getDay()]++; });
+  const maxCount = Math.max(...dayCounts);
+  const weekdays = ['週日','週一','週二','週三','週四','週五','週六'];
+  const busiestDay = maxCount > 0 ? weekdays[dayCounts.indexOf(maxCount)] : '無';
+  const catCounts = {};
+  state.categories.forEach(cat => catCounts[cat.id] = 0);
+  state.events.forEach(e => { if(catCounts[e.category] !== undefined) catCounts[e.category]++; });
+  const catData = state.categories.map(cat => ({ ...cat, count: catCounts[cat.id] })).filter(cat => cat.count > 0).sort((a,b) => b.count - a.count);
+  const totalCatCount = catData.reduce((sum, c) => sum + c.count, 0);
+  let gradientParts = []; let currentPercent = 0;
+  catData.forEach(cat => { const percent = (cat.count / totalCatCount) * 100; const end = currentPercent + percent; gradientParts.push(`${cat.color} ${currentPercent}% ${end}%`); currentPercent = end; });
+  const gradientStyle = gradientParts.length > 0 ? `conic-gradient(${gradientParts.join(', ')})` : 'conic-gradient(#e2e8f0 0% 100%)';
+  const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
+  const anniversaries = state.events.filter(e => { const cat = getCat(e.category); return e.category === ANNIVERSARY_CAT_ID || (cat && (cat.name.includes('生日') || cat.name.includes('紀念日'))); })
+    .map(e => {
+      const eventDate = new Date(e.start); eventDate.setHours(0,0,0,0);
+      const eventDateThisYear = new Date(todayMidnight.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+      let diffDays = Math.round((eventDateThisYear - todayMidnight) / (1000 * 60 * 60 * 24));
+      if(diffDays < 0) { const nextYear = new Date(todayMidnight.getFullYear() + 1, eventDate.getMonth(), eventDate.getDate()); diffDays = Math.round((nextYear - todayMidnight) / (1000 * 60 * 60 * 24)); }
+      return { title: e.title, date: eventDate, diffDays };
+    }).sort((a,b) => a.diffDays - b.diffDays).slice(0, 5);
+  const formatAnnDate = (d) => { const wd = ['日','一','二','三','四','五','六'][d.getDay()]; return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 週${wd}`; };
+
+  const isDark = document.documentElement.classList.contains('dark');
+  const notifPerm = ('Notification' in window) ? Notification.permission : 'unsupported';
+  const notifLabel = notifPerm === 'granted' ? '已開啟' : (notifPerm === 'denied' ? '已封鎖' : '未開啟');
+  const isLoggedIn = !!window.currentUser;
+  const displayName = isLoggedIn ? (window.currentUser.displayName || window.currentUser.email || '使用者') : '本地使用者';
+  const displayEmail = isLoggedIn ? (window.currentUser.email || '') : '資料僅存於此裝置';
+  const avatarURL = isLoggedIn ? (window.currentUser.photoURL || '') : '';
+
+  let html = `<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
+    <div class="flex items-center justify-between mb-6"><h2 class="text-2xl font-extrabold tracking-tight">我的</h2></div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 mb-5 shadow-soft flex items-center space-x-3">
+      ${avatarURL ? `<img class="w-12 h-12 rounded-full border border-ink-200 dark:border-ink-700 shrink-0" src="${avatarURL}" referrerpolicy="no-referrer">` : `<div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-500 to-fuchsia-500 text-white flex items-center justify-center font-bold shrink-0"><i data-lucide="user" class="w-5 h-5"></i></div>`}
+      <div class="flex-1 overflow-hidden">
+        <p class="font-bold text-sm truncate">${escapeHtml(displayName)}</p>
+        <p class="text-[11px] text-ink-400 truncate">${escapeHtml(displayEmail)}</p>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">摘要</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center"><i data-lucide="calendar-check" class="w-5 h-5 text-orange-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">今日事件</div><div class="text-xl font-extrabold tabular-nums">${todayEvents.length}</div></div></div>
+        <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center"><i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">所有事件</div><div class="text-xl font-extrabold tabular-nums">${totalEvents}</div></div></div>
+        <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center"><i data-lucide="briefcase" class="w-5 h-5 text-emerald-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">最忙碌的一天</div><div class="text-base font-extrabold">${busiestDay}</div></div></div>
+        <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center"><i data-lucide="file-pen" class="w-5 h-5 text-rose-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">總備忘錄數</div><div class="text-xl font-extrabold tabular-nums">0</div></div></div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">事件&行事曆分類</h3>
+      <div class="flex items-center justify-center md:justify-start gap-6">
+        <div class="donut-chart" style="background: ${gradientStyle};"><div class="donut-inner"><div class="total">${totalCatCount}</div><div class="label">總數</div></div></div>
+        <div class="flex-1 space-y-2">
+          ${catData.length > 0 ? catData.map(cat => `<div class="flex items-center justify-between text-xs"><div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-sm" style="background:${cat.color}"></span><span class="font-medium text-ink-700 dark:text-ink-300">${escapeHtml(cat.name)}</span></div><span class="font-semibold tabular-nums text-ink-500">${cat.count}</span></div>`).join('') : '<div class="text-xs text-ink-400">暫無分類數據</div>'}
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">近期生日和紀念日</h3>
+      <div class="space-y-4">
+        ${anniversaries.length > 0 ? anniversaries.map(a => { const displayDays = a.diffDays === 0 ? '今天' : `${a.diffDays} D`; return `<div class="flex items-center justify-between"><div><div class="font-bold text-sm text-ink-800 dark:text-ink-100">${escapeHtml(a.title)}</div><div class="text-[10px] text-ink-400 mt-0.5">${formatAnnDate(a.date)}</div></div><div class="text-base font-extrabold tabular-nums ${a.diffDays === 0 ? 'text-rose-500' : 'text-ink-800 dark:text-ink-100'}">${displayDays}</div></div>`; }).join('') : '<div class="text-xs text-ink-400 text-center py-4">暫無生日或紀念日</div>'}
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-3">設定</h3>
+      <div class="space-y-1">
+        <button id="myThemeBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
+          <span class="flex items-center space-x-2.5">
+            <span class="p-1.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300"><i data-lucide="${isDark ? 'sun' : 'moon'}" class="w-4 h-4"></i></span>
+            <span class="text-sm font-semibold">深色模式</span>
+          </span>
+          <span class="text-xs text-ink-400">${isDark ? '開' : '關'}</span>
+        </button>
+        <button id="myNotifBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
+          <span class="flex items-center space-x-2.5">
+            <span class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-4 h-4"></i></span>
+            <span class="text-sm font-semibold">通知提醒</span>
+          </span>
+          <span class="text-xs text-ink-400">${notifLabel}</span>
+        </button>
+        <button id="myDataBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
+          <span class="flex items-center space-x-2.5">
+            <span class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="database" class="w-4 h-4"></i></span>
+            <span class="text-sm font-semibold">資料備份與還原</span>
+          </span>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i>
+        </button>
+        <button id="myIcsBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
+          <span class="flex items-center space-x-2.5">
+            <span class="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-down" class="w-4 h-4"></i></span>
+            <span class="text-sm font-semibold">ICS 匯入匯出</span>
+          </span>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i>
+        </button>
+        ${isLoggedIn ? `<button id="mySignOutBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 transition">
+          <span class="flex items-center space-x-2.5">
+            <span class="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"><i data-lucide="log-out" class="w-4 h-4"></i></span>
+            <span class="text-sm font-semibold text-rose-600 dark:text-rose-400">登出</span>
+          </span>
+        </button>` : ''}
+      </div>
+    </div>
+
+    <button id="backToCalendarBtn" class="w-full py-3 rounded-2xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 text-sm font-semibold hover:bg-ink-200 dark:hover:bg-ink-700 transition mb-4">返回日曆</button>
+  </div>`;
+
+  c.innerHTML = html;
+  lucide.createIcons();
+
+  document.getElementById('backToCalendarBtn').addEventListener('click', () => { state.view = 'month'; renderAll(); });
+
+  document.getElementById('myThemeBtn').addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+    renderMyView();
+  });
+
+  document.getElementById('myNotifBtn').addEventListener('click', async () => {
+    if (!('Notification' in window)) { showToast('此瀏覽器不支援通知'); return; }
+    if (Notification.permission === 'granted') { showToast('通知已開啟 ✓'); return; }
+    if (Notification.permission === 'denied') { alert('通知已被封鎖。請到瀏覽器網址列左邊的鎖頭圖示 → 通知 → 改成「允許」，然後重新整理。'); return; }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') { showToast('通知已開啟 ✓'); sendNotification('📅 通知已開啟', '日程提醒會按你設定的提前時間通知你'); renderMyView(); }
+    else { showToast('未開啟通知'); renderMyView(); }
+  });
+
+  document.getElementById('myDataBtn').addEventListener('click', () => {
+    document.getElementById('dataModal').classList.remove('hidden');
+  });
+  document.getElementById('myIcsBtn').addEventListener('click', () => {
+    openIcsModal();
+  });
+
+  const signOutBtn = document.getElementById('mySignOutBtn');
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', () => {
+      if (confirm('確定要登出嗎？')) signOutUser();
+    });
+  }
+}
 function renderMainView(animationDir){if(state.view==='my'){document.getElementById('sidebar').classList.add('hidden');renderMyView();return}else{const sidebar=document.getElementById('sidebar');if(window.innerWidth>=768)sidebar.classList.remove('hidden');else sidebar.classList.add('hidden')}if(state.view==='month'){renderMonthView();if(animationDir==='left'||animationDir==='right'){const w=document.querySelector('.month-view-wrapper');if(w){w.classList.add(animationDir==='left'?'month-slide-left':'month-slide-right');setTimeout(()=>{w.classList.remove('month-slide-left','month-slide-right')},300)}}}else if(state.view==='week')renderWeekView();else if(state.view==='day')renderDayView();else if(state.view==='schedule')renderScheduleView();const fab=document.getElementById('fabAddBtn');if(state.view==='schedule')fab.classList.remove('hidden');else fab.classList.add('hidden');lucide.createIcons();bindDynamicEvents()}
 window.renderMainView=renderMainView;
 function updateHeaderInfo(){const d=state.currentDate;const y=d.getFullYear(),m=d.getMonth()+1;document.getElementById('currentDateTitle').textContent=`${y}年 ${m}月`;const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];let subtitle=`${m}月${d.getDate()}日 週${weekday}`;if(lunar.full)subtitle+=` · ${lunar.full}`;subtitle+=` · 第${weekNum}週`;document.getElementById('currentDateSubtitle').textContent=subtitle}
@@ -405,6 +590,170 @@ window.renderAll=renderAll;
 function openEventModal(eventObj=null,defaultDate=null){const modal=document.getElementById('eventModal');const form=document.getElementById('eventForm');const delBtn=document.getElementById('deleteEventBtn');const title=document.getElementById('modalTitle');if(eventObj){title.textContent='編輯日程';document.getElementById('eventId').value=eventObj.id;document.getElementById('eventTitle').value=eventObj.title;document.getElementById('eventStart').value=formatDateForInput(new Date(eventObj.start));document.getElementById('eventEnd').value=formatDateForInput(new Date(eventObj.end));document.getElementById('eventAllDay').checked=eventObj.allDay;document.getElementById('eventCategory').value=eventObj.category;document.getElementById('eventLocation').value=eventObj.location||'';document.getElementById('eventDescription').value=eventObj.description||'';fillReminderInputs(eventObj.reminder||'10');delBtn.classList.remove('hidden')}else{title.textContent='新建日程';form.reset();document.getElementById('eventId').value='';const s=defaultDate?new Date(defaultDate):new Date(state.currentDate);s.setHours(9,0,0,0);const e=new Date(s);e.setHours(10,0,0,0);document.getElementById('eventStart').value=formatDateForInput(s);document.getElementById('eventEnd').value=formatDateForInput(e);fillReminderInputs('10');delBtn.classList.add('hidden')}modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0');modal.querySelector('div').classList.remove('scale-95')},10)}
 function closeEventModal(){const m=document.getElementById('eventModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200)}
 function bindDynamicEvents(){document.querySelectorAll('.cell-day').forEach(cell=>{cell.addEventListener('click',e=>{if(e.target.closest('.month-event-block'))return;if(state.swiping)return;openDayDetail(cell.dataset.date)})});document.querySelectorAll('.cell-hour').forEach(cell=>{cell.addEventListener('click',e=>{if(e.target.closest('.event-pill'))return;const d=new Date(cell.dataset.date);d.setHours(parseInt(cell.dataset.hour));openDayDetail(d.toISOString())})});document.querySelectorAll('.event-pill, .schedule-card, .month-event-block').forEach(p=>{p.addEventListener('click',e=>{e.stopPropagation();const evt=state.events.find(x=>x.id===p.dataset.id);if(evt)openEventModal(evt)})});document.querySelectorAll('.empty-day').forEach(el=>{el.addEventListener('click',()=>{openDayDetail(el.dataset.date)})})}
+function formatIcsDate(dateStr, allDay) {
+  const d = new Date(dateStr); const pad = n => String(n).padStart(2, '0');
+  if (allDay) return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+  return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+}
+function generateIcsContent() {
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Local Calendar//ICS Export//ZH-TW','CALSCALE:GREGORIAN'];
+  state.events.forEach(evt => {
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${evt.id || 'evt-'+Date.now()}@local.calendar`);
+    lines.push(`DTSTAMP:${formatIcsDate(new Date().toISOString(), false)}`);
+    const isAllDay = evt.allDay;
+    lines.push(`DTSTART${isAllDay ? ';VALUE=DATE' : ''}:${formatIcsDate(evt.start, isAllDay)}`);
+    if (evt.end) lines.push(`DTEND${isAllDay ? ';VALUE=DATE' : ''}:${formatIcsDate(evt.end, isAllDay)}`);
+    lines.push(`SUMMARY:${(evt.title||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,')}`);
+    if (evt.description) lines.push(`DESCRIPTION:${evt.description.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,')}`);
+    if (evt.location) lines.push(`LOCATION:${evt.location.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,')}`);
+    const cat = getCat(evt.category);
+    if (cat && cat.name) lines.push(`CATEGORIES:${cat.name}`);
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+function downloadIcs() {
+  const content = generateIcsContent();
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `calendar-export-${new Date().toISOString().slice(0,10)}.ics`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+function parseIcsDate(dateStr, isAllDay) {
+  const colonIdx = dateStr.indexOf(':');
+  let cleanStr = colonIdx !== -1 ? dateStr.substring(colonIdx+1).trim() : dateStr.trim();
+  if (isAllDay || /^\d{8}$/.test(cleanStr)) {
+    const y=parseInt(cleanStr.substr(0,4)),m=parseInt(cleanStr.substr(4,2))-1,d=parseInt(cleanStr.substr(6,2));
+    return new Date(y,m,d,0,0,0).toISOString();
+  }
+  if (cleanStr.endsWith('Z')) {
+    const y=parseInt(cleanStr.substr(0,4)),mo=parseInt(cleanStr.substr(4,2))-1,d=parseInt(cleanStr.substr(6,2));
+    const h=parseInt(cleanStr.substr(9,2)),mi=parseInt(cleanStr.substr(11,2)),s=parseInt(cleanStr.substr(13,2));
+    return new Date(Date.UTC(y,mo,d,h,mi,s)).toISOString();
+  }
+  const y=parseInt(cleanStr.substr(0,4)),mo=parseInt(cleanStr.substr(4,2))-1,d=parseInt(cleanStr.substr(6,2));
+  const h=parseInt(cleanStr.substr(9,2)),mi=parseInt(cleanStr.substr(11,2)),s=parseInt(cleanStr.substr(13,2));
+  return new Date(y,mo,d,h,mi,s).toISOString();
+}
+function parseIcsContent(text) {
+  const rawLines = text.split(/\r?\n/);
+  const lines = [];
+  for (let i=0;i<rawLines.length;i++) {
+    const line = rawLines[i];
+    if ((line.startsWith(' ')||line.startsWith('\t')) && lines.length>0) lines[lines.length-1] += line.substring(1);
+    else lines.push(line);
+  }
+  const events=[]; let ce=null;
+  lines.forEach(line=>{
+    if (line.startsWith('BEGIN:VEVENT')) ce={};
+    else if (line.startsWith('END:VEVENT')) { if(ce){events.push(ce);ce=null;} }
+    else if (ce) {
+      const ci = line.indexOf(':');
+      if (ci!==-1) {
+        const kp = line.substring(0,ci), v = line.substring(ci+1).trim();
+        const k = kp.split(';')[0].toUpperCase();
+        const uv = v.replace(/\\n/g,'\n').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\');
+        if (k==='SUMMARY') ce.title = uv;
+        else if (k==='DTSTART') { const a = kp.toUpperCase().includes('VALUE=DATE'); ce.start = parseIcsDate(v,a); ce.allDay = a; }
+        else if (k==='DTEND') { const a = kp.toUpperCase().includes('VALUE=DATE'); ce.end = parseIcsDate(v,a); }
+        else if (k==='DESCRIPTION') ce.description = uv;
+        else if (k==='LOCATION') ce.location = uv;
+        else if (k==='CATEGORIES') ce.categories = uv;
+      }
+    }
+  });
+  return events;
+}
+function formatIcsPreviewDate(evt) {
+  const st = new Date(evt.start);
+  const wd = ['日','一','二','三','四','五','六'][st.getDay()];
+  const pad = n => String(n).padStart(2,'0');
+  if (evt.allDay) return `${st.getFullYear()}/${pad(st.getMonth()+1)}/${pad(st.getDate())} 週${wd} · 全天`;
+  const et = new Date(evt.end);
+  return `${st.getFullYear()}/${pad(st.getMonth()+1)}/${pad(st.getDate())} 週${wd} · ${pad(st.getHours())}:${pad(st.getMinutes())}`;
+}
+function openIcsImportPreview(icsEvents) {
+  state.pendingIcsEvents = icsEvents.map(evt=>({
+    title: evt.title, start: evt.start, end: evt.end, allDay: !!evt.allDay,
+    location: evt.location || '', description: evt.description || '',
+    userCategory: evt.suggestedCategory || state.categories[0].id
+  }));
+  const bs = document.getElementById('bulkCategorySelect');
+  bs.innerHTML = state.categories.map(cat=>`<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');
+  renderIcsPreviewList();
+  document.getElementById('icsImportCount').textContent = `共 ${state.pendingIcsEvents.length} 個日程`;
+  document.getElementById('icsMainPanel').classList.add('hidden');
+  document.getElementById('icsPreviewPanel').classList.remove('hidden');
+}
+function renderIcsPreviewList() {
+  const list = document.getElementById('icsPreviewList');
+  if (!state.pendingIcsEvents || state.pendingIcsEvents.length===0) { list.innerHTML = '<div class="text-center py-8 text-ink-400 text-xs">沒有日程</div>'; return; }
+  list.innerHTML = state.pendingIcsEvents.map((evt,idx)=>{
+    const cat = getCat(evt.userCategory);
+    return `<div class="ics-preview-item flex items-center gap-3 py-2.5">
+      <span class="w-1 self-stretch rounded-full shrink-0" style="background:${cat.color}"></span>
+      <div class="flex-1 min-w-0">
+        <div class="font-bold text-sm truncate">${escapeHtml(evt.title)}</div>
+        <div class="text-[10px] text-ink-400 mt-0.5">${formatIcsPreviewDate(evt)}</div>
+      </div>
+      <select class="ics-cat-select px-2 py-1.5 text-xs rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" data-idx="${idx}">
+        ${state.categories.map(c=>`<option value="${c.id}" ${c.id===evt.userCategory?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}
+      </select>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.ics-cat-select').forEach(sel=>{
+    sel.addEventListener('change',e=>{
+      const idx = parseInt(e.target.dataset.idx);
+      state.pendingIcsEvents[idx].userCategory = e.target.value;
+      const cat = getCat(e.target.value);
+      const bar = e.target.closest('.ics-preview-item').querySelector('span');
+      if (bar) bar.style.background = cat.color;
+    });
+  });
+}
+async function confirmIcsImport() {
+  if (!state.pendingIcsEvents || state.pendingIcsEvents.length===0) return;
+  const count = state.pendingIcsEvents.length;
+  if (window.currentUser && typeof window.saveEventToCloud==='function') {
+    for (const evt of state.pendingIcsEvents) {
+      const ne = { id: `evt-ics-${Date.now()}-${Math.random().toString(36).substr(2,5)}`, title: evt.title, start: evt.start, end: evt.end, allDay: evt.allDay, category: evt.userCategory||state.categories[0].id, location: evt.location, description: evt.description, reminder: '10' };
+      try { await window.saveEventToCloud(ne); } catch(e) { console.error(e); }
+    }
+    showToast(`已匯入 ${count} 個日程到雲端`);
+  } else {
+    state.pendingIcsEvents.forEach(evt=>{
+      state.events.push({ id: `evt-ics-${Date.now()}-${Math.random().toString(36).substr(2,5)}`, title: evt.title, start: evt.start, end: evt.end, allDay: evt.allDay, category: evt.userCategory||state.categories[0].id, location: evt.location, description: evt.description, reminder: '10' });
+    });
+    saveEvents(); renderAll();
+    showToast(`已成功匯入 ${count} 個日程`);
+  }
+  state.pendingIcsEvents = [];
+  closeIcsModal();
+}
+function closeIcsModal() {
+  const m = document.getElementById('icsModal');
+  m.classList.add('opacity-0');
+  m.querySelector('div').classList.add('scale-95');
+  setTimeout(()=>{
+    m.classList.add('hidden');
+    document.getElementById('icsMainPanel').classList.remove('hidden');
+    document.getElementById('icsPreviewPanel').classList.add('hidden');
+    state.pendingIcsEvents = [];
+  }, 200);
+}
+function openIcsModal() {
+  const m = document.getElementById('icsModal');
+  document.getElementById('icsMainPanel').classList.remove('hidden');
+  document.getElementById('icsPreviewPanel').classList.add('hidden');
+  m.classList.remove('hidden');
+  setTimeout(()=>{
+    m.classList.remove('opacity-0');
+    m.querySelector('div').classList.remove('scale-95');
+  }, 10);
+}
 function sendNotification(title,body){if(!('Notification'in window)||Notification.permission!=='granted')return;try{const n=new Notification(title,{body,tag:title+'|'+body});n.onclick=()=>{window.focus();n.close()}}catch(e){}}
 const REMINDER_KEY='calendar_reminders_v1';
 function loadReminded(){try{const s=localStorage.getItem(REMINDER_KEY);return s?new Set(JSON.parse(s)):new Set()}catch(e){return new Set()}}
@@ -434,17 +783,52 @@ document.getElementById('deleteEventBtn').addEventListener('click',async()=>{con
 const hs=e=>{state.searchQuery=e.target.value;renderMainView()};
 document.getElementById('searchInput').addEventListener('input',hs);
 document.getElementById('mobileSearchInput').addEventListener('input',hs);
-document.getElementById('themeToggleBtn').addEventListener('click',()=>{document.documentElement.classList.toggle('dark')});
-const dm=document.getElementById('dataModal');
-document.getElementById('dataBtn').addEventListener('click',()=>dm.classList.remove('hidden'));
-document.getElementById('closeDataModalBtn').addEventListener('click',()=>dm.classList.add('hidden'));
+document.getElementById('closeDataModalBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.add('hidden')});
+document.getElementById('closeIcsModalBtn').addEventListener('click',closeIcsModal);
+document.getElementById('icsBackBtn').addEventListener('click',()=>{
+  document.getElementById('icsMainPanel').classList.remove('hidden');
+  document.getElementById('icsPreviewPanel').classList.add('hidden');
+});
+document.getElementById('icsExportBtn').addEventListener('click',()=>{
+  if (state.events.length===0) { showToast('沒有日程可以匯出'); return; }
+  downloadIcs(); showToast('已匯出 ICS 檔案');
+});
+document.getElementById('icsImportInput').addEventListener('change',e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const icsEvents = parseIcsContent(evt.target.result);
+      if (icsEvents.length===0) { showToast('沒有找到可匯入的事件'); return; }
+      const prepared = icsEvents.map(x=>{
+        if (!x.title || !x.start) return null;
+        let end = x.end;
+        if (!end) { const sd = new Date(x.start); sd.setHours(sd.getHours()+1); end = sd.toISOString(); }
+        let sug = state.categories[0].id;
+        if (x.categories) {
+          const m = state.categories.find(c=>x.categories.includes(c.name)||c.name.includes(x.categories));
+          if (m) sug = m.id;
+        }
+        return { title:x.title, start:x.start, end, allDay:!!x.allDay, location:x.location||'', description:x.description||'', suggestedCategory:sug };
+      }).filter(Boolean);
+      if (prepared.length===0) { showToast('沒有有效的日程可匯入'); return; }
+      openIcsImportPreview(prepared);
+    } catch(err) { alert('ICS 解析失敗：'+err.message); }
+  };
+  reader.readAsText(file); e.target.value='';
+});
+document.getElementById('applyBulkCategory').addEventListener('click',()=>{
+  const bid = document.getElementById('bulkCategorySelect').value;
+  state.pendingIcsEvents.forEach(evt=>{ evt.userCategory = bid; });
+  renderIcsPreviewList(); showToast('已套用至全部日程');
+});
+document.getElementById('confirmIcsImport').addEventListener('click',confirmIcsImport);
 document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:1,exportedAt:new Date().toISOString(),categories:state.categories,events:state.events};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔')});
-document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);let ie=[];if(data&&Array.isArray(data.categories)&&Array.isArray(data.events)){state.categories=data.categories;ie=data.events}else if(Array.isArray(data)){ie=data}else throw new Error('格式錯誤');if(window.currentUser&&typeof window.saveEventToCloud==='function'){for(const e of ie){try{await window.saveEventToCloud(e)}catch(err){}}showToast(`已匯入 ${ie.length} 個日程到雲端`)}else{state.events=ie;saveEvents();renderAll();showToast('已成功匯入 JSON')}state.activeCategories=state.activeCategories.filter(id=>state.categories.some(c=>c.id===id));if(state.activeCategories.length===0)state.activeCategories=state.categories.map(c=>c.id);saveCategories();saveActiveCats();renderCategories();dm.classList.add('hidden')}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value=''});
-document.getElementById('resetDemoBtn').addEventListener('click',async()=>{if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。'))return;if(window.currentUser&&typeof window.deleteEventFromCloud==='function'){const ids=state.events.map(e=>e.id);for(const id of ids){try{await window.deleteEventFromCloud(id)}catch(err){}}showToast('已清空雲端所有日程')}else{state.events=[];saveEvents();renderAll();showToast('已清空所有日程')}dm.classList.add('hidden')});
+document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);let ie=[];if(data&&Array.isArray(data.categories)&&Array.isArray(data.events)){state.categories=data.categories;ie=data.events}else if(Array.isArray(data)){ie=data}else throw new Error('格式錯誤');if(window.currentUser&&typeof window.saveEventToCloud==='function'){for(const e of ie){try{await window.saveEventToCloud(e)}catch(err){}}showToast(`已匯入 ${ie.length} 個日程到雲端`)}else{state.events=ie;saveEvents();renderAll();showToast('已成功匯入 JSON')}state.activeCategories=state.activeCategories.filter(id=>state.categories.some(c=>c.id===id));if(state.activeCategories.length===0)state.activeCategories=state.categories.map(c=>c.id);saveCategories();saveActiveCats();renderCategories();document.getElementById('dataModal').classList.add('hidden')}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value=''});
+document.getElementById('resetDemoBtn').addEventListener('click',async()=>{if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。'))return;if(window.currentUser&&typeof window.deleteEventFromCloud==='function'){const ids=state.events.map(e=>e.id);for(const id of ids){try{await window.deleteEventFromCloud(id)}catch(err){}}showToast('已清空雲端所有日程')}else{state.events=[];saveEvents();renderAll();showToast('已清空所有日程')}document.getElementById('dataModal').classList.add('hidden')});
 document.getElementById('drawerCloseIconBtn').addEventListener('click',closeDayDetail);
 document.getElementById('dayDrawerOverlay').addEventListener('click',closeDayDetail);
 document.getElementById('drawerAddIconBtn').addEventListener('click',()=>{const date=state.drawerDate||state.currentDate;closeDayDetail();setTimeout(()=>openEventModal(null,date),250)});
-document.getElementById('notifBtn').addEventListener('click',async()=>{if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}if(Notification.permission==='denied'){alert('通知已被封鎖。請到瀏覽器網址列左邊的鎖頭圖示 → 通知 → 改成「允許」，然後重新整理。');return}const perm=await Notification.requestPermission();if(perm==='granted'){showToast('通知已開啟 ✓');sendNotification('📅 通知已開啟','日程提醒會按你設定的提前時間通知你')}else{showToast('未開啟通知')}});
 }
 window.onload=function(){state.categories=loadCategories();const sa=loadActiveCats();const allIds=state.categories.map(c=>c.id);state.activeCategories=(sa||allIds).filter(id=>state.categories.some(c=>c.id===id));state.events=loadSavedEvents();renderCategories();initEventListeners();renderAll();lucide.createIcons()};
 </script>
