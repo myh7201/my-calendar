@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-TW" class="h-full">
 <head>
+<!-- ============================================
+     ⚙️ Firebase 設定（唯一需要修改的地方）
+     到 Firebase 控制台 → 專案設定 → 你的應用 → 複製設定
+     ============================================ -->
+<script>
+  window.FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
+  authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
+  projectId: "my-calendar-app-9a3c8",
+  storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
+  messagingSenderId: "83579238529",
+  appId: "1:83579238529:web:51fb1a9f84fe6158ccb580"
+  };
+</script>
+<!-- ============================================ -->
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>日曆</title>
@@ -307,7 +323,6 @@ tailwind.config = {
     max-width: 140px;
   }
 
-  /* 底部詳情面板 */
   .day-drawer-overlay {
     position: fixed;
     inset: 0;
@@ -345,7 +360,6 @@ tailwind.config = {
     transform: translateY(0);
   }
 
-  /* ===== 手機端響應式修正 ===== */
   @media (max-width: 640px) {
     .month-grid {
       grid-template-columns: repeat(7, 1fr) !important;
@@ -379,7 +393,6 @@ tailwind.config = {
     }
   }
 
-  /* ===== 滑動手勢相關 ===== */
   .swipe-container {
     position: relative;
     overflow: hidden;
@@ -495,7 +508,6 @@ tailwind.config = {
       <span class="hidden sm:inline">新增</span>
     </button>
 
-    <!-- 未登入：Google 登入按鈕 -->
     <button id="loginBtn" onclick="signInWithGoogle()"
       class="flex items-center space-x-1.5 px-2.5 md:px-3.5 py-1.5 md:py-2 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-xl text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700 active:scale-95 transition shadow-sm">
       <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -507,7 +519,6 @@ tailwind.config = {
       <span class="hidden sm:inline">Google 登入</span>
     </button>
 
-    <!-- 已登入：使用者資訊 -->
     <div id="userInfo" class="hidden items-center space-x-1.5 md:space-x-2 pl-1 md:pl-2 border-l border-ink-200 dark:border-ink-700">
       <img id="userAvatar" class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-ink-200 dark:border-ink-700 shrink-0" src="" alt="Avatar" referrerpolicy="no-referrer">
       <span id="userName" class="text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hidden lg:inline max-w-[100px] truncate"></span>
@@ -579,7 +590,7 @@ tailwind.config = {
         </div>
         <p class="text-[10px] text-ink-400 mt-3 leading-relaxed flex items-start gap-1.5">
           <i data-lucide="info" class="w-3 h-3 mt-0.5 shrink-0"></i>
-          <span id="storageHint">資料儲存在此瀏覽器本地。更換裝置請透過右上角備份功能匯出／匯入。</span>
+          <span id="storageHint">資料儲存在此瀏覽器本地。點擊右上角「Google 登入」即可跨裝置同步。</span>
         </p>
       </div>
     </div>
@@ -1101,6 +1112,7 @@ function showToast(msg){
   clearTimeout(t._tid);
   t._tid = setTimeout(()=>t.classList.add('translate-y-10','opacity-0'),2400);
 }
+window.showToast = showToast;
 function getMonthGridDays(year,month){
   const first = new Date(year,month,1);
   const startDay = first.getDay();
@@ -1373,16 +1385,15 @@ function closeIcsImportModal(){
   }, 200);
 }
 
-function confirmIcsImport(){
+async function confirmIcsImport(){
   if(state.pendingIcsEvents.length === 0){
     closeIcsImportModal();
     return;
   }
   const count = state.pendingIcsEvents.length;
 
-  // 若已登入，將匯入的事件逐一寫入雲端
   if (window.currentUser && typeof window.saveEventToCloud === 'function') {
-    state.pendingIcsEvents.forEach(evt => {
+    for (const evt of state.pendingIcsEvents) {
       const newEvt = {
         id: `evt-ics-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
         title: evt.title,
@@ -1393,14 +1404,13 @@ function confirmIcsImport(){
         location: evt.location,
         description: evt.description
       };
-      window.saveEventToCloud(newEvt);
-    });
+      try { await window.saveEventToCloud(newEvt); } catch(e) { console.error(e); }
+    }
     closeIcsImportModal();
     showToast(`已匯入 ${count} 個日程到雲端`);
     return;
   }
 
-  // 未登入：本地模式
   state.pendingIcsEvents.forEach(evt => {
     state.events.push({
       id: `evt-ics-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
@@ -1594,7 +1604,7 @@ function renderCategories(){
   lucide.createIcons();
 }
 
-function deleteCategory(id){
+async function deleteCategory(id){
   if(state.categories.length <= 1){
     showToast('至少需要保留一個分類');
     return;
@@ -1613,9 +1623,12 @@ function deleteCategory(id){
   state.events.forEach(e=>{
     if(e.category === id){ e.category = fallbackId; moved++; }
   });
+
   if(moved){
     if (window.currentUser && typeof window.saveEventToCloud === 'function') {
-      state.events.filter(e=>e.category === fallbackId).forEach(e => window.saveEventToCloud(e));
+      for (const e of state.events.filter(e=>e.category === fallbackId)) {
+        try { await window.saveEventToCloud(e); } catch(err) { console.error(err); }
+      }
     } else {
       saveEvents();
     }
@@ -2387,6 +2400,7 @@ function renderMainView(animationDir){
   lucide.createIcons();
   bindDynamicEvents();
 }
+window.renderMainView = renderMainView;
 
 /* ============ 更新頂部標題 ============ */
 function updateHeaderInfo(){
@@ -2418,6 +2432,7 @@ function renderAll(){
   renderStats();
   renderMainView();
 }
+window.renderAll = renderAll;
 
 /* ============ 日程 Modal ============ */
 function openEventModal(eventObj=null, defaultDate=null){
@@ -2566,7 +2581,6 @@ function initEventListeners(){
     if(e.key === 'Enter'){ e.preventDefault(); saveCategory(); }
   });
 
-  /* ========== 儲存日程：登入時存雲端，未登入時存本地 ========== */
   document.getElementById('eventForm').addEventListener('submit', async e=>{
     e.preventDefault();
     const id = document.getElementById('eventId').value || `evt-${Date.now()}`;
@@ -2582,12 +2596,10 @@ function initEventListeners(){
     };
 
     if (window.currentUser && typeof window.saveEventToCloud === 'function') {
-      // 雲端模式
       try {
         await window.saveEventToCloud(evt);
         showToast('已同步至雲端');
         closeEventModal();
-        // onSnapshot 會自動重新渲染
       } catch (err) {
         console.error('雲端儲存失敗:', err);
         showToast('雲端儲存失敗，已儲存到本地');
@@ -2598,7 +2610,6 @@ function initEventListeners(){
         renderAll();
       }
     } else {
-      // 本地模式
       const idx = state.events.findIndex(x=>x.id===id);
       if(idx>=0){ state.events[idx] = evt; showToast('日程已更新'); }
       else { state.events.push(evt); showToast('已新增日程'); }
@@ -2608,7 +2619,6 @@ function initEventListeners(){
     }
   });
 
-  /* ========== 刪除日程 ========== */
   document.getElementById('deleteEventBtn').addEventListener('click', async ()=>{
     const id = document.getElementById('eventId').value;
     if(!id) return;
@@ -2689,9 +2699,8 @@ function initEventListeners(){
         }
 
         if (window.currentUser && typeof window.saveEventToCloud === 'function') {
-          // 雲端模式：逐一上傳
           for (const evt of importedEvents) {
-            await window.saveEventToCloud(evt);
+            try { await window.saveEventToCloud(evt); } catch(err) { console.error(err); }
           }
           showToast(`已匯入 ${importedEvents.length} 個日程到雲端`);
         } else {
@@ -2790,10 +2799,9 @@ function initEventListeners(){
     if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。')) return;
 
     if (window.currentUser && typeof window.deleteEventFromCloud === 'function') {
-      // 雲端模式：逐一刪除
       const ids = state.events.map(e => e.id);
       for (const id of ids) {
-        await window.deleteEventFromCloud(id);
+        try { await window.deleteEventFromCloud(id); } catch(err) { console.error(err); }
       }
       showToast('已清空雲端所有日程');
     } else {
@@ -2854,28 +2862,8 @@ window.onload = function(){
     deleteDoc
   } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-  // ========================================================
-  // ⚠️ 請將下方替換成你自己的 Firebase 專案設定
-  // 到 Firebase 控制台 → 專案設定 → 你的應用 → 複製設定
-  // ========================================================
- // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
-  authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
-  projectId: "my-calendar-app-9a3c8",
-  storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
-  messagingSenderId: "83579238529",
-  appId: "1:83579238529:web:51fb1a9f84fe6158ccb580"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-  // ========================================================
+  // Firebase 設定定義在 <head> 最頂部（搜尋 FIREBASE_CONFIG）
+  const firebaseConfig = window.FIREBASE_CONFIG;
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -2888,7 +2876,6 @@ const app = initializeApp(firebaseConfig);
 
   window.currentUser = null;
 
-  // ---------- 登入 / 登出 ----------
   window.signInWithGoogle = async function() {
     try {
       await signInWithPopup(auth, googleProvider);
@@ -2906,7 +2893,6 @@ const app = initializeApp(firebaseConfig);
     }
   };
 
-  // ---------- 監聽登入狀態 ----------
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     window.currentUser = user;
@@ -2915,7 +2901,6 @@ const app = initializeApp(firebaseConfig);
       console.log("已登入:", user.displayName, user.email);
       updateLoginUI(user);
 
-      // 若本地有資料且雲端為空，自動上傳本地資料（首次遷移）
       if (!hasMigratedLocal) {
         try {
           const q = query(collection(db, "events"), where("userId", "==", user.uid));
@@ -2944,7 +2929,6 @@ const app = initializeApp(firebaseConfig);
         unsubscribeEvents();
         unsubscribeEvents = null;
       }
-      // 重新載入本地資料
       if (window.state) {
         const saved = localStorage.getItem('calendar_events_v1');
         try { window.state.events = saved ? JSON.parse(saved) : []; }
@@ -2955,7 +2939,6 @@ const app = initializeApp(firebaseConfig);
     }
   });
 
-  // ---------- 開始監聽雲端事件 ----------
   function startListeningToEvents() {
     if (!currentUser) return;
     if (unsubscribeEvents) unsubscribeEvents();
@@ -2966,14 +2949,12 @@ const app = initializeApp(firebaseConfig);
       const cloudEvents = [];
       snapshot.forEach((d) => {
         const data = d.data();
-        // 移除 userId，避免本地渲染時帶著這個欄位
         const { userId, ...evt } = data;
         cloudEvents.push({ id: d.id, ...evt });
       });
 
       if (window.state) {
         window.state.events = cloudEvents;
-        // 同步快取到 localStorage（僅作為離線備份）
         try { localStorage.setItem('calendar_events_v1', JSON.stringify(cloudEvents)); } catch(e) {}
         if (typeof window.renderAll === 'function') window.renderAll();
       }
@@ -2983,7 +2964,6 @@ const app = initializeApp(firebaseConfig);
     });
   }
 
-  // ---------- 雲端儲存 ----------
   window.saveEventToCloud = async function(event) {
     if (!currentUser) throw new Error("未登入");
     const ref = doc(db, "events", event.id);
@@ -2991,14 +2971,12 @@ const app = initializeApp(firebaseConfig);
     console.log("已儲存到雲端:", event.id);
   };
 
-  // ---------- 雲端刪除 ----------
   window.deleteEventFromCloud = async function(eventId) {
     if (!currentUser) throw new Error("未登入");
     await deleteDoc(doc(db, "events", eventId));
     console.log("已從雲端刪除:", eventId);
   };
 
-  // ---------- UI 更新 ----------
   function updateLoginUI(user) {
     const loginBtn = document.getElementById('loginBtn');
     const userInfo = document.getElementById('userInfo');
@@ -3018,7 +2996,6 @@ const app = initializeApp(firebaseConfig);
       if (userName) userName.textContent = user.displayName || user.email || '使用者';
       if (userAvatar && user.photoURL) userAvatar.src = user.photoURL;
 
-      // 側邊欄使用者區塊
       if (sideAvatar && user.photoURL) {
         sideAvatar.src = user.photoURL;
         sideAvatar.classList.remove('hidden');
@@ -3049,7 +3026,6 @@ const app = initializeApp(firebaseConfig);
     }
   }
 
-  // 初始化提示文字
   updateStorageHint(false);
 </script>
 </body>
