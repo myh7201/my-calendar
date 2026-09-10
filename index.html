@@ -3,7 +3,7 @@
 <head>
 <script>
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
+ apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
   authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
   projectId: "my-calendar-app-9a3c8",
   storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
@@ -80,6 +80,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 @keyframes monthSlideInRight{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
 .month-slide-left{animation:monthSlideInLeft .28s cubic-bezier(.2,.8,.2,1)}
 .month-slide-right{animation:monthSlideInRight .28s cubic-bezier(.2,.8,.2,1)}
+.ics-preview-item{display:flex;align-items:center;gap:12px;padding:10px 0}
 @media(max-width:640px){
 .month-grid{grid-template-columns:repeat(7,1fr)!important}
 .month-header{grid-template-columns:repeat(7,1fr)!important}
@@ -307,48 +308,43 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 </div>
 </div>
 
-<div id="dayDrawerOverlay" class="day-drawer-overlay"></div>
 <div id="icsModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden opacity-0 transition-opacity duration-200">
-  <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] transform scale-95 transition-transform duration-200">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800">
-      <h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="calendar-arrow-down" class="w-5 h-5 text-sky-500"></i><span>ICS 匯入匯出</span></h3>
-      <button id="closeIcsModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
-    </div>
-    <div id="icsMainPanel" class="p-6 space-y-3">
-      <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">ICS 是通用的日曆格式，可以與 Google 日曆、Apple 日曆、Outlook 互相匯入匯出。</p>
-      <button id="icsExportBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition">
-        <span class="flex items-center space-x-2.5">
-          <span class="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-up" class="w-4 h-4"></i></span>
-          <span>匯出 ICS 檔案</span>
-        </span>
-      </button>
-      <label class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition cursor-pointer">
-        <span class="flex items-center space-x-2.5">
-          <span class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="calendar-arrow-down" class="w-4 h-4"></i></span>
-          <span>匯入 ICS 檔案</span>
-        </span>
-        <input type="file" id="icsImportInput" accept=".ics" class="hidden">
-      </label>
-    </div>
-    <div id="icsPreviewPanel" class="hidden flex-1 overflow-hidden flex flex-col">
-      <div class="px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-ink-50/60 dark:bg-ink-900/30 shrink-0">
-        <div class="text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">批次設定</div>
-        <div class="flex items-center gap-2">
-          <select id="bulkCategorySelect" class="flex-1 px-3 py-2 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950"></select>
-          <button id="applyBulkCategory" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow whitespace-nowrap">套用至全部</button>
-        </div>
-      </div>
-      <div id="icsPreviewList" class="flex-1 overflow-y-auto px-6 py-2 divide-y divide-ink-100 dark:divide-ink-800"></div>
-      <div class="px-6 py-4 border-t border-ink-200/70 dark:border-ink-800 flex items-center justify-between shrink-0">
-        <span id="icsImportCount" class="text-xs text-ink-400 font-medium"></span>
-        <div class="flex space-x-2">
-          <button id="icsBackBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">返回</button>
-          <button id="confirmIcsImport" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow transition">確認匯入</button>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] transform scale-95 transition-transform duration-200">
+<div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800">
+<h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="calendar-arrow-down" class="w-5 h-5 text-sky-500"></i><span>ICS 匯入匯出</span></h3>
+<button id="closeIcsModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
 </div>
+<div id="icsMainPanel" class="p-6 space-y-3">
+<p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">ICS 是通用的日曆格式，可以與 Google 日曆、Apple 日曆、Outlook 互相匯入匯出。</p>
+<button id="icsExportBtn" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition">
+<span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-up" class="w-4 h-4"></i></span><span>匯出 ICS 檔案</span></span>
+</button>
+<label class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-800/60 text-sm font-semibold transition cursor-pointer">
+<span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="calendar-arrow-down" class="w-4 h-4"></i></span><span>匯入 ICS 檔案</span></span>
+<input type="file" id="icsImportInput" accept=".ics" class="hidden">
+</label>
+</div>
+<div id="icsPreviewPanel" class="hidden flex-1 overflow-hidden flex flex-col">
+<div class="px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-ink-50/60 dark:bg-ink-900/30 shrink-0">
+<div class="text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">批次設定</div>
+<div class="flex items-center gap-2">
+<select id="bulkCategorySelect" class="flex-1 px-3 py-2 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950"></select>
+<button id="applyBulkCategory" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow whitespace-nowrap">套用至全部</button>
+</div>
+</div>
+<div id="icsPreviewList" class="flex-1 overflow-y-auto px-6 py-2 divide-y divide-ink-100 dark:divide-ink-800"></div>
+<div class="px-6 py-4 border-t border-ink-200/70 dark:border-ink-800 flex items-center justify-between shrink-0">
+<span id="icsImportCount" class="text-xs text-ink-400 font-medium"></span>
+<div class="flex space-x-2">
+<button id="icsBackBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">返回</button>
+<button id="confirmIcsImport" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow transition">確認匯入</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="dayDrawerOverlay" class="day-drawer-overlay"></div>
 <div id="dayDrawerPanel" class="day-drawer-panel">
 <div class="flex justify-center pt-3 pb-1 shrink-0"><div class="w-10 h-1 rounded-full bg-ink-300 dark:bg-ink-600"></div></div>
 <div class="px-5 pt-2 pb-4 border-b border-ink-200/70 dark:border-ink-800/70 shrink-0">
@@ -390,13 +386,23 @@ function getLunarMonthDay(d){try{const p=new Intl.DateTimeFormat('zh-TW-u-ca-chi
 function getLunarFestival(d){const md=getLunarMonthDay(d);if(!md)return null;const k=`${md.month}-${md.day}`;if(LUNAR_FESTIVALS[k])return LUNAR_FESTIVALS[k];if(md.month===12&&(md.day===29||md.day===30)){const t=new Date(d);t.setDate(t.getDate()+1);const tm=getLunarMonthDay(t);if(tm&&tm.month===1&&tm.day===1)return'除夕'}return null}
 function getLunarInfo(d){const md=getLunarMonthDay(d);const dc=md?lunarDayToChinese(md.day):'';try{const ff=new Intl.DateTimeFormat('zh-TW-u-ca-chinese',{year:'numeric',month:'long',day:'numeric'});return{full:ff.format(d),day:dc}}catch(e){return{full:'',day:dc}}}
 function getWeekNumber(d){const s=new Date(d.getFullYear(),0,1);const days=Math.floor((d-s)/86400000);return Math.ceil((days+s.getDay()+1)/7)}
-let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};
+let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};
 window.state=state;
 let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
 function loadCategories(){try{const s=localStorage.getItem(CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a}}catch(e){}return DEFAULT_CATEGORIES.map(c=>({...c}))}
-function saveCategories(){localStorage.setItem(CAT_KEY,JSON.stringify(state.categories))}
+function saveCategories(){
+  localStorage.setItem(CAT_KEY,JSON.stringify(state.categories));
+  if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){
+    window.saveCategoriesToCloud().catch(e=>console.error('分類上傳失敗:',e));
+  }
+}
 function loadActiveCats(){try{const s=localStorage.getItem(ACTIVE_CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a))return a}}catch(e){}return null}
-function saveActiveCats(){localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories))}
+function saveActiveCats(){
+  localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories));
+  if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){
+    window.saveCategoriesToCloud().catch(e=>console.error('分類上傳失敗:',e));
+  }
+}
 function getCat(id){return state.categories.find(c=>c.id===id)||{id:'_unknown',name:'未分類',color:'#94a3b8'}}
 const EVT_KEY='calendar_events_v1';
 function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
@@ -416,6 +422,7 @@ function fillReminderInputs(reminderValue){const min=parseInt(reminderValue,10)|
 function openDayDetail(dateStr){const date=new Date(dateStr);state.drawerDate=date;const wd=['日','一','二','三','四','五','六'][date.getDay()];const y=date.getFullYear(),m=date.getMonth()+1,d=date.getDate();document.getElementById('drawerDateTitle').textContent=`${y}年${m}月${d}日 週${wd}`;const lunar=getLunarInfo(date);const sub=getDaySubText(date);let lunarText='';if(sub.type==='term'||sub.type==='festival')lunarText=sub.text;else if(lunar.full)lunarText=lunar.full;document.getElementById('drawerLunarText').textContent=lunarText;const dayEvents=state.events.filter(e=>isSameDay(new Date(e.start),date)).sort((a,b)=>new Date(a.start)-new Date(b.start));document.getElementById('drawerEventCount').textContent=dayEvents.length>0?`${dayEvents.length} 個日程`:'尚無事件';const content=document.getElementById('drawerContent');if(dayEvents.length===0){content.innerHTML=`<div class="flex flex-col items-center justify-center py-10 fade-in"><div class="w-24 h-24 mb-5"><svg viewBox="0 0 100 100" fill="none" class="w-full h-full"><path d="M35 20 L35 50 L10 50 L10 80 L90 80 L90 50 L65 50 L65 20 Z" stroke="currentColor" stroke-width="2" fill="none" class="text-ink-400"/><circle cx="60" cy="25" r="8" fill="none" stroke="currentColor" stroke-width="2" class="text-ink-400"/></svg></div><p class="text-base font-bold text-ink-600 dark:text-ink-300 mb-1">尚無事件</p><p class="text-xs text-ink-400 mb-6">點擊「+」建立</p><button id="drawerEmptyCreateBtn" class="px-8 py-3 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-2xl text-sm font-bold shadow-glow flex items-center space-x-2"><i data-lucide="plus" class="w-4 h-4"></i><span>建立</span></button></div>`;lucide.createIcons();document.getElementById('drawerEmptyCreateBtn').addEventListener('click',()=>{closeDayDetail();setTimeout(()=>openEventModal(null,date),250)})}else{content.innerHTML=`<div class="space-y-1">${dayEvents.map(evt=>{const cat=getCat(evt.category);const timeStr=evt.allDay?'全天':`${formatTime(evt.start)} - ${formatTime(evt.end)}`;return`<div class="flex items-start gap-3 py-2.5 cursor-pointer rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/50 transition px-2 -mx-2" data-id="${evt.id}"><div class="w-14 shrink-0 text-xs text-ink-500 dark:text-ink-400 font-medium pt-0.5 text-right">${timeStr}</div><div class="w-1 self-stretch rounded-full shrink-0 mt-1" style="background:${cat.color}"></div><div class="flex-1 min-w-0"><div class="font-bold text-sm text-ink-800 dark:text-ink-100">${escapeHtml(evt.title)}</div>${evt.location?`<div class="text-[10px] text-ink-400 mt-0.5">${escapeHtml(evt.location)}</div>`:''}</div></div>`}).join('')}</div>`;lucide.createIcons();content.querySelectorAll('[data-id]').forEach(el=>{el.addEventListener('click',()=>{const evt=state.events.find(x=>x.id===el.dataset.id);if(evt){closeDayDetail();setTimeout(()=>openEventModal(evt),250)}})})}document.getElementById('dayDrawerOverlay').classList.add('open');document.getElementById('dayDrawerPanel').classList.add('open');const editBtn=document.getElementById('drawerEditIconBtn');if(dayEvents.length===1){editBtn.classList.remove('hidden');editBtn.onclick=()=>{closeDayDetail();setTimeout(()=>openEventModal(dayEvents[0]),250)}}else{editBtn.classList.add('hidden')}}
 function closeDayDetail(){document.getElementById('dayDrawerOverlay').classList.remove('open');document.getElementById('dayDrawerPanel').classList.remove('open');state.drawerDate=null}
 function renderCategories(){const c=document.getElementById('categoryFilters');c.innerHTML=state.categories.map(cat=>{const checked=state.activeCategories.includes(cat.id);return`<div class="group flex items-center justify-between rounded-xl hover:bg-white/80 dark:hover:bg-ink-800/60 border border-transparent hover:border-ink-100 dark:hover:border-ink-800 transition"><label class="flex items-center space-x-2.5 flex-1 min-w-0 p-2 cursor-pointer"><input type="checkbox" data-cat="${cat.id}" ${checked?'checked':''} class="category-checkbox rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer shrink-0"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><span class="text-xs font-medium text-ink-700 dark:text-ink-300 truncate">${escapeHtml(cat.name)}</span></label><div class="flex items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition shrink-0 mr-1"><button class="cat-edit-btn p-1.5 rounded-lg text-ink-300 hover:text-brand-600 hover:bg-brand-50" data-cat="${cat.id}"><i data-lucide="pencil" class="w-3.5 h-3.5 pointer-events-none"></i></button><button class="cat-del-btn p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50" data-cat="${cat.id}"><i data-lucide="x" class="w-3.5 h-3.5 pointer-events-none"></i></button></div></div>`}).join('');c.querySelectorAll('.category-checkbox').forEach(cb=>{cb.addEventListener('change',e=>{const id=e.target.dataset.cat;if(e.target.checked){if(!state.activeCategories.includes(id))state.activeCategories.push(id)}else{state.activeCategories=state.activeCategories.filter(x=>x!==id)}saveActiveCats();renderMainView()})});c.querySelectorAll('.cat-edit-btn').forEach(btn=>{btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openCategoryModal(btn.dataset.cat)})});c.querySelectorAll('.cat-del-btn').forEach(btn=>{btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();deleteCategory(btn.dataset.cat)})});const select=document.getElementById('eventCategory');const cv=select.value;select.innerHTML=state.categories.map(cat=>`<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');if(cv&&state.categories.some(c=>c.id===cv))select.value=cv;lucide.createIcons()}
+window.renderCategories=renderCategories;
 async function deleteCategory(id){if(state.categories.length<=1){showToast('至少需要保留一個分類');return}const cat=state.categories.find(c=>c.id===id);if(!cat)return;const count=state.events.filter(e=>e.category===id).length;const msg=count>0?`分類「${cat.name}」下有 ${count} 個日程，刪除後將歸入其他分類，確定要刪除嗎？`:`確定要刪除分類「${cat.name}」嗎？`;if(!confirm(msg))return;const remaining=state.categories.filter(c=>c.id!==id);const fallbackId=remaining[0].id;let moved=0;state.events.forEach(e=>{if(e.category===id){e.category=fallbackId;moved++}});if(moved){if(window.currentUser&&typeof window.saveEventToCloud==='function'){for(const e of state.events.filter(e=>e.category===fallbackId)){try{await window.saveEventToCloud(e)}catch(err){}}}else{saveEvents()}}state.categories=remaining;state.activeCategories=state.activeCategories.filter(x=>x!==id);saveCategories();saveActiveCats();renderCategories();renderAll();showToast(moved>0?`分類已刪除，${moved} 個日程已歸入「${remaining[0].name}」`:'分類已刪除')}
 function openCategoryModal(catId=null){editingCategoryId=catId;const modal=document.getElementById('categoryModal');const titleEl=document.getElementById('categoryModalTitle');const confirmBtn=document.getElementById('confirmCategoryBtn');const nameInput=document.getElementById('newCatName');if(catId){const cat=state.categories.find(c=>c.id===catId);if(!cat)return;titleEl.textContent='編輯分類';confirmBtn.textContent='儲存';nameInput.value=cat.name;newCatColor=cat.color}else{titleEl.textContent='新增分類';confirmBtn.textContent='新增';nameInput.value='';newCatColor=COLOR_PALETTE[Math.floor(Math.random()*COLOR_PALETTE.length)]}renderPalette();modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0');modal.querySelector('div').classList.remove('scale-95');nameInput.focus();nameInput.select()},10)}
 function closeCategoryModal(){const m=document.getElementById('categoryModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>{m.classList.add('hidden');editingCategoryId=null},200)}
@@ -498,6 +505,7 @@ function renderMyView(){
         </div>
       </div>
     </div>
+
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200">日曆與分類</h3>
@@ -524,6 +532,7 @@ function renderMyView(){
         `).join('')}
       </div>
     </div>
+
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
       <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">近期生日和紀念日</h3>
       <div class="space-y-4">
@@ -596,9 +605,11 @@ function renderMyView(){
   document.getElementById('myDataBtn').addEventListener('click', () => {
     document.getElementById('dataModal').classList.remove('hidden');
   });
+
   document.getElementById('myIcsBtn').addEventListener('click', () => {
     openIcsModal();
   });
+
   document.getElementById('myAddCatBtn').addEventListener('click', () => {
     openCategoryModal(null);
   });
@@ -628,6 +639,13 @@ window.renderAll=renderAll;
 function openEventModal(eventObj=null,defaultDate=null){const modal=document.getElementById('eventModal');const form=document.getElementById('eventForm');const delBtn=document.getElementById('deleteEventBtn');const title=document.getElementById('modalTitle');if(eventObj){title.textContent='編輯日程';document.getElementById('eventId').value=eventObj.id;document.getElementById('eventTitle').value=eventObj.title;document.getElementById('eventStart').value=formatDateForInput(new Date(eventObj.start));document.getElementById('eventEnd').value=formatDateForInput(new Date(eventObj.end));document.getElementById('eventAllDay').checked=eventObj.allDay;document.getElementById('eventCategory').value=eventObj.category;document.getElementById('eventLocation').value=eventObj.location||'';document.getElementById('eventDescription').value=eventObj.description||'';fillReminderInputs(eventObj.reminder||'10');delBtn.classList.remove('hidden')}else{title.textContent='新建日程';form.reset();document.getElementById('eventId').value='';const s=defaultDate?new Date(defaultDate):new Date(state.currentDate);s.setHours(9,0,0,0);const e=new Date(s);e.setHours(10,0,0,0);document.getElementById('eventStart').value=formatDateForInput(s);document.getElementById('eventEnd').value=formatDateForInput(e);fillReminderInputs('10');delBtn.classList.add('hidden')}modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0');modal.querySelector('div').classList.remove('scale-95')},10)}
 function closeEventModal(){const m=document.getElementById('eventModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200)}
 function bindDynamicEvents(){document.querySelectorAll('.cell-day').forEach(cell=>{cell.addEventListener('click',e=>{if(e.target.closest('.month-event-block'))return;if(state.swiping)return;openDayDetail(cell.dataset.date)})});document.querySelectorAll('.cell-hour').forEach(cell=>{cell.addEventListener('click',e=>{if(e.target.closest('.event-pill'))return;const d=new Date(cell.dataset.date);d.setHours(parseInt(cell.dataset.hour));openDayDetail(d.toISOString())})});document.querySelectorAll('.event-pill, .schedule-card, .month-event-block').forEach(p=>{p.addEventListener('click',e=>{e.stopPropagation();const evt=state.events.find(x=>x.id===p.dataset.id);if(evt)openEventModal(evt)})});document.querySelectorAll('.empty-day').forEach(el=>{el.addEventListener('click',()=>{openDayDetail(el.dataset.date)})})}
+function sendNotification(title,body){if(!('Notification'in window)||Notification.permission!=='granted')return;try{const n=new Notification(title,{body,tag:title+'|'+body});n.onclick=()=>{window.focus();n.close()}}catch(e){}}
+const REMINDER_KEY='calendar_reminders_v1';
+function loadReminded(){try{const s=localStorage.getItem(REMINDER_KEY);return s?new Set(JSON.parse(s)):new Set()}catch(e){return new Set()}}
+function saveReminded(set){const a=Array.from(set).slice(-500);try{localStorage.setItem(REMINDER_KEY,JSON.stringify(a))}catch(e){}}
+let reminded=loadReminded();
+function checkReminders(){if(!window.state||!Array.isArray(window.state.events))return;if(!('Notification'in window)||Notification.permission!=='granted')return;const now=Date.now();const TOL=300000;window.state.events.forEach(evt=>{if(evt.allDay)return;const rm=parseInt(evt.reminder,10);if(isNaN(rm)||rm<=0)return;const st=new Date(evt.start).getTime();if(isNaN(st))return;const rt=st-rm*60000;const key=`${evt.id}:${rm}`;if(now>=rt&&now<rt+TOL&&!reminded.has(key)){let label;if(rm>=1440)label=`${Math.round(rm/1440)} 天後`;else if(rm>=60)label=`${Math.round(rm/60)} 小時後`;else label=`${rm} 分鐘後`;sendNotification(`📅 ${evt.title}`,`${label}開始${evt.location?' · '+evt.location:''}`);reminded.add(key);saveReminded(reminded)}})}
+setInterval(checkReminders,30000);setTimeout(checkReminders,5000);
 function formatIcsDate(dateStr, allDay) {
   const d = new Date(dateStr); const pad = n => String(n).padStart(2, '0');
   if (allDay) return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
@@ -731,7 +749,7 @@ function renderIcsPreviewList() {
   if (!state.pendingIcsEvents || state.pendingIcsEvents.length===0) { list.innerHTML = '<div class="text-center py-8 text-ink-400 text-xs">沒有日程</div>'; return; }
   list.innerHTML = state.pendingIcsEvents.map((evt,idx)=>{
     const cat = getCat(evt.userCategory);
-    return `<div class="ics-preview-item flex items-center gap-3 py-2.5">
+    return `<div class="ics-preview-item">
       <span class="w-1 self-stretch rounded-full shrink-0" style="background:${cat.color}"></span>
       <div class="flex-1 min-w-0">
         <div class="font-bold text-sm truncate">${escapeHtml(evt.title)}</div>
@@ -792,13 +810,6 @@ function openIcsModal() {
     m.querySelector('div').classList.remove('scale-95');
   }, 10);
 }
-function sendNotification(title,body){if(!('Notification'in window)||Notification.permission!=='granted')return;try{const n=new Notification(title,{body,tag:title+'|'+body});n.onclick=()=>{window.focus();n.close()}}catch(e){}}
-const REMINDER_KEY='calendar_reminders_v1';
-function loadReminded(){try{const s=localStorage.getItem(REMINDER_KEY);return s?new Set(JSON.parse(s)):new Set()}catch(e){return new Set()}}
-function saveReminded(set){const a=Array.from(set).slice(-500);try{localStorage.setItem(REMINDER_KEY,JSON.stringify(a))}catch(e){}}
-let reminded=loadReminded();
-function checkReminders(){if(!window.state||!Array.isArray(window.state.events))return;if(!('Notification'in window)||Notification.permission!=='granted')return;const now=Date.now();const TOL=300000;window.state.events.forEach(evt=>{if(evt.allDay)return;const rm=parseInt(evt.reminder,10);if(isNaN(rm)||rm<=0)return;const st=new Date(evt.start).getTime();if(isNaN(st))return;const rt=st-rm*60000;const key=`${evt.id}:${rm}`;if(now>=rt&&now<rt+TOL&&!reminded.has(key)){let label;if(rm>=1440)label=`${Math.round(rm/1440)} 天後`;else if(rm>=60)label=`${Math.round(rm/60)} 小時後`;else label=`${rm} 分鐘後`;sendNotification(`📅 ${evt.title}`,`${label}開始${evt.location?' · '+evt.location:''}`);reminded.add(key);saveReminded(reminded)}})}
-setInterval(checkReminders,30000);setTimeout(checkReminders,5000);
 function initEventListeners(){
 document.getElementById('todayBtn').addEventListener('click',()=>{state.currentDate=new Date();state.miniDate=new Date();renderAll()});
 document.getElementById('prevBtn').addEventListener('click',()=>{if(state.view==='month')state.currentDate.setMonth(state.currentDate.getMonth()-1);else if(state.view==='week')state.currentDate.setDate(state.currentDate.getDate()-7);else state.currentDate.setDate(state.currentDate.getDate()-1);renderAll()});
@@ -822,6 +833,9 @@ const hs=e=>{state.searchQuery=e.target.value;renderMainView()};
 document.getElementById('searchInput').addEventListener('input',hs);
 document.getElementById('mobileSearchInput').addEventListener('input',hs);
 document.getElementById('closeDataModalBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.add('hidden')});
+document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:1,exportedAt:new Date().toISOString(),categories:state.categories,events:state.events};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔')});
+document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);let ie=[];if(data&&Array.isArray(data.categories)&&Array.isArray(data.events)){state.categories=data.categories;ie=data.events}else if(Array.isArray(data)){ie=data}else throw new Error('格式錯誤');if(window.currentUser&&typeof window.saveEventToCloud==='function'){for(const e of ie){try{await window.saveEventToCloud(e)}catch(err){}}showToast(`已匯入 ${ie.length} 個日程到雲端`)}else{state.events=ie;saveEvents();renderAll();showToast('已成功匯入 JSON')}state.activeCategories=state.activeCategories.filter(id=>state.categories.some(c=>c.id===id));if(state.activeCategories.length===0)state.activeCategories=state.categories.map(c=>c.id);saveCategories();saveActiveCats();renderCategories();document.getElementById('dataModal').classList.add('hidden')}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value=''});
+document.getElementById('resetDemoBtn').addEventListener('click',async()=>{if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。'))return;if(window.currentUser&&typeof window.deleteEventFromCloud==='function'){const ids=state.events.map(e=>e.id);for(const id of ids){try{await window.deleteEventFromCloud(id)}catch(err){}}showToast('已清空雲端所有日程')}else{state.events=[];saveEvents();renderAll();showToast('已清空所有日程')}document.getElementById('dataModal').classList.add('hidden')});
 document.getElementById('closeIcsModalBtn').addEventListener('click',closeIcsModal);
 document.getElementById('icsBackBtn').addEventListener('click',()=>{
   document.getElementById('icsMainPanel').classList.remove('hidden');
@@ -861,9 +875,6 @@ document.getElementById('applyBulkCategory').addEventListener('click',()=>{
   renderIcsPreviewList(); showToast('已套用至全部日程');
 });
 document.getElementById('confirmIcsImport').addEventListener('click',confirmIcsImport);
-document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:1,exportedAt:new Date().toISOString(),categories:state.categories,events:state.events};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔')});
-document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);let ie=[];if(data&&Array.isArray(data.categories)&&Array.isArray(data.events)){state.categories=data.categories;ie=data.events}else if(Array.isArray(data)){ie=data}else throw new Error('格式錯誤');if(window.currentUser&&typeof window.saveEventToCloud==='function'){for(const e of ie){try{await window.saveEventToCloud(e)}catch(err){}}showToast(`已匯入 ${ie.length} 個日程到雲端`)}else{state.events=ie;saveEvents();renderAll();showToast('已成功匯入 JSON')}state.activeCategories=state.activeCategories.filter(id=>state.categories.some(c=>c.id===id));if(state.activeCategories.length===0)state.activeCategories=state.categories.map(c=>c.id);saveCategories();saveActiveCats();renderCategories();document.getElementById('dataModal').classList.add('hidden')}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value=''});
-document.getElementById('resetDemoBtn').addEventListener('click',async()=>{if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。'))return;if(window.currentUser&&typeof window.deleteEventFromCloud==='function'){const ids=state.events.map(e=>e.id);for(const id of ids){try{await window.deleteEventFromCloud(id)}catch(err){}}showToast('已清空雲端所有日程')}else{state.events=[];saveEvents();renderAll();showToast('已清空所有日程')}document.getElementById('dataModal').classList.add('hidden')});
 document.getElementById('drawerCloseIconBtn').addEventListener('click',closeDayDetail);
 document.getElementById('dayDrawerOverlay').addEventListener('click',closeDayDetail);
 document.getElementById('drawerAddIconBtn').addEventListener('click',()=>{const date=state.drawerDate||state.currentDate;closeDayDetail();setTimeout(()=>openEventModal(null,date),250)});
@@ -874,13 +885,13 @@ window.onload=function(){state.categories=loadCategories();const sa=loadActiveCa
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import{getFirestore,collection,doc,setDoc,getDocs,onSnapshot,query,where,deleteDoc}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 const fc=window.FIREBASE_CONFIG;
 const app=initializeApp(fc);
 const auth=getAuth(app);
 const db=getFirestore(app);
 const gp=new GoogleAuthProvider();
-let cu=null,ue=null,hml=false;
+let cu=null,ue=null,cue=null,hml=false;
 window.currentUser=null;
 window.signInWithGoogle=async function(){try{await signInWithPopup(auth,gp)}catch(e){console.error(e);alert("登入失敗："+e.message)}};
 window.signOutUser=async function(){try{await signOut(auth)}catch(e){console.error(e)}};
@@ -892,14 +903,72 @@ updateLoginUI(user);
 if(!hml){
 try{const q=query(collection(db,"events"),where("userId","==",user.uid));const snap=await getDocs(q);const le=(window.state&&window.state.events)||[];if(snap.empty&&le.length>0){for(const e of le){const ref=doc(db,"events",e.id);await setDoc(ref,{...e,userId:user.uid})}}hml=true}catch(e){console.error(e)}
 }
+await loadCategoriesFromCloud();
 startListening();
+startListeningCategories();
 updateStorageHint(true)
 }else{
 updateLoginUI(null);
 if(ue){ue();ue=null}
-if(window.state){const s=localStorage.getItem('calendar_events_v1');try{window.state.events=s?JSON.parse(s):[]}catch(e){window.state.events=[]}if(typeof window.renderAll==='function')window.renderAll()}
+if(cue){cue();cue=null}
+if(window.state){const s=localStorage.getItem('calendar_events_v1');try{window.state.events=s?JSON.parse(s):[]}catch(e){window.state.events=[]}const sc=localStorage.getItem('calendar_categories_v1');try{window.state.categories=sc?JSON.parse(sc):[]}catch(e){}if(typeof window.renderCategories==='function')window.renderCategories();if(typeof window.renderAll==='function')window.renderAll()}
 updateStorageHint(false)
 }});
+async function loadCategoriesFromCloud() {
+  if (!cu) return;
+  try {
+    const ref = doc(db, "userSettings", cu.uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      if (Array.isArray(data.categories) && data.categories.length > 0) {
+        window.state.categories = data.categories;
+        try { localStorage.setItem('calendar_categories_v1', JSON.stringify(data.categories)); } catch(e){}
+      }
+      if (Array.isArray(data.activeCategories)) {
+        window.state.activeCategories = data.activeCategories.filter(id => window.state.categories.some(c => c.id === id));
+        try { localStorage.setItem('calendar_active_cats_v1', JSON.stringify(window.state.activeCategories)); } catch(e){}
+      }
+    } else {
+      await setDoc(ref, {
+        categories: window.state.categories,
+        activeCategories: window.state.activeCategories
+      });
+    }
+    if (typeof window.renderCategories === 'function') window.renderCategories();
+    if (typeof window.renderAll === 'function') window.renderAll();
+  } catch (e) {
+    console.error("載入分類失敗:", e);
+  }
+}
+function startListeningCategories() {
+  if (!cu) return;
+  if (cue) cue();
+  const ref = doc(db, "userSettings", cu.uid);
+  cue = onSnapshot(ref, (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    if (!Array.isArray(data.categories) || data.categories.length === 0) return;
+    const same = JSON.stringify(data.categories) === JSON.stringify(window.state.categories);
+    if (same) return;
+    window.state.categories = data.categories;
+    try { localStorage.setItem('calendar_categories_v1', JSON.stringify(data.categories)); } catch(e){}
+    if (Array.isArray(data.activeCategories)) {
+      window.state.activeCategories = data.activeCategories.filter(id => window.state.categories.some(c => c.id === id));
+      try { localStorage.setItem('calendar_active_cats_v1', JSON.stringify(window.state.activeCategories)); } catch(e){}
+    }
+    if (typeof window.renderCategories === 'function') window.renderCategories();
+    if (typeof window.renderAll === 'function') window.renderAll();
+  }, err => console.error(err));
+}
+window.saveCategoriesToCloud = async function() {
+  if (!cu) return;
+  const ref = doc(db, "userSettings", cu.uid);
+  await setDoc(ref, {
+    categories: window.state.categories,
+    activeCategories: window.state.activeCategories
+  }, { merge: true });
+};
 function startListening(){
 if(!cu)return;
 if(ue)ue();
