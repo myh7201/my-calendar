@@ -718,7 +718,7 @@ function getLunarBirthdaySolarDate(lunarMonth,lunarDay,year){
   }catch(e){return null;}
 }
 
-let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};window.state=state;
+let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],folders:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};window.state=state;
 let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
 function loadCategories(){try{const s=localStorage.getItem(CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a}}catch(e){}return DEFAULT_CATEGORIES.map(c=>({...c}))}
 function saveCategories(){localStorage.setItem(CAT_KEY,JSON.stringify(state.categories));if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e))}}
@@ -732,8 +732,11 @@ const TASK_KEY='calendar_tasks_v1';
 function loadSavedTasks(){const s=localStorage.getItem(TASK_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
 function saveTasks(){localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks))}
 const NOTE_KEY='calendar_notes_v1';
+const FOLDER_KEY='calendar_folders_v1';
 function loadSavedNotes(){const s=localStorage.getItem(NOTE_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
 function saveNotes(){localStorage.setItem(NOTE_KEY,JSON.stringify(state.notes))}
+function loadSavedFolders(){const s=localStorage.getItem(FOLDER_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
+function saveFolders(){localStorage.setItem(FOLDER_KEY,JSON.stringify(state.folders||[]))}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function formatTime(s){return new Date(s).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
@@ -1811,7 +1814,8 @@ function renderNotesView(){
   
   let currentTypeNotes = notes.filter(n=>n.type===state.noteViewType);
   
-  const folders = [...new Set(currentTypeNotes.map(n=>n.folder).filter(f=>f && f.trim()!==''))].sort();
+  const noteFolders = [...new Set(currentTypeNotes.map(n=>n.folder).filter(f=>f && f.trim()!==''))].sort();
+  const allFolders = [...new Set([...noteFolders, ...(state.folders || [])])].sort();
   
   let filteredNotes = currentTypeNotes;
   if(state.noteFolder === 'uncategorized'){
@@ -1845,12 +1849,24 @@ function renderNotesView(){
         <button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${state.noteViewType==='note'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="note">📝 筆記</button>
         <button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${state.noteViewType==='diary'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="diary">📔 日記</button>
       </div>
-      <div class="flex overflow-x-auto gap-1.5 pb-1 scrollbar-none">
+      <div class="flex overflow-x-auto gap-1.5 pb-1 scrollbar-none items-center">
         <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='all'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="all">全部</button>
         <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='uncategorized'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="uncategorized">未分類</button>
-        ${folders.map(f=>`
-          <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder===f?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="${escapeHtml(f)}">${escapeHtml(f)}</button>
-        `).join('')}
+        ${allFolders.map(f=>{
+          const isActive = state.noteFolder === f;
+          const activeClass = isActive ? 'bg-brand-500 text-white shadow-sm' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700';
+          const deleteBtnColor = isActive ? 'text-white/70 hover:text-white' : 'text-ink-400 hover:text-rose-500';
+          return `
+          <div class="relative group shrink-0">
+            <button class="note-folder-btn pl-3 pr-6 py-1.5 rounded-lg text-xs font-semibold transition ${activeClass}" data-folder="${escapeHtml(f)}">${escapeHtml(f)}</button>
+            <button class="delete-folder-btn absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover:block ${deleteBtnColor} transition" data-folder="${escapeHtml(f)}">
+              <i data-lucide="x" class="w-3 h-3 pointer-events-none"></i>
+            </button>
+          </div>`;
+        }).join('')}
+        <button id="addNoteFolderBtn" class="shrink-0 px-2 py-1.5 rounded-lg text-xs font-semibold bg-ink-100 dark:bg-ink-800 text-ink-500 hover:bg-ink-200 dark:hover:bg-ink-700 transition flex items-center gap-1">
+          <i data-lucide="plus" class="w-3 h-3"></i>新增
+        </button>
       </div>
     </div>
 
@@ -1890,6 +1906,51 @@ function renderNotesView(){
   document.querySelectorAll('.note-folder-btn').forEach(btn=>btn.addEventListener('click',()=>{
     state.noteFolder=btn.dataset.folder;
     renderNotesView();
+  }));
+
+  document.getElementById('addNoteFolderBtn').addEventListener('click', () => {
+    const name = prompt('請輸入新資料夾名稱：');
+    if(!name || !name.trim()) return;
+    const trimName = name.trim();
+    if(state.folders.includes(trimName) || trimName==='全部' || trimName==='未分類') {
+      showToast('該資料夾已存在或名稱無效');
+      return;
+    }
+    state.folders.push(trimName);
+    saveFolders();
+    state.noteFolder = trimName;
+    renderNotesView();
+    showToast('已新增資料夾');
+  });
+
+  document.querySelectorAll('.delete-folder-btn').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const folder = btn.dataset.folder;
+    if(confirm(`確定要刪除「${folder}」資料夾嗎？該資料夾內的筆記將移至「未分類」。`)) {
+      state.folders = state.folders.filter(f => f !== folder);
+      saveFolders();
+      
+      let moved = 0;
+      state.notes.forEach(n => {
+        if(n.folder === folder) {
+          n.folder = '';
+          moved++;
+        }
+      });
+      
+      if(moved > 0) {
+        saveNotes();
+        if(window.currentUser && typeof window.saveNoteToCloud === 'function') {
+          state.notes.filter(n => n.folder === '').forEach(async n => {
+            try { await window.saveNoteToCloud(n); } catch(err) {}
+          });
+        }
+      }
+      
+      if(state.noteFolder === folder) state.noteFolder = 'all';
+      renderNotesView();
+      showToast(moved > 0 ? `資料夾已刪除，${moved} 則筆記已移至未分類` : '資料夾已刪除');
+    }
   }));
 
   const searchInput=document.getElementById('noteSearchInput');
@@ -1960,6 +2021,11 @@ async function saveNote(){
   const content=document.getElementById('noteContent').value.trim();
   const folder=document.getElementById('noteFolder').value.trim();
 
+  if(folder && !state.folders.includes(folder)) {
+      state.folders.push(folder);
+      saveFolders();
+  }
+
   if(!title && !content){showToast('請至少填寫標題或內容');return}
 
   const existingIndex = state.notes.findIndex(n=>n.id===id);
@@ -2005,8 +2071,9 @@ function initNoteEventListeners(){
   document.getElementById('deleteNoteBtn').addEventListener('click',deleteNote);
   document.getElementById('noteFolder').addEventListener('focus',()=>{
     const list=document.getElementById('noteFolderList');
-    const folders=[...new Set(state.notes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();
-    list.innerHTML=folders.map(f=>`<option value="${escapeHtml(f)}">`).join('');
+    const noteFolders=[...new Set(state.notes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();
+    const allFolders=[...new Set([...noteFolders, ...(state.folders || [])])].sort();
+    list.innerHTML=allFolders.map(f=>`<option value="${escapeHtml(f)}">`).join('');
   });
 }
 function renderMainView(animationDir){
@@ -2637,6 +2704,7 @@ window.onload=function(){
   state.events=loadSavedEvents();
   state.tasks=loadSavedTasks();
   state.notes=loadSavedNotes();
+  state.folders=loadSavedFolders()||[];
   state.events.forEach(e=>{
     if(e.category&&state.categories.some(c=>c.id===e.category)&&!state.activeCategories.includes(e.category)){
       state.activeCategories.push(e.category);
