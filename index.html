@@ -730,11 +730,25 @@ function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{retur
 function saveEvents(){localStorage.setItem(EVT_KEY,JSON.stringify(state.events))}
 const TASK_KEY='calendar_tasks_v1';
 function loadSavedTasks(){const s=localStorage.getItem(TASK_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
-function saveTasks(){localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks))}
+function saveTasks(){
+  localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks));
+  if(window.currentUser && typeof window.saveTaskToCloud === 'function'){
+    state.tasks.forEach(task => {
+      window.saveTaskToCloud(task).catch(e => console.error('Task sync error:', e));
+    });
+  }
+}
 const NOTE_KEY='calendar_notes_v1';
 const FOLDER_KEY='calendar_folders_v1';
 function loadSavedNotes(){const s=localStorage.getItem(NOTE_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
-function saveNotes(){localStorage.setItem(NOTE_KEY,JSON.stringify(state.notes))}
+function saveNotes(){
+  localStorage.setItem(NOTE_KEY,JSON.stringify(state.notes));
+  if(window.currentUser && typeof window.saveNoteToCloud === 'function'){
+    state.notes.forEach(note => {
+      window.saveNoteToCloud(note).catch(e => console.error('Note sync error:', e));
+    });
+  }
+}
 function loadSavedFolders(){const s=localStorage.getItem(FOLDER_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
 function saveFolders(){localStorage.setItem(FOLDER_KEY,JSON.stringify(state.folders||[]))}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -1727,7 +1741,12 @@ function renderTasksView(){
           <i data-lucide="check-square" class="w-6 h-6 text-brand-500"></i>
           <span>任務清單</span>
         </h2>
-        <span class="text-xs text-ink-400 font-medium">${completedCount} / ${totalCount} 已完成</span>
+        <div class="text-right">
+          <span class="text-xs text-ink-400 font-medium block">${completedCount} / ${totalCount} 已完成</span>
+          <span class="text-[10px] text-brand-500 font-semibold block mt-0.5">
+            ${window.currentUser ? '☁️ 已同步雲端' : '💾 單機模式'}
+          </span>
+        </div>
       </div>
       <div class="w-full bg-ink-200 dark:bg-ink-700 rounded-full h-2 mt-3">
         <div class="bg-gradient-to-r from-brand-500 to-fuchsia-500 h-2 rounded-full transition-all duration-500" style="width:${progress}%"></div>
@@ -1775,9 +1794,6 @@ function renderTasksView(){
     const newTask={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now()};
     state.tasks.push(newTask);
     saveTasks();
-    if(window.currentUser&&typeof window.saveTaskToCloud==='function'){
-      try{await window.saveTaskToCloud(newTask)}catch(e){console.error(e)}
-    }
     input.value='';
     renderTasksView();
   };
@@ -1791,9 +1807,6 @@ function renderTasksView(){
     if(!task)return;
     task.completed=!task.completed;
     saveTasks();
-    if(window.currentUser&&typeof window.saveTaskToCloud==='function'){
-      try{await window.saveTaskToCloud(task)}catch(e){console.error(e)}
-    }
     renderTasksView();
   }));
 
@@ -1839,6 +1852,9 @@ function renderNotesView(){
           <i data-lucide="file-text" class="w-6 h-6 text-brand-500"></i>
           <span>筆記本</span>
         </h2>
+        <span class="text-[10px] text-brand-500 font-semibold">
+          ${window.currentUser ? '☁️ 已同步雲端' : '💾 單機模式'}
+        </span>
       </div>
       <div class="relative mb-3">
         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
@@ -2039,10 +2055,6 @@ async function saveNote(){
   else{state.notes.push(newNote)}
   
   saveNotes();
-  if(window.currentUser && typeof window.saveNoteToCloud==='function'){
-    try{await window.saveNoteToCloud(newNote)}catch(e){console.error(e)}
-  }
-  
   closeNoteModal();
   showToast('筆記已儲存');
   renderNotesView();
@@ -2813,14 +2825,50 @@ onAuthStateChanged(auth,async user=>{
   cu=user;window.currentUser=user;
   if(user){
     updateLoginUI(user);
+    // 首次登录时，检查本地数据并迁移上云
     if(!hml){
       try{
-        const q=query(collection(db,"events"),where("userId","==",user.uid));
-        const snap=await getDocs(q);
-        const le=(window.state&&window.state.events)||[];
-        if(snap.empty&&le.length>0){for(const e of le){const ref=doc(db,"events",e.id);await setDoc(ref,{...e,userId:user.uid})}}
-        hml=true;
-      }catch(e){console.error(e)}
+        const stateHasLocalEvents = window.state && window.state.events && window.state.events.length > 0;
+        const stateHasLocalTasks = window.state && window.state.tasks && window.state.tasks.length > 0;
+        const stateHasLocalNotes = window.state && window.state.notes && window.state.notes.length > 0;
+
+        // 1. 迁移日程
+        if (stateHasLocalEvents) {
+          const q = query(collection(db, "events"), where("userId", "==", user.uid));
+          const snap = await getDocs(q);
+          if (snap.empty) {
+            for (const e of window.state.events) {
+              await setDoc(doc(db, "events", e.id), { ...e, userId: user.uid });
+            }
+          }
+        }
+
+        // 2. 迁移任务
+        if (stateHasLocalTasks) {
+          const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
+          const snap = await getDocs(q);
+          if (snap.empty) {
+            for (const t of window.state.tasks) {
+              await setDoc(doc(db, "tasks", t.id), { ...t, userId: user.uid });
+            }
+          }
+        }
+
+        // 3. 迁移笔记
+        if (stateHasLocalNotes) {
+          const q = query(collection(db, "notes"), where("userId", "==", user.uid));
+          const snap = await getDocs(q);
+          if (snap.empty) {
+            for (const n of window.state.notes) {
+              await setDoc(doc(db, "notes", n.id), { ...n, userId: user.uid });
+            }
+          }
+        }
+
+        hml = true;
+      } catch(e) {
+        console.error("迁移本地数据到云端失败:", e);
+      }
     }
     await loadCategoriesFromCloud();
     startListening();
@@ -2837,6 +2885,12 @@ onAuthStateChanged(auth,async user=>{
       try{window.state.events=s?JSON.parse(s):[]}catch(e){window.state.events=[]}
       const sc=localStorage.getItem('calendar_categories_v1');
       try{window.state.categories=sc?JSON.parse(sc):[]}catch(e){}
+      
+      const st=localStorage.getItem('calendar_tasks_v1');
+      try{window.state.tasks=st?JSON.parse(st):[]}catch(e){window.state.tasks=[]}
+      const sn=localStorage.getItem('calendar_notes_v1');
+      try{window.state.notes=sn?JSON.parse(sn):[]}catch(e){window.state.notes=[]}
+
       if(typeof window.renderCategories==='function')window.renderCategories();
       if(typeof window.renderAll==='function')window.renderAll();
     }
@@ -2928,8 +2982,11 @@ function startListeningTasks(){
     const arr=[];
     snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});
     if(window.state){
-      window.state.tasks=arr;
-      try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}
+      // 只有当云端有数据，或者本地为空时才覆盖，防止云端的空数据把本地数据抹掉
+      if (arr.length > 0 || window.state.tasks.length === 0) {
+        window.state.tasks=arr;
+      }
+      try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(window.state.tasks))}catch(e){}
       if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();
     }
   },err=>console.error("監聽任務失敗:",err));
@@ -2953,8 +3010,10 @@ function startListeningNotes(){
     const arr=[];
     snap.forEach(d=>{const data=d.data();const{userId,...note}=data;arr.push({id:d.id,...note})});
     if(window.state){
-      window.state.notes=arr;
-      try{localStorage.setItem('calendar_notes_v1',JSON.stringify(arr))}catch(e){}
+      if (arr.length > 0 || window.state.notes.length === 0) {
+        window.state.notes=arr;
+      }
+      try{localStorage.setItem('calendar_notes_v1',JSON.stringify(window.state.notes))}catch(e){}
       if(typeof window.renderNotesView==='function' && window.state.view==='notes')window.renderNotesView();
     }
   },err=>console.error("監聽筆記失敗:",err));
