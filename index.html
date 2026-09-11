@@ -2982,26 +2982,12 @@ function startListeningTasks(){
     const arr=[];
     snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});
     if(window.state){
-      // 只有当云端有数据，或者本地为空时才覆盖，防止云端的空数据把本地数据抹掉
-      if (arr.length > 0 || window.state.tasks.length === 0) {
-        window.state.tasks=arr;
-      }
-      try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(window.state.tasks))}catch(e){}
+      window.state.tasks=arr; // 永远以云端为准
+      try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}
       if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();
     }
   },err=>console.error("監聽任務失敗:",err));
 }
-
-window.saveTaskToCloud=async function(task){
-  if(!cu)return;
-  const ref=doc(db,"tasks",task.id);
-  await setDoc(ref,{...task,userId:cu.uid});
-};
-
-window.deleteTaskFromCloud=async function(id){
-  if(!cu)return;
-  await deleteDoc(doc(db,"tasks",id));
-};
 
 function startListeningNotes(){
   if(!cu)return;
@@ -3010,15 +2996,12 @@ function startListeningNotes(){
     const arr=[];
     snap.forEach(d=>{const data=d.data();const{userId,...note}=data;arr.push({id:d.id,...note})});
     if(window.state){
-      if (arr.length > 0 || window.state.notes.length === 0) {
-        window.state.notes=arr;
-      }
-      try{localStorage.setItem('calendar_notes_v1',JSON.stringify(window.state.notes))}catch(e){}
+      window.state.notes=arr; // 永远以云端为准
+      try{localStorage.setItem('calendar_notes_v1',JSON.stringify(arr))}catch(e){}
       if(typeof window.renderNotesView==='function' && window.state.view==='notes')window.renderNotesView();
     }
   },err=>console.error("監聽筆記失敗:",err));
 }
-
 window.saveNoteToCloud=async function(note){
   if(!cu)return;
   const ref=doc(db,"notes",note.id);
