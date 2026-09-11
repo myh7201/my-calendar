@@ -750,8 +750,13 @@ function saveNotes(){
   }
 }
 function loadSavedFolders(){const s=localStorage.getItem(FOLDER_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
-function saveFolders(){localStorage.setItem(FOLDER_KEY,JSON.stringify(state.folders||[]))}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function saveFolders(){
+  localStorage.setItem(FOLDER_KEY,JSON.stringify(state.folders||[]));
+  // 如果已登入，连文件夹也一起上传到云端
+  if(window.currentUser && typeof window.saveCategoriesToCloud==='function'){
+     window.saveCategoriesToCloud().catch(e=>console.error(e));
+  }
+}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function formatTime(s){return new Date(s).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
 function formatDateForInput(dt){const p=n=>n<10?'0'+n:n;return`${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}T${p(dt.getHours())}:${p(dt.getMinutes())}`}
@@ -2913,8 +2918,20 @@ async function loadCategoriesFromCloud(){
         window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));
         try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}
       }
+      // 读取云端的文件夹列表
+      if(Array.isArray(data.folders)){
+        window.state.folders = data.folders;
+        try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}
+      } else if (window.state.folders && window.state.folders.length > 0) {
+        // 如果云端没有但本地有，上传一次
+        await window.saveCategoriesToCloud();
+      }
     }else{
-      await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories});
+      await setDoc(ref,{
+        categories:window.state.categories,
+        activeCategories:window.state.activeCategories,
+        folders: window.state.folders || []
+      });
     }
     if(window.state.events){
       window.state.events.forEach(e=>{
@@ -2935,23 +2952,44 @@ function startListeningCategories(){
   cue=onSnapshot(ref,snap=>{
     if(!snap.exists())return;
     const data=snap.data();
-    if(!Array.isArray(data.categories)||data.categories.length===0)return;
-    const same=JSON.stringify(data.categories)===JSON.stringify(window.state.categories);
-    if(same)return;
-    window.state.categories=data.categories;
-    try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}
-    if(Array.isArray(data.activeCategories)){
-      window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));
-      try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}
+    
+    // 分类同步
+    if(Array.isArray(data.categories)&&data.categories.length>0){
+      const same=JSON.stringify(data.categories)===JSON.stringify(window.state.categories);
+      if(!same){
+        window.state.categories=data.categories;
+        try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}
+        if(Array.isArray(data.activeCategories)){
+          window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));
+          try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}
+        }
+        if(typeof window.renderCategories==='function')window.renderCategories();
+        if(typeof window.renderAll==='function')window.renderAll();
+      }
     }
-    if(typeof window.renderCategories==='function')window.renderCategories();
-    if(typeof window.renderAll==='function')window.renderAll();
+
+    // 文件夹同步
+    if(Array.isArray(data.folders)){
+      const sameFolders = JSON.stringify(data.folders)===JSON.stringify(window.state.folders || []);
+      if(!sameFolders){
+        window.state.folders = data.folders;
+        try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}
+        // 如果当前在笔记页面，立刻刷新
+        if(typeof window.renderNotesView==='function' && window.state.view==='notes'){
+          window.renderNotesView();
+        }
+      }
+    }
   },err=>console.error(err));
 }
 window.saveCategoriesToCloud=async function(){
   if(!cu)return;
   const ref=doc(db,"userSettings",cu.uid);
-  await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories},{merge:true});
+  await setDoc(ref,{
+    categories:window.state.categories,
+    activeCategories:window.state.activeCategories,
+    folders: window.state.folders || []   // 新增这一行，同步文件夹列表
+  },{merge:true});
 };
 function startListening(){
   if(!cu)return;
