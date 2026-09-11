@@ -13,16 +13,6 @@ window.FIREBASE_CONFIG={apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>日曆</title>
-<script>
-// 提前套用主题，避免闪白/闪黑
-(function(){
-  try {
-    var theme = localStorage.getItem('calendar_theme_v1') || 'system';
-    var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    if (isDark) document.documentElement.classList.add('dark');
-  } catch(e){}
-})();
-</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config={darkMode:'class',theme:{extend:{
@@ -124,55 +114,46 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
 
-<header id="topHeader" class="glass border-b border-ink-200/70 dark:border-ink-800/70 px-3 md:px-4 py-2 md:py-3 shrink-0 shadow-soft z-30 flex flex-col gap-1.5 md:gap-2">
-  <!-- 第一行：日历图标、今天、跳转、日期标题 -->
-  <div class="flex items-center justify-between w-full gap-1.5 md:gap-4 flex-nowrap">
-    <div class="flex items-center space-x-1.5 md:space-x-4 shrink-0">
-      <div class="flex items-center space-x-1.5">
-        <div class="p-1.5 md:p-2 bg-gradient-to-tr from-brand-500 to-fuchsia-500 text-white rounded-xl md:rounded-2xl shadow-glow shrink-0">
-          <i data-lucide="calendar-days" class="w-4 h-4 md:w-5 md:h-5"></i>
-        </div>
-        <span class="font-extrabold text-base md:text-lg tracking-tight text-ink-700 dark:text-ink-100 whitespace-nowrap">日曆</span>
-      </div>
-      <div class="h-5 w-px bg-ink-200 dark:bg-ink-700 hidden md:block"></div>
-      <button id="todayBtn" class="px-2 md:px-3.5 py-1.5 text-xs md:text-sm font-semibold border border-ink-200 dark:border-ink-700 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition whitespace-nowrap shrink-0">今天</button>
-      <button id="jumpDateBtn" class="px-1.5 md:px-2.5 py-1.5 text-xs md:text-sm font-semibold border border-ink-200 dark:border-ink-700 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition flex items-center space-x-0.5 md:space-x-1 whitespace-nowrap shrink-0" title="跳轉到指定日期">
-        <i data-lucide="calendar-search" class="w-3.5 h-3.5 shrink-0"></i>
-        <span class="hidden md:inline text-xs">跳轉</span>
-      </button>
-    </div>
-    <div class="flex flex-col leading-tight items-end shrink-0 min-w-0">
-      <h2 id="currentDateTitle" class="text-sm md:text-lg font-bold tracking-tight whitespace-nowrap">2026年 9月</h2>
-      <div id="currentDateSubtitle" class="text-[9px] md:text-xs text-ink-500 font-medium whitespace-nowrap">9月11日 週五</div>
-    </div>
-  </div>
-
-  <!-- 第二行：上下月切换、视图切换、新增、登录/头像 -->
-  <div class="flex items-center justify-between w-full gap-1.5 md:gap-2 flex-nowrap">
-    <div class="flex items-center space-x-0.5 md:space-x-1 bg-ink-100/70 dark:bg-ink-800/60 rounded-xl p-0.5 md:p-1 shrink-0">
-      <button id="prevBtn" class="p-1 md:p-1.5 rounded-lg hover:bg-white dark:hover:bg-ink-700 text-ink-600 dark:text-ink-300 transition shadow-sm"><i data-lucide="chevron-left" class="w-3.5 h-3.5 md:w-4 md:h-4"></i></button>
-      <button id="nextBtn" class="p-1 md:p-1.5 rounded-lg hover:bg-white dark:hover:bg-ink-700 text-ink-600 dark:text-ink-300 transition shadow-sm"><i data-lucide="chevron-right" class="w-3.5 h-3.5 md:w-4 md:h-4"></i></button>
-    </div>
-    <div class="flex items-center justify-end gap-1 md:gap-2 flex-1 min-w-0">
-      <div class="bg-ink-100/80 dark:bg-ink-800/70 p-0.5 md:p-1 rounded-xl flex space-x-0.5 text-[10px] md:text-xs font-semibold text-ink-600 dark:text-ink-300 shrink-0">
-        <button data-view="month" class="view-btn px-1.5 md:px-3 py-1 md:py-1.5 rounded-lg transition">月</button>
-        <button data-view="week" class="view-btn px-1.5 md:px-3 py-1 md:py-1.5 rounded-lg transition">週</button>
-        <button data-view="day" class="view-btn px-1.5 md:px-3 py-1 md:py-1.5 rounded-lg transition">日</button>
-        <button data-view="schedule" class="view-btn px-1.5 md:px-3 py-1 md:py-1.5 rounded-lg transition">日程</button>
-      </div>
-      <button id="addEventBtn" class="flex items-center space-x-0.5 px-2 md:px-3.5 py-1.5 md:py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 text-white rounded-xl text-xs md:text-sm font-semibold shadow-glow active:scale-95 transition shrink-0">
-        <i data-lucide="plus" class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0"></i><span class="hidden sm:inline">新增</span>
-      </button>
-      <button id="loginBtn" onclick="signInWithGoogle()" class="flex items-center space-x-1 px-2 md:px-3.5 py-1.5 md:py-2 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-xl text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700 active:scale-95 transition shadow-sm shrink-0">
-        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        <span class="hidden sm:inline whitespace-nowrap">Google 登入</span>
-      </button>
-      <div id="userInfo" class="hidden items-center space-x-1.5 md:space-x-2 pl-1 md:pl-2 border-l border-ink-200 dark:border-ink-700 shrink-0">
-        <img id="userAvatar" class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-ink-200 dark:border-ink-700 shrink-0" src="" referrerpolicy="no-referrer">
-        <span id="userName" class="text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hidden lg:inline max-w-[100px] truncate"></span>
-      </div>
-    </div>
-  </div>
+<header class="glass border-b border-ink-200/70 dark:border-ink-800/70 px-3 md:px-4 py-2 md:py-3 flex flex-wrap items-center justify-between gap-2 shrink-0 shadow-soft z-30">
+<div class="flex items-center space-x-2 md:space-x-4">
+<div class="flex items-center space-x-2">
+<div class="p-1.5 md:p-2 bg-gradient-to-tr from-brand-500 to-fuchsia-500 text-white rounded-xl md:rounded-2xl shadow-glow"><i data-lucide="calendar-days" class="w-4 h-4 md:w-5 md:h-5"></i></div>
+<span class="font-extrabold text-base md:text-lg tracking-tight text-ink-700 dark:text-ink-100">日曆</span>
+</div>
+<div class="h-5 w-px bg-ink-200 dark:bg-ink-700 hidden md:block"></div>
+<button id="todayBtn" class="px-3.5 py-1.5 text-sm font-semibold border border-ink-200 dark:border-ink-700 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition">今天</button>
+<button id="jumpDateBtn" class="px-2.5 py-1.5 text-sm font-semibold border border-ink-200 dark:border-ink-700 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition flex items-center space-x-1" title="跳轉到指定日期">
+<i data-lucide="calendar-search" class="w-3.5 h-3.5"></i>
+<span class="hidden md:inline text-xs">跳轉</span>
+</button>
+<div class="flex items-center space-x-1 bg-ink-100/70 dark:bg-ink-800/60 rounded-xl p-1">
+<button id="prevBtn" class="p-1.5 rounded-lg hover:bg-white dark:hover:bg-ink-700 text-ink-600 dark:text-ink-300 transition shadow-sm"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+<button id="nextBtn" class="p-1.5 rounded-lg hover:bg-white dark:hover:bg-ink-700 text-ink-600 dark:text-ink-300 transition shadow-sm"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+</div>
+<div class="flex flex-col leading-tight">
+<h2 id="currentDateTitle" class="text-sm md:text-lg font-bold tracking-tight min-w-[100px] md:min-w-[130px]">2026年 9月</h2>
+<div id="currentDateSubtitle" class="text-[9px] md:text-xs text-ink-500 font-medium min-w-[100px] md:min-w-[130px] mt-0.5"></div>
+</div>
+</div>
+<div class="flex items-center space-x-1.5 md:space-x-3 w-full md:w-auto justify-end mt-1 md:mt-0">
+<div class="bg-ink-100/80 dark:bg-ink-800/70 p-0.5 md:p-1 rounded-xl flex space-x-0.5 text-[11px] md:text-xs font-semibold text-ink-600 dark:text-ink-300">
+<button data-view="month" class="view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition">月</button>
+<button data-view="week" class="view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition">週</button>
+<button data-view="day" class="view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition">日</button>
+<button data-view="schedule" class="view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition">日程</button>
+</div>
+<button id="addEventBtn" class="flex items-center space-x-1 px-2.5 md:px-3.5 py-1.5 md:py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 text-white rounded-xl text-xs md:text-sm font-semibold shadow-glow active:scale-95 transition">
+<i data-lucide="plus" class="w-3.5 h-3.5 md:w-4 md:h-4"></i><span class="hidden sm:inline">新增</span>
+</button>
+<button id="loginBtn" onclick="signInWithGoogle()" class="flex items-center space-x-1.5 px-2.5 md:px-3.5 py-1.5 md:py-2 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-xl text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700 active:scale-95 transition shadow-sm">
+<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+<span class="hidden sm:inline">Google 登入</span>
+</button>
+<div id="userInfo" class="hidden items-center space-x-1.5 md:space-x-2 pl-1 md:pl-2 border-l border-ink-200 dark:border-ink-700">
+<img id="userAvatar" class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-ink-200 dark:border-ink-700 shrink-0" src="" referrerpolicy="no-referrer">
+<span id="userName" class="text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hidden lg:inline max-w-[100px] truncate"></span>
+</div>
+</div>
 </header>
 
 <div id="appViewport" class="flex-1 flex overflow-hidden relative pb-16">
@@ -231,6 +212,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 </main>
 </div>
 
+<!-- ★ 底部導航欄（全平台顯示） -->
 <nav id="mobileBottomNav" class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-ink-900/95 backdrop-blur-lg border-t border-ink-200 dark:border-ink-800 z-50 pb-safe">
     <div class="flex justify-around items-center h-16 max-w-2xl mx-auto">
         <button class="bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-brand-600 transition-colors" data-nav="month">
@@ -252,12 +234,14 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
     </div>
 </nav>
 
+<!-- ★ 跳轉日期彈窗 -->
 <div id="jumpDateModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85] hidden opacity-0 transition-opacity duration-200">
 <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
 <div class="flex items-center justify-between">
 <h3 id="jumpDateTitle" class="text-base font-bold tracking-tight flex items-center space-x-2"><i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span></h3>
 <button id="closeJumpDateModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
 </div>
+
 <div>
 <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">搜尋日程</label>
 <div class="relative">
@@ -266,10 +250,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <button id="clearSearchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-ink-400 hover:text-ink-600 hidden"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
 </div>
 </div>
+
 <div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1">
 <button id="jumpTypeSolar" class="jump-tab-btn active" data-type="solar">公曆</button>
 <button id="jumpTypeLunar" class="jump-tab-btn" data-type="lunar">農曆</button>
 </div>
+
 <div id="jumpSolarInputs" class="grid grid-cols-3 gap-2">
 <div>
 <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">年</label>
@@ -284,6 +270,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <input type="number" id="jumpDay" min="1" max="31" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums">
 </div>
 </div>
+
 <div id="jumpLunarInputs" class="grid grid-cols-3 gap-2" style="display:none">
 <div>
 <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">農曆年</label>
@@ -298,9 +285,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <select id="jumpLunarDay" class="lunar-select"></select>
 </div>
 </div>
+
 <p id="jumpLunarHint" class="text-[10px] text-brand-600/80 dark:text-brand-300/80 leading-relaxed" style="display:none">
 <i data-lucide="info" class="w-3 h-3 inline -mt-0.5"></i> 若選擇閏月，請在農曆月輸入負數（例如 -8 代表閏八月），或直接由日曆點選。
 </p>
+
 <div class="flex justify-end space-x-2 pt-2">
 <button type="button" id="cancelJumpDateBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">取消</button>
 <button type="button" id="confirmJumpDateBtn" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow transition">跳轉</button>
@@ -537,37 +526,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 </div>
 </div>
 
-<div id="noteModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[80] hidden opacity-0 transition-opacity duration-200">
-  <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-200 max-h-[90vh] flex flex-col">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-gradient-to-r from-ink-50 to-white dark:from-ink-800/60 dark:to-ink-900/60 shrink-0">
-      <h3 id="noteModalTitle" class="text-lg font-bold tracking-tight">編輯筆記</h3>
-      <button id="closeNoteModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
-    </div>
-    <div class="p-6 flex-1 overflow-y-auto space-y-4">
-      <input type="hidden" id="noteId">
-      <input type="hidden" id="noteType" value="note">
-      <div>
-        <input type="text" id="noteTitle" placeholder="請輸入標題..." class="w-full px-3.5 py-2.5 text-base font-bold rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-      </div>
-<div>
-  <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">資料夾</label>
-  <input type="text" id="noteFolder" list="noteFolderList" placeholder="輸入或選擇資料夾..." class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-  <datalist id="noteFolderList"></datalist>
-</div>
-      <div class="flex-1">
-        <textarea id="noteContent" rows="12" placeholder="寫下你的想法..." class="w-full h-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 resize-none"></textarea>
-      </div>
-    </div>
-    <div class="flex items-center justify-between px-6 py-4 border-t border-ink-200/70 dark:border-ink-800 bg-white dark:bg-ink-900 shrink-0">
-      <button type="button" id="deleteNoteBtn" class="px-3.5 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition hidden"><i data-lucide="trash-2" class="w-4 h-4 inline -mt-0.5 mr-1"></i>刪除</button>
-      <div class="flex space-x-2 ml-auto">
-        <button type="button" id="cancelNoteBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">取消</button>
-        <button type="button" id="saveNoteBtn" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 rounded-xl shadow-glow transition">儲存</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div id="dayDrawerOverlay" class="day-drawer-overlay"></div>
 <div id="dayDrawerPanel" class="day-drawer-panel">
 <div class="flex justify-center pt-3 pb-1 shrink-0"><div class="w-10 h-1 rounded-full bg-ink-300 dark:bg-ink-600"></div></div>
@@ -603,11 +561,13 @@ const HOLIDAY_CAT_ID='holiday',ANNIVERSARY_CAT_ID='anniversary';
 const LUNAR_FESTIVALS={'1-1':'春節','1-15':'元宵','5-5':'端午','7-7':'七夕','8-15':'中秋','9-9':'重陽','12-8':'臘八'};
 const REMINDER_KEY='calendar_reminded_v1';
 
+// ★ 修正簡體「腊月」為繁體「臘月」
 const LUNAR_MONTHS=['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','臘月'];
 const LUNAR_DAYS=['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
                   '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
                   '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
 
+/* ★ 動態日曆圖標 */
 function updateFavicon() {
   try {
     const size = 128;
@@ -621,6 +581,7 @@ function updateFavicon() {
     const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
     const weekday = '週' + weekdays[today.getDay()];
 
+    // 1. 白色圓角背景
     const radius = 22;
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
@@ -636,6 +597,7 @@ function updateFavicon() {
     ctx.closePath();
     ctx.fill();
 
+    // 2. 頂部主題色橫條
     const headerHeight = size * 0.32;
     ctx.fillStyle = '#6366f1';
     ctx.beginPath();
@@ -649,18 +611,21 @@ function updateFavicon() {
     ctx.closePath();
     ctx.fill();
 
+    // 3. 星期幾文字（頂部白色）
     ctx.fillStyle = '#ffffff';
     ctx.font = `bold ${Math.round(size * 0.18)}px "Noto Sans TC", "PingFang TC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(weekday, size / 2, headerHeight / 2);
 
+    // 4. 日期數字
     ctx.fillStyle = '#1e293b';
     ctx.font = `bold ${Math.round(size * 0.52)}px "Noto Sans TC", "PingFang TC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(String(day), size / 2, headerHeight + (size - headerHeight) / 2 + 2);
 
+    // 5. 更新 favicon
     const dataUrl = canvas.toDataURL('image/png');
     let link = document.getElementById('dynamicFavicon');
     if (!link) {
@@ -673,6 +638,7 @@ function updateFavicon() {
     link.href = dataUrl;
     link.sizes = '128x128';
 
+    // 6. 同時更新 apple-touch-icon（手機加到主畫面時使用）
     let appleLink = document.getElementById('dynamicAppleIcon');
     if (!appleLink) {
       appleLink = document.createElement('link');
@@ -686,12 +652,14 @@ function updateFavicon() {
   }
 }
 
+/* ★ 農曆資訊 */
 function getSolarTerm(date){
   if(typeof Solar!=='undefined'){
     try{const jq=Solar.fromDate(date).getLunar().getJieQi();if(jq)return jq;}catch(e){}
   }
   return null;
 }
+// ★ 修正：將簡體「闰」和「腊」替換為繁體
 function getLunarInfo(date){
   if(typeof Solar!=='undefined'){
     try{
@@ -737,24 +705,8 @@ function getLunarBirthdaySolarDate(lunarMonth,lunarDay,year){
   }catch(e){return null;}
 }
 
-function getTheme(){
-  try { return localStorage.getItem('calendar_theme_v1') || 'system'; } catch(e){ return 'system'; }
-}
-function setTheme(theme){
-  try { localStorage.setItem('calendar_theme_v1', theme); } catch(e){}
-  applyTheme();
-}
-function applyTheme(){
-  const theme = getTheme();
-  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  if (isDark) document.documentElement.classList.add('dark');
-  else document.documentElement.classList.remove('dark');
-}
-window.getTheme = getTheme;
-window.setTheme = setTheme;
-window.applyTheme = applyTheme;
-
-let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],folders:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};window.state=state;
+let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};
+window.state=state;
 let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
 function loadCategories(){try{const s=localStorage.getItem(CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a}}catch(e){}return DEFAULT_CATEGORIES.map(c=>({...c}))}
 function saveCategories(){localStorage.setItem(CAT_KEY,JSON.stringify(state.categories));if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e))}}
@@ -764,20 +716,6 @@ function getCat(id){return state.categories.find(c=>c.id===id)||{id:'_unknown',n
 const EVT_KEY='calendar_events_v1';
 function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
 function saveEvents(){localStorage.setItem(EVT_KEY,JSON.stringify(state.events))}
-const TASK_KEY='calendar_tasks_v1';
-function loadSavedTasks(){const s=localStorage.getItem(TASK_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
-function saveTasks(){localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks))}
-const NOTE_KEY='calendar_notes_v1';
-const FOLDER_KEY='calendar_folders_v1';
-function loadSavedNotes(){const s=localStorage.getItem(NOTE_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
-function saveNotes(){localStorage.setItem(NOTE_KEY,JSON.stringify(state.notes))}
-function loadSavedFolders(){const s=localStorage.getItem(FOLDER_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
-function saveFolders(){
-  localStorage.setItem(FOLDER_KEY,JSON.stringify(state.folders||[]));
-  if(window.currentUser && typeof window.saveCategoriesToCloud==='function'){
-     window.saveCategoriesToCloud().catch(e=>console.error(e));
-  }
-}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function formatTime(s){return new Date(s).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
@@ -802,6 +740,7 @@ function getMonthGridDays(year,month){
   return days;
 }
 
+// ★ 修正：初一顯示農曆月份（例如「八月」），而不是「初一」
 function getDaySubText(date){
   const t=getSolarTerm(date);
   if(t)return{text:t,type:'term'};
@@ -1424,7 +1363,7 @@ function renderMonthView(){
     else if(isHoliday&&item.isCurrentMonth)numClass+='text-rose-600 dark:text-rose-400 font-extrabold';
     else if(item.isCurrentMonth)numClass+='text-ink-700 dark:text-ink-200';
     else numClass+='text-ink-300 dark:text-ink-600';
-    html+=`<div class="month-cell p-1 flex flex-col hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition cursor-pointer overflow-y-auto cell-day" data-date="${item.date.toISOString()}"><div class="flex flex-col items-center mb-0.5"><span class="${numClass}">${item.date.getDate()}</span>${sub.text?`<span class="${subTextClass(sub.type)}">${escapeHtml(sub.text)}</span>`:''}${index%7===0?`<span class="mobile-only-wk text-[7px] text-ink-300 dark:text-ink-600 font-bold leading-none mt-0.5">W${getWeekNumber(item.date)}</span>`:''}</div><div class="flex-1 overflow-hidden space-y-0.5">${dayEvents.slice(0,3).map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const prefix=(evt._isRecurring&&!age)?'↻ ':'';return`<div class="month-event-block" style="--c:${cat.color}" data-id="${evt.id}">${prefix}${escapeHtml(evt.title)}${age?` · ${age}`:''}</div>`}).join('')}${dayEvents.length>3?`<div class="text-[9px] text-ink-400 font-semibold px-1">+${dayEvents.length-3}</div>`:''}</div></div>`;
+    html+=`<div class="month-cell p-1 flex flex-col hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition cursor-pointer overflow-y-auto cell-day" data-date="${item.date.toISOString()}"><div class="flex flex-col items-center mb-0.5">${index%7===0?`<span class="mobile-only-wk text-[7px] text-ink-300 dark:text-ink-600 font-bold leading-none mb-0.5">W${getWeekNumber(item.date)}</span>`:''}<span class="${numClass}">${item.date.getDate()}</span>${sub.text?`<span class="${subTextClass(sub.type)}">${escapeHtml(sub.text)}</span>`:''}</div><div class="flex-1 overflow-hidden space-y-0.5">${dayEvents.slice(0,3).map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const prefix=(evt._isRecurring&&!age)?'↻ ':'';return`<div class="month-event-block" style="--c:${cat.color}" data-id="${evt.id}">${prefix}${escapeHtml(evt.title)}${age?` · ${age}`:''}</div>`}).join('')}${dayEvents.length>3?`<div class="text-[9px] text-ink-400 font-semibold px-1">+${dayEvents.length-3}</div>`:''}</div></div>`;
   });
   html+=`</div></div></div>`;
   c.innerHTML=html;
@@ -1660,13 +1599,7 @@ function renderMyView(){
   .sort((a,b)=>a.diffDays-b.diffDays).slice(0,6);
 
   const formatAnnDate=d=>{const wd=['日','一','二','三','四','五','六'][d.getDay()];return`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 週${wd}`};
-  const currentTheme = getTheme();
-  const isDark = currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  let themeLabel = '跟随系统';
-  let themeIcon = 'monitor-smartphone';
-  let themeStatusText = '自動';
-  if (currentTheme === 'dark') { themeLabel = '深色模式'; themeIcon = 'moon'; themeStatusText = '開'; }
-  else if (currentTheme === 'light') { themeLabel = '浅色模式'; themeIcon = 'sun'; themeStatusText = '關'; }
+  const isDark=document.documentElement.classList.contains('dark');
   const notifPerm=('Notification'in window)?Notification.permission:'unsupported';
   const notifLabel=notifPerm==='granted'?'已開啟':(notifPerm==='denied'?'已封鎖':'未開啟');
   const isLoggedIn=!!window.currentUser;
@@ -1720,13 +1653,8 @@ function renderMyView(){
       <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-3">設定</h3>
       <div class="space-y-1">
         <button id="myThemeBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
-          <span class="flex items-center space-x-2.5">
-            <span class="p-1.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300">
-              <i data-lucide="${themeIcon}" class="w-4 h-4"></i>
-            </span>
-            <span class="text-sm font-semibold">${themeLabel}</span>
-          </span>
-          <span class="text-xs text-ink-400">${themeStatusText}</span>
+          <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300"><i data-lucide="${isDark?'sun':'moon'}" class="w-4 h-4"></i></span><span class="text-sm font-semibold">深色模式</span></span>
+          <span class="text-xs text-ink-400">${isDark?'開':'關'}</span>
         </button>
         <button id="myNotifBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
           <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-4 h-4"></i></span><span class="text-sm font-semibold">通知提醒</span></span>
@@ -1748,15 +1676,7 @@ function renderMyView(){
   c.innerHTML=html;
   lucide.createIcons();
   document.getElementById('backToCalendarBtn').addEventListener('click',()=>{state.view='month';renderAll()});
-  document.getElementById('myThemeBtn').addEventListener('click',() => {
-    const current = getTheme();
-    let next = 'system';
-    if (current === 'system') next = 'light';
-    else if (current === 'light') next = 'dark';
-    else if (current === 'dark') next = 'system';
-    setTheme(next);
-    renderMyView();
-  });
+  document.getElementById('myThemeBtn').addEventListener('click',()=>{document.documentElement.classList.toggle('dark');renderMyView()});
   document.getElementById('myNotifBtn').addEventListener('click',async()=>{
     if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}
     if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}
@@ -1775,391 +1695,16 @@ function renderMyView(){
 }
 function renderTasksView(){
   const c=document.getElementById('calendarViewContainer');
-  const tasks=state.tasks||[];
-  const completedCount=tasks.filter(t=>t.completed).length;
-  const totalCount=tasks.length;
-  const progress=totalCount>0?Math.round((completedCount/totalCount)*100):0;
-
-  let html=`<div class="h-full flex flex-col anim-in">
-    <div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60">
-      <div class="flex items-center justify-between mb-1">
-        <h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2">
-          <i data-lucide="check-square" class="w-6 h-6 text-brand-500"></i>
-          <span>任務清單</span>
-        </h2>
-        <div class="text-right">
-          <span class="text-xs text-ink-400 font-medium block">${completedCount} / ${totalCount} 已完成</span>
-          <span class="text-[10px] text-brand-500 font-semibold block mt-0.5">
-            ${window.currentUser ? '☁️ 已同步雲端' : '💾 單機模式'}
-          </span>
-        </div>
-      </div>
-      <div class="w-full bg-ink-200 dark:bg-ink-700 rounded-full h-2 mt-3">
-        <div class="bg-gradient-to-r from-brand-500 to-fuchsia-500 h-2 rounded-full transition-all duration-500" style="width:${progress}%"></div>
-      </div>
-    </div>
-
-    <div class="p-4 flex items-center gap-2 bg-white/60 dark:bg-ink-900/60 border-b border-ink-200/70 dark:border-ink-800/70">
-      <input type="text" id="taskInput" placeholder="新增任務..." class="flex-1 px-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-      <button id="addTaskBtn" class="p-2.5 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl shadow-glow active:scale-95 transition">
-        <i data-lucide="plus" class="w-5 h-5"></i>
-      </button>
-    </div>
-
-    <div class="flex-1 overflow-y-auto p-5 space-y-2 bg-white/30 dark:bg-ink-900/30">
-      ${tasks.length===0?`
-        <div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in">
-          <i data-lucide="clipboard-list" class="w-16 h-16 mb-4 opacity-30"></i>
-          <p class="text-sm font-medium">還沒有任務</p>
-          <p class="text-xs mt-1">在上方輸入框新增一個吧！</p>
-        </div>
-      `:tasks.sort((a,b)=>a.completed===b.completed?a.createdAt-b.createdAt:b.completed-a.completed).map(task=>`
-        <div class="group flex items-start gap-3 p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm hover:shadow-md transition">
-          <button class="toggle-task-btn shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${task.completed?'bg-brand-500 border-brand-500':'border-ink-300 dark:border-ink-600 hover:border-brand-400'}" data-id="${task.id}">
-            ${task.completed?'<i data-lucide="check" class="w-3 h-3 text-white"></i>':''}
-          </button>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium break-words ${task.completed?'line-through text-ink-400 dark:text-ink-500':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p>
-            <p class="text-[10px] text-ink-400 mt-1">${new Date(task.createdAt).toLocaleString()}</p>
-          </div>
-          <button class="delete-task-btn shrink-0 p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-id="${task.id}">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-      `).join('')}
-    </div>
-  </div>`;
-
-  c.innerHTML=html;
+  c.innerHTML=`<div class="h-full flex flex-col items-center justify-center p-5 text-center anim-in"><div class="w-20 h-20 bg-brand-50 dark:bg-brand-950/40 text-brand-500 rounded-full flex items-center justify-center mb-4"><i data-lucide="check-square" class="w-10 h-10"></i></div><h2 class="text-xl font-bold mb-2">任務</h2><p class="text-sm text-ink-500">任務功能開發中，敬請期待</p></div>`;
   lucide.createIcons();
-
-  const addTask=async()=>{
-    const input=document.getElementById('taskInput');
-    const text=input.value.trim();
-    if(!text)return;
-    const newTask={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now()};
-    state.tasks.push(newTask);
-    saveTasks();
-    if(window.currentUser && typeof window.saveTaskToCloud === 'function'){
-      try{await window.saveTaskToCloud(newTask)}catch(e){console.error(e)}
-    }
-    input.value='';
-    renderTasksView();
-  };
-
-  document.getElementById('addTaskBtn').addEventListener('click',addTask);
-  document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask()});
-
-  document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{
-    const id=btn.dataset.id;
-    const task=state.tasks.find(t=>t.id===id);
-    if(!task)return;
-    task.completed=!task.completed;
-    saveTasks();
-    if(window.currentUser && typeof window.saveTaskToCloud === 'function'){
-      try{await window.saveTaskToCloud(task)}catch(e){console.error(e)}
-    }
-    renderTasksView();
-  }));
-
-  document.querySelectorAll('.delete-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{
-    const id=btn.dataset.id;
-    state.tasks=state.tasks.filter(t=>t.id!==id);
-    saveTasks();
-    if(window.currentUser && typeof window.deleteTaskFromCloud === 'function'){
-      try{await window.deleteTaskFromCloud(id)}catch(e){console.error(e)}
-    }
-    renderTasksView();
-  }));
 }
 function renderNotesView(){
   const c=document.getElementById('calendarViewContainer');
-  const notes=state.notes||[];
-  const searchQuery=state.searchQuery.trim().toLowerCase();
-  
-  let currentTypeNotes = notes.filter(n=>n.type===state.noteViewType);
-  
-  const noteFolders = [...new Set(currentTypeNotes.map(n=>n.folder).filter(f=>f && f.trim()!==''))].sort();
-  const allFolders = [...new Set([...noteFolders, ...(state.folders || [])])].sort();
-  
-  let filteredNotes = currentTypeNotes;
-  if(state.noteFolder === 'uncategorized'){
-    filteredNotes = currentTypeNotes.filter(n=>!n.folder || n.folder.trim()==='');
-  }else if(state.noteFolder !== 'all'){
-    filteredNotes = currentTypeNotes.filter(n=>n.folder === state.noteFolder);
-  }
-  
-  if(searchQuery){
-    filteredNotes = filteredNotes.filter(n=>{
-      return (n.title||'').toLowerCase().includes(searchQuery)||(n.content||'').toLowerCase().includes(searchQuery);
-    });
-  }
-  
-  filteredNotes.sort((a,b)=>b.updatedAt-a.updatedAt);
-
-  let html=`<div class="h-full flex flex-col anim-in bg-white/50 dark:bg-ink-900/50">
-    <div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2">
-          <i data-lucide="file-text" class="w-6 h-6 text-brand-500"></i>
-          <span>筆記本</span>
-        </h2>
-        <span class="text-[10px] text-brand-500 font-semibold">
-          ${window.currentUser ? '☁️ 已同步雲端' : '💾 單機模式'}
-        </span>
-      </div>
-      <div class="relative mb-3">
-        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
-        <input type="text" id="noteSearchInput" value="${escapeHtml(state.searchQuery)}" placeholder="搜尋筆記或日記..." class="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-        <button id="clearNoteSearchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-400 hover:text-ink-600 ${state.searchQuery?'':'hidden'}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
-      </div>
-      <div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1 mb-3">
-        <button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${state.noteViewType==='note'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="note">📝 筆記</button>
-        <button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${state.noteViewType==='diary'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="diary">📔 日記</button>
-      </div>
-      <div class="flex overflow-x-auto gap-1.5 pb-1 scrollbar-none items-center">
-        <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='all'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="all">全部</button>
-        <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='uncategorized'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="uncategorized">未分類</button>
-        ${allFolders.map(f=>{
-          const isActive = state.noteFolder === f;
-          const activeClass = isActive ? 'bg-brand-500 text-white shadow-sm' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700';
-          const deleteBtnColor = isActive ? 'text-white/70 hover:text-white' : 'text-ink-400 hover:text-rose-500';
-          return `
-          <div class="relative group shrink-0">
-            <button class="note-folder-btn pl-3 pr-6 py-1.5 rounded-lg text-xs font-semibold transition ${activeClass}" data-folder="${escapeHtml(f)}">${escapeHtml(f)}</button>
-            <button class="delete-folder-btn absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover:block ${deleteBtnColor} transition" data-folder="${escapeHtml(f)}">
-              <i data-lucide="x" class="w-3 h-3 pointer-events-none"></i>
-            </button>
-          </div>`;
-        }).join('')}
-        <button id="addNoteFolderBtn" class="shrink-0 px-2 py-1.5 rounded-lg text-xs font-semibold bg-ink-100 dark:bg-ink-800 text-ink-500 hover:bg-ink-200 dark:hover:bg-ink-700 transition flex items-center gap-1">
-          <i data-lucide="plus" class="w-3 h-3"></i>新增
-        </button>
-      </div>
-    </div>
-
-    <div class="flex-1 overflow-y-auto p-5 space-y-3">
-      ${filteredNotes.length===0?`
-        <div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in">
-          <i data-lucide="notebook-pen" class="w-16 h-16 mb-4 opacity-30"></i>
-          <p class="text-sm font-medium">這裡還沒有內容</p>
-          <p class="text-xs mt-1">點擊右下角「+」開始撰寫</p>
-        </div>
-      `:filteredNotes.map(n=>`
-        <div class="note-card group flex flex-col p-4 rounded-2xl bg-white dark:bg-ink-800 border border-ink-100 dark:border-ink-700 shadow-sm hover:shadow-md transition cursor-pointer" data-id="${n.id}">
-          <div class="flex items-start justify-between gap-2">
-            <h3 class="font-bold text-base text-ink-800 dark:text-ink-100 line-clamp-2">${escapeHtml(n.title||'無標題')}</h3>
-            <span class="text-[10px] text-ink-400 shrink-0 mt-1">${new Date(n.updatedAt).toLocaleDateString()}</span>
-          </div>
-          <p class="text-xs text-ink-500 dark:text-ink-400 mt-2 line-clamp-3">${escapeHtml(n.content||'')}</p>
-          ${n.folder?`<div class="mt-2 text-[10px] text-brand-500 font-semibold flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i>${escapeHtml(n.folder)}</div>`:''}
-        </div>
-      `).join('')}
-    </div>
-
-    <button id="fabAddNoteBtn" class="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg active:scale-95 transition z-40">
-      <i data-lucide="plus" class="w-6 h-6"></i>
-    </button>
-  </div>`;
-
-  c.innerHTML=html;
+  c.innerHTML=`<div class="h-full flex flex-col items-center justify-center p-5 text-center anim-in"><div class="w-20 h-20 bg-sky-50 dark:bg-sky-950/40 text-sky-500 rounded-full flex items-center justify-center mb-4"><i data-lucide="file-text" class="w-10 h-10"></i></div><h2 class="text-xl font-bold mb-2">筆記</h2><p class="text-sm text-ink-500">筆記功能開發中，敬請期待</p></div>`;
   lucide.createIcons();
-
-  document.querySelectorAll('.note-tab-btn').forEach(btn=>btn.addEventListener('click',()=>{
-    state.noteViewType=btn.dataset.type;
-    state.noteFolder='all';
-    renderNotesView();
-  }));
-
-  document.querySelectorAll('.note-folder-btn').forEach(btn=>btn.addEventListener('click',()=>{
-    state.noteFolder=btn.dataset.folder;
-    renderNotesView();
-  }));
-
-  document.getElementById('addNoteFolderBtn').addEventListener('click', () => {
-    const name = prompt('請輸入新資料夾名稱：');
-    if(!name || !name.trim()) return;
-    const trimName = name.trim();
-    if(state.folders.includes(trimName) || trimName==='全部' || trimName==='未分類') {
-      showToast('該資料夾已存在或名稱無效');
-      return;
-    }
-    state.folders.push(trimName);
-    saveFolders();
-    state.noteFolder = trimName;
-    renderNotesView();
-    showToast('已新增資料夾');
-  });
-
-  document.querySelectorAll('.delete-folder-btn').forEach(btn => btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const folder = btn.dataset.folder;
-    if(confirm(`確定要刪除「${folder}」資料夾嗎？該資料夾內的筆記將移至「未分類」。`)) {
-      state.folders = state.folders.filter(f => f !== folder);
-      saveFolders();
-      
-      let moved = 0;
-      state.notes.forEach(n => {
-        if(n.folder === folder) {
-          n.folder = '';
-          moved++;
-        }
-      });
-      
-      if(moved > 0) {
-        saveNotes();
-        if(window.currentUser && typeof window.saveNoteToCloud === 'function') {
-          state.notes.filter(n => n.folder === '').forEach(async n => {
-            try { await window.saveNoteToCloud(n); } catch(err) {}
-          });
-        }
-      }
-      
-      if(state.noteFolder === folder) state.noteFolder = 'all';
-      renderNotesView();
-      showToast(moved > 0 ? `資料夾已刪除，${moved} 則筆記已移至未分類` : '資料夾已刪除');
-    }
-  }));
-
-  const searchInput=document.getElementById('noteSearchInput');
-  searchInput.addEventListener('input',(e)=>{
-    state.searchQuery=e.target.value;
-    renderNotesView();
-    const newInput=document.getElementById('noteSearchInput');
-    if(newInput){newInput.focus();newInput.setSelectionRange(newInput.value.length,newInput.value.length)}
-  });
-  document.getElementById('clearNoteSearchBtn').addEventListener('click',()=>{
-    state.searchQuery='';
-    renderNotesView();
-  });
-
-  document.getElementById('fabAddNoteBtn').addEventListener('click',()=>{
-    openNoteModal(null, state.noteViewType);
-  });
-
-  document.querySelectorAll('.note-card').forEach(card=>card.addEventListener('click',()=>{
-    const note=state.notes.find(n=>n.id===card.dataset.id);
-    if(note)openNoteModal(note);
-  }));
 }
-function openNoteModal(note=null, type='note'){
-const folderInput=document.getElementById('noteFolder');
-const folderList=document.getElementById('noteFolderList');
-  const modal=document.getElementById('noteModal');
-  const title=document.getElementById('noteModalTitle');
-  const idInput=document.getElementById('noteId');
-  const typeInput=document.getElementById('noteType');
-  const titleInput=document.getElementById('noteTitle');
-  const contentInput=document.getElementById('noteContent');
-  const delBtn=document.getElementById('deleteNoteBtn');
-
-  if(note){
-    title.textContent = note.type==='diary' ? '編輯日記' : '編輯筆記';
-    idInput.value=note.id;
-    typeInput.value=note.type;
-    titleInput.value=note.title;
-    contentInput.value=note.content;
-    delBtn.classList.remove('hidden');
-folderInput.value = note.folder || '';
-
-  }else{
-    title.textContent = type==='diary' ? '新增日記' : '新增筆記';
-    idInput.value='';
-    typeInput.value=type;
-    titleInput.value='';
-    contentInput.value='';
-    delBtn.classList.add('hidden');
-folderInput.value = state.noteFolder === 'all' || state.noteFolder === 'uncategorized' ? '' : state.noteFolder;
-  }
-
-  modal.classList.remove('hidden');
-  setTimeout(()=>{modal.classList.remove('opacity-0');modal.querySelector('div').classList.remove('scale-95');titleInput.focus()},10);
-}
-
-function closeNoteModal(){
-  const m=document.getElementById('noteModal');
-  m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');
-  setTimeout(()=>m.classList.add('hidden'),200);
-}
-
-async function saveNote(){
-  const id=document.getElementById('noteId').value || `note_${Date.now()}`;
-  const type=document.getElementById('noteType').value;
-  const title=document.getElementById('noteTitle').value.trim();
-  const content=document.getElementById('noteContent').value.trim();
-  const folder=document.getElementById('noteFolder').value.trim();
-
-  if(folder && !state.folders.includes(folder)) {
-      state.folders.push(folder);
-      saveFolders();
-  }
-
-  if(!title && !content){showToast('請至少填寫標題或內容');return}
-
-  const existingIndex = state.notes.findIndex(n=>n.id===id);
-  const newNote = {
-  id, type, title, content, folder,
-  createdAt: existingIndex>=0 ? state.notes[existingIndex].createdAt : Date.now(),
-  updatedAt: Date.now()
-};
-
-  if(existingIndex>=0){state.notes[existingIndex]=newNote}
-  else{state.notes.push(newNote)}
-  
-  saveNotes();
-  if(window.currentUser && typeof window.saveNoteToCloud === 'function'){
-    try{await window.saveNoteToCloud(newNote)}catch(e){console.error(e)}
-  }
-  closeNoteModal();
-  showToast('筆記已儲存');
-  renderNotesView();
-}
-
-async function deleteNote(){
-  const id=document.getElementById('noteId').value;
-  if(!id)return;
-  if(!confirm('確定要刪除這則筆記嗎？'))return;
-  
-  state.notes=state.notes.filter(n=>n.id!==id);
-  saveNotes();
-  if(window.currentUser && typeof window.deleteNoteFromCloud==='function'){
-    try{await window.deleteNoteFromCloud(id)}catch(e){console.error(e)}
-  }
-  
-  closeNoteModal();
-  showToast('筆記已刪除');
-  renderNotesView();
-}
-
-function initNoteEventListeners(){
-  document.getElementById('closeNoteModalBtn').addEventListener('click',closeNoteModal);
-  document.getElementById('cancelNoteBtn').addEventListener('click',closeNoteModal);
-  document.getElementById('saveNoteBtn').addEventListener('click',saveNote);
-  document.getElementById('deleteNoteBtn').addEventListener('click',deleteNote);
-  document.getElementById('noteFolder').addEventListener('focus',()=>{
-    const list=document.getElementById('noteFolderList');
-    const noteFolders=[...new Set(state.notes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();
-    const allFolders=[...new Set([...noteFolders, ...(state.folders || [])])].sort();
-    list.innerHTML=allFolders.map(f=>`<option value="${escapeHtml(f)}">`).join('');
-  });
-}
-
-/* ===== 手機版隱藏頂部導航的控制 ===== */
-function updateTopHeaderVisibility(){
-  const hdr = document.getElementById('topHeader');
-  if(!hdr) return;
-  const isMobile = window.innerWidth < 768;
-  const hideOnMobile = (state.view === 'tasks' || state.view === 'notes' || state.view === 'my');
-  if (isMobile && hideOnMobile) {
-    hdr.style.display = 'none';
-  } else {
-    hdr.style.display = '';
-  }
-}
-window.updateTopHeaderVisibility = updateTopHeaderVisibility;
 
 function renderMainView(animationDir){
-  updateTopHeaderVisibility();
   if(state.view==='my'){document.getElementById('sidebar').classList.add('hidden');renderMyView();return}
   if(state.view==='tasks'){document.getElementById('sidebar').classList.add('hidden');renderTasksView();return}
   if(state.view==='notes'){document.getElementById('sidebar').classList.add('hidden');renderNotesView();return}
@@ -2178,6 +1723,7 @@ function renderMainView(animationDir){
   if(state.view==='schedule')fab.classList.remove('hidden');else fab.classList.add('hidden');
   lucide.createIcons();
   bindDynamicEvents();
+  // ★ 已移除：updateBottomNavHighlight(); 改在 renderAll 中呼叫
 }
 window.renderMainView=renderMainView;
 function updateHeaderInfo(){
@@ -2199,6 +1745,7 @@ function renderAll(){
   renderMiniCalendar();
   renderStats();
   renderMainView();
+  // ★ 新增：確保每次渲染時導航欄高亮都能更新
   updateBottomNavHighlight();
 }
 window.renderAll=renderAll;
@@ -2763,16 +2310,10 @@ function initEventListeners(){
     const date=state.drawerDate||state.currentDate;
     closeDayDetail();setTimeout(()=>openEventModal(null,date),250);
   });
-
-  window.addEventListener('resize', () => {
-    if (typeof updateTopHeaderVisibility === 'function') updateTopHeaderVisibility();
-  });
 }
 window.onload=function(){
-  applyTheme();
-
-  updateFavicon(); 
-  setInterval(() => { 
+  updateFavicon(); // ★ 初始化動態日曆圖標
+  setInterval(() => { // ★ 每分鐘檢查是否跨日，若跨日則更新圖標
     const today = new Date().getDate();
     if (today !== window._lastFaviconDay) {
       window._lastFaviconDay = today;
@@ -2791,9 +2332,6 @@ window.onload=function(){
     try{localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories))}catch(e){}
   }
   state.events=loadSavedEvents();
-  state.tasks=loadSavedTasks();
-  state.notes=loadSavedNotes();
-  state.folders=loadSavedFolders()||[];
   state.events.forEach(e=>{
     if(e.category&&state.categories.some(c=>c.id===e.category)&&!state.activeCategories.includes(e.category)){
       state.activeCategories.push(e.category);
@@ -2804,161 +2342,41 @@ window.onload=function(){
   populateLunarDropdowns();
   renderCategories();
   initEventListeners();
-  initNoteEventListeners();
   renderEventTypeButtons();
   renderAll();
-  updateTopHeaderVisibility();
   lucide.createIcons();
-
-  // 监听系统主题变化（仅在"跟随系统"模式下生效）
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (getTheme() === 'system') {
-      applyTheme();
-      if (window.state && window.state.view === 'my' && typeof window.renderMyView === 'function') {
-        window.renderMyView();
-      }
-    }
-  });
 };
 </script>
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-
 const fc=window.FIREBASE_CONFIG;
 const app=initializeApp(fc);
 const auth=getAuth(app);
 const db=getFirestore(app);
 const gp=new GoogleAuthProvider();
-gp.setCustomParameters({prompt:'select_account'});
-
 let cu=null,ue=null,cue=null,hml=false;
 window.currentUser=null;
-
-function getNativeAuthPlugin(){
-  const cap=window.Capacitor;
-  const isNative=!!(cap&&(typeof cap.isNativePlatform==='function'?cap.isNativePlatform():!!cap.platform));
-  const plugin=window.FirebaseAuthentication||(cap&&cap.Plugins&&cap.Plugins.FirebaseAuthentication);
-  return (isNative&&plugin)?plugin:null;
-}
-
-window.signInWithGoogle=async function(){
-  const plugin=getNativeAuthPlugin();
-
-  if(plugin){
-    try{
-      const result=await plugin.signInWithGoogle();
-      if(!result)return;
-      if(result.credential&&result.credential.idToken){
-        const credential=GoogleAuthProvider.credential(result.credential.idToken);
-        await signInWithCredential(auth,credential);
-      }else{
-        alert("❌ 沒有拿到 idToken，請檢查 Firebase SHA-1 指紋與 google-services.json。");
-      }
-    }catch(e){
-      alert("❌ 原生登入失敗：\n"+(e.code||'')+"\n"+(e.message||''));
-    }
-    return;
-  }
-
-  try{
-    await signInWithPopup(auth,gp);
-  }catch(err){
-    console.warn('popup 登入失敗',err&&err.code,err);
-
-    if(err&&err.code==='auth/unauthorized-domain'){
-      alert("❌ 這個網域未被授權。\n請到 Firebase 主控台 → Authentication → Settings → 已授權網域，\n把「"+location.hostname+"」加進去。");
-      return;
-    }
-
-    const fallbackCodes=[
-      'auth/popup-blocked',
-      'auth/popup-closed-by-user',
-      'auth/cancelled-popup-request',
-      'auth/operation-not-supported-in-this-environment',
-      'auth/web-storage-unsupported',
-      'auth/internal-error'
-    ];
-
-    if(fallbackCodes.includes(err&&err.code)){
-      try{
-        await signInWithRedirect(auth,gp);
-      }catch(e2){
-        alert("❌ 登入失敗：\n"+(e2.code||'')+"\n"+(e2.message||''));
-      }
-      return;
-    }
-
-    alert("❌ Google 登入失敗：\n"+((err&&err.code)||'')+"\n"+((err&&err.message)||''));
-  }
-};
-
-getRedirectResult(auth).catch(err=>{
-  console.error('redirect 登入失敗',err);
-  if(err&&err.code&&err.code!=='auth/no-auth-event'){
-    alert("❌ 登入失敗：\n"+err.code+"\n"+(err.message||''));
-  }
-});
-
+window.signInWithGoogle=async function(){try{await signInWithPopup(auth,gp)}catch(e){console.error(e);alert("登入失敗："+e.message)}};
 window.signOutUser=async function(){try{await signOut(auth)}catch(e){console.error(e)}};
-
 onAuthStateChanged(auth,async user=>{
   cu=user;window.currentUser=user;
   if(user){
     updateLoginUI(user);
     if(!hml){
       try{
-        const stateHasLocalEvents = window.state && window.state.events && window.state.events.length > 0;
-        const stateHasLocalTasks = window.state && window.state.tasks && window.state.tasks.length > 0;
-        const stateHasLocalNotes = window.state && window.state.notes && window.state.notes.length > 0;
-
-        if (stateHasLocalEvents) {
-          const q = query(collection(db, "events"), where("userId", "==", user.uid));
-          const snap = await getDocs(q);
-          const cloudEventIds = new Set(snap.docs.map(d => d.id));
-          for (const e of window.state.events) {
-            if (!cloudEventIds.has(e.id)) {
-              await setDoc(doc(db, "events", e.id), { ...e, userId: user.uid });
-            }
-          }
-        }
-
-        if (stateHasLocalTasks || window._pendingTaskSync) {
-          const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
-          const snap = await getDocs(q);
-          const cloudTaskIds = new Set(snap.docs.map(d => d.id));
-          for (const t of window.state.tasks) {
-            if (!cloudTaskIds.has(t.id)) {
-              await setDoc(doc(db, "tasks", t.id), { ...t, userId: user.uid });
-            }
-          }
-          window._pendingTaskSync = false;
-        }
-
-        if (stateHasLocalNotes || window._pendingNoteSync) {
-          const q = query(collection(db, "notes"), where("userId", "==", user.uid));
-          const snap = await getDocs(q);
-          const cloudNoteIds = new Set(snap.docs.map(d => d.id));
-          for (const n of window.state.notes) {
-            if (!cloudNoteIds.has(n.id)) {
-              await setDoc(doc(db, "notes", n.id), { ...n, userId: user.uid });
-            }
-          }
-          window._pendingNoteSync = false;
-        }
-
-        hml = true;
-      } catch(e) {
-        console.error("迁移本地数据到云端失败:", e);
-      }
+        const q=query(collection(db,"events"),where("userId","==",user.uid));
+        const snap=await getDocs(q);
+        const le=(window.state&&window.state.events)||[];
+        if(snap.empty&&le.length>0){for(const e of le){const ref=doc(db,"events",e.id);await setDoc(ref,{...e,userId:user.uid})}}
+        hml=true;
+      }catch(e){console.error(e)}
     }
     await loadCategoriesFromCloud();
     startListening();
     startListeningCategories();
-    startListeningTasks();
-    startListeningNotes();
     updateStorageHint(true);
   }else{
     updateLoginUI(null);
@@ -2969,19 +2387,12 @@ onAuthStateChanged(auth,async user=>{
       try{window.state.events=s?JSON.parse(s):[]}catch(e){window.state.events=[]}
       const sc=localStorage.getItem('calendar_categories_v1');
       try{window.state.categories=sc?JSON.parse(sc):[]}catch(e){}
-      
-      const st=localStorage.getItem('calendar_tasks_v1');
-      try{window.state.tasks=st?JSON.parse(st):[]}catch(e){window.state.tasks=[]}
-      const sn=localStorage.getItem('calendar_notes_v1');
-      try{window.state.notes=sn?JSON.parse(sn):[]}catch(e){window.state.notes=[]}
-
       if(typeof window.renderCategories==='function')window.renderCategories();
       if(typeof window.renderAll==='function')window.renderAll();
     }
     updateStorageHint(false);
   }
 });
-
 async function loadCategoriesFromCloud(){
   if(!cu)return;
   try{
@@ -2997,18 +2408,8 @@ async function loadCategoriesFromCloud(){
         window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));
         try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}
       }
-      if(Array.isArray(data.folders)){
-        window.state.folders = data.folders;
-        try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}
-      } else if (window.state.folders && window.state.folders.length > 0) {
-        await window.saveCategoriesToCloud();
-      }
     }else{
-      await setDoc(ref,{
-        categories:window.state.categories,
-        activeCategories:window.state.activeCategories,
-        folders: window.state.folders || []
-      });
+      await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories});
     }
     if(window.state.events){
       window.state.events.forEach(e=>{
@@ -3029,41 +2430,23 @@ function startListeningCategories(){
   cue=onSnapshot(ref,snap=>{
     if(!snap.exists())return;
     const data=snap.data();
-    
-    if(Array.isArray(data.categories)&&data.categories.length>0){
-      const same=JSON.stringify(data.categories)===JSON.stringify(window.state.categories);
-      if(!same){
-        window.state.categories=data.categories;
-        try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}
-        if(Array.isArray(data.activeCategories)){
-          window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));
-          try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}
-        }
-        if(typeof window.renderCategories==='function')window.renderCategories();
-        if(typeof window.renderAll==='function')window.renderAll();
-      }
+    if(!Array.isArray(data.categories)||data.categories.length===0)return;
+    const same=JSON.stringify(data.categories)===JSON.stringify(window.state.categories);
+    if(same)return;
+    window.state.categories=data.categories;
+    try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}
+    if(Array.isArray(data.activeCategories)){
+      window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));
+      try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}
     }
-
-    if(Array.isArray(data.folders)){
-      const sameFolders = JSON.stringify(data.folders)===JSON.stringify(window.state.folders || []);
-      if(!sameFolders){
-        window.state.folders = data.folders;
-        try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}
-        if(typeof window.renderNotesView==='function' && window.state.view==='notes'){
-          window.renderNotesView();
-        }
-      }
-    }
+    if(typeof window.renderCategories==='function')window.renderCategories();
+    if(typeof window.renderAll==='function')window.renderAll();
   },err=>console.error(err));
 }
 window.saveCategoriesToCloud=async function(){
   if(!cu)return;
   const ref=doc(db,"userSettings",cu.uid);
-  await setDoc(ref,{
-    categories:window.state.categories,
-    activeCategories:window.state.activeCategories,
-    folders: window.state.folders || []
-  },{merge:true});
+  await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories},{merge:true});
 };
 function startListening(){
   if(!cu)return;
@@ -3086,57 +2469,6 @@ function startListening(){
 }
 window.saveEventToCloud=async function(event){if(!cu)throw new Error("未登入");const ref=doc(db,"events",event.id);await setDoc(ref,{...event,userId:cu.uid})};
 window.deleteEventFromCloud=async function(id){if(!cu)throw new Error("未登入");await deleteDoc(doc(db,"events",id))};
-
-function startListeningTasks(){
-  if(!cu)return;
-  const q=query(collection(db,"tasks"),where("userId","==",cu.uid));
-  onSnapshot(q,snap=>{
-    const arr=[];
-    snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});
-    if(window.state){
-      window.state.tasks=arr;
-      try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}
-      if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();
-    }
-  },err=>console.error("監聽任務失敗:",err));
-}
-
-window.saveTaskToCloud=async function(task){
-  if(!cu)return;
-  const ref=doc(db,"tasks",task.id);
-  await setDoc(ref,{...task,userId:cu.uid});
-};
-
-window.deleteTaskFromCloud=async function(id){
-  if(!cu)return;
-  await deleteDoc(doc(db,"tasks",id));
-};
-
-function startListeningNotes(){
-  if(!cu)return;
-  const q=query(collection(db,"notes"),where("userId","==",cu.uid));
-  onSnapshot(q,snap=>{
-    const arr=[];
-    snap.forEach(d=>{const data=d.data();const{userId,...note}=data;arr.push({id:d.id,...note})});
-    if(window.state){
-      window.state.notes=arr;
-      try{localStorage.setItem('calendar_notes_v1',JSON.stringify(arr))}catch(e){}
-      if(typeof window.renderNotesView==='function' && window.state.view==='notes')window.renderNotesView();
-    }
-  },err=>console.error("監聽筆記失敗:",err));
-}
-
-window.saveNoteToCloud=async function(note){
-  if(!cu)return;
-  const ref=doc(db,"notes",note.id);
-  await setDoc(ref,{...note,userId:cu.uid});
-};
-
-window.deleteNoteFromCloud=async function(id){
-  if(!cu)return;
-  await deleteDoc(doc(db,"notes",id));
-};
-
 function updateLoginUI(user){
   const lb=document.getElementById('loginBtn'),ui=document.getElementById('userInfo'),un=document.getElementById('userName'),ua=document.getElementById('userAvatar');
   const sa=document.getElementById('sideAvatar'),sp=document.getElementById('sideAvatarPlaceholder'),sn=document.getElementById('sideUserName'),ss=document.getElementById('sideUserSub');
