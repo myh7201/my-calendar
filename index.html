@@ -1809,13 +1809,10 @@ function renderNotesView(){
   const notes=state.notes||[];
   const searchQuery=state.searchQuery.trim().toLowerCase();
   
-  // 1. 先按筆記/日記過濾
   let currentTypeNotes = notes.filter(n=>n.type===state.noteViewType);
   
-  // 2. 搜集所有資料夾
   const folders = [...new Set(currentTypeNotes.map(n=>n.folder).filter(f=>f && f.trim()!==''))].sort();
   
-  // 3. 按資料夾過濾
   let filteredNotes = currentTypeNotes;
   if(state.noteFolder === 'uncategorized'){
     filteredNotes = currentTypeNotes.filter(n=>!n.folder || n.folder.trim()==='');
@@ -1823,14 +1820,12 @@ function renderNotesView(){
     filteredNotes = currentTypeNotes.filter(n=>n.folder === state.noteFolder);
   }
   
-  // 4. 按搜尋關鍵字過濾
   if(searchQuery){
     filteredNotes = filteredNotes.filter(n=>{
       return (n.title||'').toLowerCase().includes(searchQuery)||(n.content||'').toLowerCase().includes(searchQuery);
     });
   }
   
-  // 5. 按更新時間排序
   filteredNotes.sort((a,b)=>b.updatedAt-a.updatedAt);
 
   let html=`<div class="h-full flex flex-col anim-in bg-white/50 dark:bg-ink-900/50">
@@ -1850,7 +1845,6 @@ function renderNotesView(){
         <button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${state.noteViewType==='note'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="note">📝 筆記</button>
         <button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${state.noteViewType==='diary'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="diary">📔 日記</button>
       </div>
-      <!-- ★ 資料夾導航列 -->
       <div class="flex overflow-x-auto gap-1.5 pb-1 scrollbar-none">
         <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='all'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="all">全部</button>
         <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='uncategorized'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="uncategorized">未分類</button>
@@ -1887,20 +1881,17 @@ function renderNotesView(){
   c.innerHTML=html;
   lucide.createIcons();
 
-  // 綁定 Tab 切換
   document.querySelectorAll('.note-tab-btn').forEach(btn=>btn.addEventListener('click',()=>{
     state.noteViewType=btn.dataset.type;
-    state.noteFolder='all'; // 切換時重置資料夾
+    state.noteFolder='all';
     renderNotesView();
   }));
 
-  // 綁定資料夾點擊
   document.querySelectorAll('.note-folder-btn').forEach(btn=>btn.addEventListener('click',()=>{
     state.noteFolder=btn.dataset.folder;
     renderNotesView();
   }));
 
-  // 綁定搜尋
   const searchInput=document.getElementById('noteSearchInput');
   searchInput.addEventListener('input',(e)=>{
     state.searchQuery=e.target.value;
@@ -1913,19 +1904,16 @@ function renderNotesView(){
     renderNotesView();
   });
 
-  // 綁定新建按鈕
   document.getElementById('fabAddNoteBtn').addEventListener('click',()=>{
     openNoteModal(null, state.noteViewType);
   });
 
-  // 綁定卡片點擊
   document.querySelectorAll('.note-card').forEach(card=>card.addEventListener('click',()=>{
     const note=state.notes.find(n=>n.id===card.dataset.id);
     if(note)openNoteModal(note);
   }));
 }
 function openNoteModal(note=null, type='note'){
-// 在 const contentInput=document.getElementById('noteContent'); 下面加上
 const folderInput=document.getElementById('noteFolder');
 const folderList=document.getElementById('noteFolderList');
   const modal=document.getElementById('noteModal');
@@ -1970,6 +1958,7 @@ async function saveNote(){
   const type=document.getElementById('noteType').value;
   const title=document.getElementById('noteTitle').value.trim();
   const content=document.getElementById('noteContent').value.trim();
+  const folder=document.getElementById('noteFolder').value.trim();
 
   if(!title && !content){showToast('請至少填寫標題或內容');return}
 
@@ -2014,7 +2003,6 @@ function initNoteEventListeners(){
   document.getElementById('cancelNoteBtn').addEventListener('click',closeNoteModal);
   document.getElementById('saveNoteBtn').addEventListener('click',saveNote);
   document.getElementById('deleteNoteBtn').addEventListener('click',deleteNote);
-  // ★ 新增下面這段：
   document.getElementById('noteFolder').addEventListener('focus',()=>{
     const list=document.getElementById('noteFolderList');
     const folders=[...new Set(state.notes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();
@@ -2668,7 +2656,7 @@ window.onload=function(){
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithCredential,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const fc=window.FIREBASE_CONFIG;
@@ -2676,40 +2664,80 @@ const app=initializeApp(fc);
 const auth=getAuth(app);
 const db=getFirestore(app);
 const gp=new GoogleAuthProvider();
+gp.setCustomParameters({prompt:'select_account'});
 
 let cu=null,ue=null,cue=null,hml=false;
 window.currentUser=null;
 
-window.signInWithGoogle = async function() {
-  // ★ 核心修改：双重检查，防止 CDN 加载失败导致找不到插件
-  const authPlugin = window.FirebaseAuthentication || (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication);
-  
-  if (!authPlugin) {
-    alert("❌ 錯誤：找不到 FirebaseAuthentication 插件！\n請確認 index.html 的 <head> 中沒有錯誤的 CDN 引入，並且已經執行了 npx cap sync。");
+/* ---------- 判斷是不是原生 App（Capacitor） ---------- */
+function getNativeAuthPlugin(){
+  const cap=window.Capacitor;
+  const isNative=!!(cap&&(typeof cap.isNativePlatform==='function'?cap.isNativePlatform():!!cap.platform));
+  const plugin=window.FirebaseAuthentication||(cap&&cap.Plugins&&cap.Plugins.FirebaseAuthentication);
+  return (isNative&&plugin)?plugin:null;
+}
+
+/* ---------- 統一登入入口 ---------- */
+window.signInWithGoogle=async function(){
+  const plugin=getNativeAuthPlugin();
+
+  /* ===== 1) App（手機/平板 APK）→ 原生 Google 登入 ===== */
+  if(plugin){
+    try{
+      const result=await plugin.signInWithGoogle();
+      if(!result)return;
+      if(result.credential&&result.credential.idToken){
+        const credential=GoogleAuthProvider.credential(result.credential.idToken);
+        await signInWithCredential(auth,credential);
+      }else{
+        alert("❌ 沒有拿到 idToken，請檢查 Firebase SHA-1 指紋與 google-services.json。");
+      }
+    }catch(e){
+      alert("❌ 原生登入失敗：\n"+(e.code||'')+"\n"+(e.message||''));
+    }
     return;
   }
-  
-  try {
-    alert("✅ 成功找到插件！開始呼叫原生 Google 登入...");
-    const result = await authPlugin.signInWithGoogle();
-    
-    if (!result) {
-      alert("❌ 原生登入回傳空值，可能使用者取消了登入。");
+
+  /* ===== 2) 網頁版（電腦 / 平板瀏覽器）→ popup，失敗自動改 redirect ===== */
+  try{
+    await signInWithPopup(auth,gp);
+  }catch(err){
+    console.warn('popup 登入失敗',err&&err.code,err);
+
+    if(err&&err.code==='auth/unauthorized-domain'){
+      alert("❌ 這個網域未被授權。\n請到 Firebase 主控台 → Authentication → Settings → 已授權網域，\n把「"+location.hostname+"」加進去。");
       return;
     }
-    
-    if (result.credential && result.credential.idToken) {
-      alert("✅ 成功獲取 idToken！準備傳給 Firebase...");
-      const credential = GoogleAuthProvider.credential(result.credential.idToken);
-      await signInWithCredential(auth, credential);
-      alert("🎉 Firebase 登入完全成功！");
-    } else {
-      alert("❌ 沒有拿到 idToken！請檢查 Firebase 控制台的 SHA-1 指紋是否填對，以及 google-services.json 是否放在正確位置。");
+
+    const fallbackCodes=[
+      'auth/popup-blocked',
+      'auth/popup-closed-by-user',
+      'auth/cancelled-popup-request',
+      'auth/operation-not-supported-in-this-environment',
+      'auth/web-storage-unsupported',
+      'auth/internal-error'
+    ];
+
+    if(fallbackCodes.includes(err&&err.code)){
+      try{
+        await signInWithRedirect(auth,gp);
+      }catch(e2){
+        alert("❌ 登入失敗：\n"+(e2.code||'')+"\n"+(e2.message||''));
+      }
+      return;
     }
-  } catch (e) {
-    alert("❌ 發生異常！\n錯誤代碼：" + e.code + "\n錯誤訊息：" + e.message);
+
+    alert("❌ Google 登入失敗：\n"+((err&&err.code)||'')+"\n"+((err&&err.message)||''));
   }
 };
+
+/* ---------- redirect 回來時的錯誤處理 ---------- */
+getRedirectResult(auth).catch(err=>{
+  console.error('redirect 登入失敗',err);
+  if(err&&err.code&&err.code!=='auth/no-auth-event'){
+    alert("❌ 登入失敗：\n"+err.code+"\n"+(err.message||''));
+  }
+});
 
 window.signOutUser=async function(){try{await signOut(auth)}catch(e){console.error(e)}};
 
