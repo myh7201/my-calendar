@@ -687,7 +687,10 @@ function getLunarBirthdaySolarDate(lunarMonth,lunarDay,year){
   }catch(e){return null;}
 }
 
-let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};
+let state={
+taskViewMode: 'week', // 'week' 或 'all'
+taskSelectedDate: new Date(), // 当前选中的日期
+currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};
 window.state=state;
 let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
 function loadCategories(){try{const s=localStorage.getItem(CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a}}catch(e){}return DEFAULT_CATEGORIES.map(c=>({...c}))}
@@ -1679,77 +1682,193 @@ function renderMyView(){
 }
 function renderTasksView(){
   const c=document.getElementById('calendarViewContainer');
-  const tasks=state.tasks||[];
-  const completedCount=tasks.filter(t=>t.completed).length;
-  const totalCount=tasks.length;
-  const progress=totalCount>0?Math.round((completedCount/totalCount)*100):0;
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const selDate=new Date(state.taskSelectedDate);
+  selDate.setHours(0,0,0,0);
 
-  let html=`<div class="h-full flex flex-col anim-in">
-    <div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60">
-      <div class="flex items-center justify-between mb-1">
-        <h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2">
-          <i data-lucide="check-square" class="w-6 h-6 text-brand-500"></i>
-          <span>任務清單</span>
+  // 获取当前周的第一天（周日）
+  const weekStart=new Date(selDate);
+  weekStart.setDate(weekStart.getDate()-weekStart.getDay());
+
+  // 生成 7 天的日期数组
+  const weekDays=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart);
+    d.setDate(d.getDate()+i);
+    weekDays.push(d);
+  }
+
+  // 按日期过滤任务 (统一用 YYYY-MM-DD 格式比较)
+  const selDateStr = selDate.toISOString().split('T')[0];
+  const weekTasks = state.tasks.filter(t => t.date === selDateStr);
+  
+  // 全部任务视图
+  const allIncompleteTasks = state.tasks.filter(t => !t.completed);
+  const allCompletedTasks = state.tasks.filter(t => t.completed);
+
+  let html=`
+  <div class="h-full flex flex-col bg-slate-50/50 dark:bg-ink-900/50 relative">
+    <!-- 头部 -->
+    <div class="px-4 pt-5 pb-3 bg-white/80 dark:bg-ink-900/80 backdrop-blur-md border-b border-ink-200/50 dark:border-ink-800/50">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-extrabold tracking-tight flex items-center space-x-2">
+          <i data-lucide="check-square" class="w-7 h-7 text-brand-500"></i>
+          <span>任務</span>
         </h2>
-        <span class="text-xs text-ink-400 font-medium">${completedCount} / ${totalCount} 已完成</span>
+        <!-- 视图切换按钮 -->
+        <button id="toggleTaskViewBtn" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition ${
+          state.taskViewMode==='week' 
+            ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-800' 
+            : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 border-ink-200 dark:border-ink-700'
+        }">
+          ${state.taskViewMode==='week' ? '按日期' : '所有'}
+        </button>
       </div>
-      <div class="w-full bg-ink-200 dark:bg-ink-700 rounded-full h-2 mt-3">
-        <div class="bg-gradient-to-r from-brand-500 to-fuchsia-500 h-2 rounded-full transition-all duration-500" style="width:${progress}%"></div>
-      </div>
-    </div>
 
-    <div class="p-4 flex items-center gap-2 bg-white/60 dark:bg-ink-900/60 border-b border-ink-200/70 dark:border-ink-800/70">
-      <input type="text" id="taskInput" placeholder="新增任務..." class="flex-1 px-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-      <button id="addTaskBtn" class="p-2.5 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl shadow-glow active:scale-95 transition">
-        <i data-lucide="plus" class="w-5 h-5"></i>
-      </button>
-    </div>
-
-    <div class="flex-1 overflow-y-auto p-5 space-y-2 bg-white/30 dark:bg-ink-900/30">
-      ${tasks.length===0?`
-        <div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in">
-          <i data-lucide="clipboard-list" class="w-16 h-16 mb-4 opacity-30"></i>
-          <p class="text-sm font-medium">還沒有任務</p>
-          <p class="text-xs mt-1">在上方輸入框新增一個吧！</p>
+      ${state.taskViewMode==='week' ? `
+        <!-- 周日期条 -->
+        <div class="flex items-center justify-between text-xs text-ink-500 dark:text-ink-400 mb-2">
+          <button id="prevTaskWeekBtn" class="p-1 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-lg transition"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+          <span class="font-semibold text-ink-700 dark:text-ink-200">
+            ${weekStart.getMonth()+1}月${weekStart.getDate()}日 - ${weekDays[6].getMonth()+1}月${weekDays[6].getDate()}日
+            <span class="text-[10px] ml-1 text-ink-400">第${getWeekNumber(weekStart)}週</span>
+          </span>
+          <button id="nextTaskWeekBtn" class="p-1 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-lg transition"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
         </div>
-      `:tasks.sort((a,b)=>a.completed===b.completed?a.createdAt-b.createdAt:b.completed-a.completed).map(task=>`
-        <div class="group flex items-start gap-3 p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm hover:shadow-md transition">
-          <button class="toggle-task-btn shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${task.completed?'bg-brand-500 border-brand-500':'border-ink-300 dark:border-ink-600 hover:border-brand-400'}" data-id="${task.id}">
-            ${task.completed?'<i data-lucide="check" class="w-3 h-3 text-white"></i>':''}
-          </button>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium break-words ${task.completed?'line-through text-ink-400 dark:text-ink-500':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p>
-            <p class="text-[10px] text-ink-400 mt-1">${new Date(task.createdAt).toLocaleString()}</p>
+        <div class="grid grid-cols-7 gap-1 text-center">
+          ${['日','一','二','三','四','五','六'].map((w,i)=>{
+            const d = weekDays[i];
+            const isToday = d.toDateString() === today.toDateString();
+            const isSel = d.toDateString() === selDate.toDateString();
+            const sub = getDaySubText(d);
+            return `
+              <button class="task-date-btn flex flex-col items-center justify-center py-2 rounded-xl transition ${
+                isSel ? 'bg-brand-500 text-white shadow-glow' : (isToday ? 'bg-brand-50 dark:bg-brand-950/30 text-brand-600' : 'text-ink-600 dark:text-ink-400 hover:bg-white dark:hover:bg-ink-800')
+              }" data-date="${d.toISOString()}">
+                <span class="text-[10px] font-bold mb-0.5">${w}</span>
+                <span class="text-sm font-extrabold">${d.getDate()}</span>
+                <span class="text-[9px] mt-0.5 opacity-80">${sub.text||''}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- 任务列表区 -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+      ${state.taskViewMode==='week' ? `
+        <!-- 按日期显示 -->
+        ${weekTasks.length===0 ? `
+          <div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in">
+            <i data-lucide="clipboard-list" class="w-16 h-16 mb-4 opacity-30"></i>
+            <p class="text-sm font-medium">這一天還沒有任務</p>
+            <p class="text-xs mt-1">點擊右下角「+」新增</p>
           </div>
-          <button class="delete-task-btn shrink-0 p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-id="${task.id}">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-      `).join('')}
+        ` : `
+          <div class="space-y-2">
+            <h3 class="text-xs font-bold text-ink-400 uppercase tracking-wider mb-2">今日任務 (${weekTasks.filter(t=>!t.completed).length})</h3>
+            ${weekTasks.filter(t=>!t.completed).map(task=>renderTaskCard(task)).join('')}
+          </div>
+          ${weekTasks.filter(t=>t.completed).length>0 ? `
+            <div class="space-y-2 pt-2 border-t border-ink-200/50 dark:border-ink-800/50">
+              <h3 class="text-xs font-bold text-ink-400 uppercase tracking-wider mb-2">已完成項目 (${weekTasks.filter(t=>t.completed).length})</h3>
+              ${weekTasks.filter(t=>t.completed).map(task=>renderTaskCard(task)).join('')}
+            </div>
+          ` : ''}
+        `}
+      ` : `
+        <!-- 所有任务显示 -->
+        ${allIncompleteTasks.length===0 && allCompletedTasks.length===0 ? `
+          <div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in">
+            <i data-lucide="clipboard-list" class="w-16 h-16 mb-4 opacity-30"></i>
+            <p class="text-sm font-medium">還沒有任何任務</p>
+          </div>
+        ` : `
+          ${allIncompleteTasks.length>0 ? `
+            <div class="space-y-2">
+              <h3 class="text-xs font-bold text-ink-400 uppercase tracking-wider mb-2">未完成 (${allIncompleteTasks.length})</h3>
+              ${allIncompleteTasks.map(task=>renderTaskCard(task)).join('')}
+            </div>
+          ` : ''}
+          ${allCompletedTasks.length>0 ? `
+            <div class="space-y-2 pt-2 border-t border-ink-200/50 dark:border-ink-800/50">
+              <h3 class="text-xs font-bold text-ink-400 uppercase tracking-wider mb-2">已完成 (${allCompletedTasks.length})</h3>
+              ${allCompletedTasks.map(task=>renderTaskCard(task)).join('')}
+            </div>
+          ` : ''}
+        `}
+      `}
     </div>
-  </div>`;
+
+    <!-- 悬浮新增按钮 -->
+    <button id="fabAddTaskBtn" class="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg active:scale-95 transition z-40">
+      <i data-lucide="plus" class="w-6 h-6"></i>
+    </button>
+  </div>
+  `;
 
   c.innerHTML=html;
   lucide.createIcons();
 
-  const addTask=async()=>{
-    const input=document.getElementById('taskInput');
-    const text=input.value.trim();
-    if(!text)return;
-    const newTask={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now()};
+  // 绑定视图切换
+  document.getElementById('toggleTaskViewBtn').addEventListener('click',()=>{
+    state.taskViewMode = state.taskViewMode === 'week' ? 'all' : 'week';
+    renderTasksView();
+  });
+
+  // 绑定周切换
+  if(state.taskViewMode==='week'){
+    document.getElementById('prevTaskWeekBtn').addEventListener('click',()=>{
+      const d=new Date(state.taskSelectedDate);
+      d.setDate(d.getDate()-7);
+      state.taskSelectedDate=d;
+      renderTasksView();
+    });
+    document.getElementById('nextTaskWeekBtn').addEventListener('click',()=>{
+      const d=new Date(state.taskSelectedDate);
+      d.setDate(d.getDate()+7);
+      state.taskSelectedDate=d;
+      renderTasksView();
+    });
+    // 绑定日期点击
+    document.querySelectorAll('.task-date-btn').forEach(btn=>btn.addEventListener('click',()=>{
+      state.taskSelectedDate = new Date(btn.dataset.date);
+      renderTasksView();
+    }));
+  }
+
+  // 绑定悬浮按钮
+  document.getElementById('fabAddTaskBtn').addEventListener('click',()=>{
+    // 使用 prompt 简单获取任务标题，并默认使用当前选中日期
+    const text = prompt('請輸入任務內容：');
+    if(!text || !text.trim()) return;
+    
+    const targetDate = state.taskViewMode === 'week' ? new Date(state.taskSelectedDate) : new Date();
+    const dateStr = targetDate.toISOString().split('T')[0];
+    
+    const newTask = {
+      id: `task_${Date.now()}`,
+      text: text.trim(),
+      completed: false,
+      createdAt: Date.now(),
+      date: dateStr // ★ 核心：给任务加上日期属性
+    };
+    
     state.tasks.push(newTask);
     saveTasks();
-    if(window.currentUser&&typeof window.saveTaskToCloud==='function'){
-      try{await window.saveTaskToCloud(newTask)}catch(e){console.error(e)}
+    
+    if(window.currentUser && typeof window.saveTaskToCloud === 'function'){
+      window.saveTaskToCloud(newTask).catch(e=>console.error(e));
     }
-    input.value='';
+    
     renderTasksView();
-  };
+  });
 
-  document.getElementById('addTaskBtn').addEventListener('click',addTask);
-  document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask()});
-
-  document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{
+  // 绑定任务卡片上的交互
+  document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{
+    e.stopPropagation();
     const id=btn.dataset.id;
     const task=state.tasks.find(t=>t.id===id);
     if(!task)return;
@@ -1761,7 +1880,8 @@ function renderTasksView(){
     renderTasksView();
   }));
 
-  document.querySelectorAll('.delete-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{
+  document.querySelectorAll('.delete-task-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{
+    e.stopPropagation();
     const id=btn.dataset.id;
     state.tasks=state.tasks.filter(t=>t.id!==id);
     saveTasks();
@@ -1771,7 +1891,29 @@ function renderTasksView(){
     renderTasksView();
   }));
 }
-function renderNotesView(){
+
+// 辅助函数：渲染单个任务卡片
+function renderTaskCard(task){
+  return `
+    <div class="group flex items-center gap-3 p-3.5 rounded-2xl bg-white dark:bg-ink-800 border border-ink-100 dark:border-ink-700 shadow-sm hover:shadow-md transition cursor-pointer">
+      <div class="w-1 self-stretch rounded-full shrink-0 ${task.completed?'bg-ink-300 dark:bg-ink-600':'bg-brand-500'}"></div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold break-words ${task.completed?'line-through text-ink-400 dark:text-ink-500':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p>
+        <p class="text-[10px] text-ink-400 mt-1">${task.date || new Date(task.createdAt).toLocaleDateString()}</p>
+      </div>
+      <button class="toggle-task-btn shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition ${
+        task.completed 
+          ? 'bg-brand-500 border-brand-500 text-white' 
+          : 'border-ink-300 dark:border-ink-600 hover:border-brand-400'
+      }" data-id="${task.id}">
+        ${task.completed?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':''}
+      </button>
+      <button class="delete-task-btn shrink-0 p-2 rounded-xl text-ink-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-id="${task.id}">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `;
+}function renderNotesView(){
   const c=document.getElementById('calendarViewContainer');
   c.innerHTML=`<div class="h-full flex flex-col items-center justify-center p-5 text-center anim-in"><div class="w-20 h-20 bg-sky-50 dark:bg-sky-950/40 text-sky-500 rounded-full flex items-center justify-center mb-4"><i data-lucide="file-text" class="w-10 h-10"></i></div><h2 class="text-xl font-bold mb-2">筆記</h2><p class="text-sm text-ink-500">筆記功能開發中，敬請期待</p></div>`;
   lucide.createIcons();
