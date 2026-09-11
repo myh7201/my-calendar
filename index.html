@@ -92,11 +92,20 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 .dark .jump-quick-btn:hover{background:rgba(99,102,241,.2);color:#a5b4fc}
 .lunar-preview{background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(217,70,239,.06));border:1px solid rgba(99,102,241,.2)}
 .dark .lunar-preview{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(217,70,239,.1));border-color:rgba(99,102,241,.3)}
+/* 農曆跳轉分頁按鈕 */
+.jump-tab-btn{flex:1;padding:6px 4px;font-size:12px;font-weight:600;border-radius:8px;border:none;cursor:pointer;transition:all .15s}
+.jump-tab-btn.active{background:#fff;color:#4f46e5;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.dark .jump-tab-btn.active{background:#334155;color:#a5b4fc}
+.jump-tab-btn:not(.active){background:transparent;color:#64748b}
+.dark .jump-tab-btn:not(.active){color:#94a3b8}
+/* 農曆月日下拉選單 */
+.lunar-select{width:100%;padding:8px 6px;font-size:13px;border-radius:10px;border:1px solid rgba(148,163,184,.3);background:#fff;color:#1e293b;outline:none}
+.dark .lunar-select{background:#0f172a;color:#f1f5f9;border-color:#334155}
 @media(max-width:640px){
 .month-grid{grid-template-columns:repeat(7,1fr)!important}
 .month-header{grid-template-columns:repeat(7,1fr)!important}
 .wk-cell{display:none!important}
-.month-cell{min-height:52px;padding:2px 1px!important}
+.month-cell{min-height:68px;max-height:88px;overflow-y:auto;padding:2px 1px!important;-webkit-overflow-scrolling:touch}
 .mobile-hide{display:none!important}
 .desktop-only{display:none!important}
 .mobile-only-wk{display:block}
@@ -126,12 +135,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <div id="currentDateSubtitle" class="text-[9px] md:text-xs text-ink-500 font-medium min-w-[100px] md:min-w-[130px] mt-0.5"></div>
 </div>
 </div>
-<div class="flex-1 max-w-xs mx-2 hidden md:block desktop-only">
-<div class="relative group">
-<i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
-<input type="text" id="searchInput" placeholder="搜尋日程或事件..." class="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white/70 dark:bg-ink-900/60 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-</div>
-</div>
+<!-- 桌面端搜索框已移除 -->
 <div class="flex items-center space-x-1.5 md:space-x-3 w-full md:w-auto justify-end mt-1 md:mt-0">
 <div class="bg-ink-100/80 dark:bg-ink-800/70 p-0.5 md:p-1 rounded-xl flex space-x-0.5 text-[11px] md:text-xs font-semibold text-ink-600 dark:text-ink-300">
 <button data-view="month" class="view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition">月</button>
@@ -205,24 +209,38 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 </div>
 </aside>
 <main id="mainContent" class="flex-1 flex flex-col overflow-hidden bg-white/60 dark:bg-ink-900/40 backdrop-blur-sm relative">
-<div class="p-2.5 border-b border-ink-200/70 dark:border-ink-800/70 md:hidden bg-white/70 dark:bg-ink-900/60">
-<div class="relative">
-<i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
-<input type="text" id="mobileSearchInput" placeholder="搜尋日程..." class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-</div>
-</div>
+<!-- 移動端搜索框已移除 -->
 <div id="calendarViewContainer" class="flex-1 overflow-y-auto relative"></div>
 <button id="fabAddBtn" class="fab hidden"><i data-lucide="plus" class="w-6 h-6"></i></button>
 </main>
 </div>
 
+<!-- ★ 跳轉日期彈窗（整合搜索、移除快速跳轉、新增農曆跳轉） -->
 <div id="jumpDateModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85] hidden opacity-0 transition-opacity duration-200">
-<div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200">
+<div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
 <div class="flex items-center justify-between">
 <h3 id="jumpDateTitle" class="text-base font-bold tracking-tight flex items-center space-x-2"><i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span></h3>
 <button id="closeJumpDateModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
 </div>
-<div id="jumpYmdGrid" class="grid grid-cols-3 gap-2">
+
+<!-- ★ 搜索日程 -->
+<div>
+<label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">搜尋日程</label>
+<div class="relative">
+<i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
+<input type="text" id="modalSearchInput" placeholder="輸入關鍵字..." class="w-full pl-9 pr-9 py-2 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
+<button id="clearSearchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-ink-400 hover:text-ink-600 hidden"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+</div>
+</div>
+
+<!-- ★ 公曆/農曆切換 -->
+<div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1">
+<button id="jumpTypeSolar" class="jump-tab-btn active" data-type="solar">公曆</button>
+<button id="jumpTypeLunar" class="jump-tab-btn" data-type="lunar">農曆</button>
+</div>
+
+<!-- ★ 公曆輸入 -->
+<div id="jumpSolarInputs" class="grid grid-cols-3 gap-2">
 <div>
 <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">年</label>
 <input type="number" id="jumpYear" min="1900" max="2200" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums">
@@ -236,19 +254,27 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <input type="number" id="jumpDay" min="1" max="31" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums">
 </div>
 </div>
+
+<!-- ★ 農曆輸入 -->
+<div id="jumpLunarInputs" class="grid grid-cols-3 gap-2" style="display:none">
 <div>
-<div class="text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-2">快速跳轉</div>
-<div class="grid grid-cols-4 gap-1.5">
-<button type="button" class="jump-quick-btn" data-unit="day" data-delta="-1">−1 天</button>
-<button type="button" class="jump-quick-btn" data-unit="day" data-delta="1">+1 天</button>
-<button type="button" class="jump-quick-btn" data-unit="week" data-delta="-1">−1 週</button>
-<button type="button" class="jump-quick-btn" data-unit="week" data-delta="1">+1 週</button>
-<button type="button" class="jump-quick-btn" data-unit="month" data-delta="-1">−1 月</button>
-<button type="button" class="jump-quick-btn" data-unit="month" data-delta="1">+1 月</button>
-<button type="button" class="jump-quick-btn" data-unit="year" data-delta="-1">−1 年</button>
-<button type="button" class="jump-quick-btn" data-unit="year" data-delta="1">+1 年</button>
+<label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">農曆年</label>
+<input type="number" id="jumpLunarYear" min="1900" max="2200" placeholder="1990" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums">
+</div>
+<div>
+<label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">農曆月</label>
+<select id="jumpLunarMonth" class="lunar-select"></select>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">農曆日</label>
+<select id="jumpLunarDay" class="lunar-select"></select>
 </div>
 </div>
+
+<p id="jumpLunarHint" class="text-[10px] text-brand-600/80 dark:text-brand-300/80 leading-relaxed" style="display:none">
+<i data-lucide="info" class="w-3 h-3 inline -mt-0.5"></i> 若選擇閏月，請在農曆月輸入負數（例如 -8 代表閏八月），或直接由日曆點選。
+</p>
+
 <div class="flex justify-end space-x-2 pt-2">
 <button type="button" id="cancelJumpDateBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">取消</button>
 <button type="button" id="confirmJumpDateBtn" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow transition">跳轉</button>
@@ -599,7 +625,7 @@ function subTextClass(type,base='text-[9px] leading-tight mt-0.5'){if(type==='fe
 function parseReminderValue(){const v=parseFloat(document.getElementById('eventReminderValue').value)||0;const u=document.getElementById('eventReminderUnit').value;if(v<=0)return'none';if(u==='day')return String(Math.round(v*1440));if(u==='hour')return String(Math.round(v*60));return String(Math.round(v))}
 function fillReminderInputs(rv){const min=parseInt(rv,10)||0;let val=10,unit='min';if(min>0){if(min>=1440&&min%1440===0){val=min/1440;unit='day'}else if(min>=60&&min%60===0){val=min/60;unit='hour'}else{val=min;unit='min'}}document.getElementById('eventReminderValue').value=val;document.getElementById('eventReminderUnit').value=unit}
 
-/* ★★★ 修復核心：確保事件分類一律處於啟用狀態 ★★★ */
+/* ★ 確保事件分類一律處於啟用狀態 */
 function ensureCategoryActive(catId){
   if(!catId)return;
   if(!state.categories.some(c=>c.id===catId))return;
@@ -611,86 +637,9 @@ function ensureCategoryActive(catId){
 }
 window.ensureCategoryActive=ensureCategoryActive;
 
+/* ★ 公曆/農曆跳轉狀態 */
 let jumpTarget='calendar';
-function openJumpDateModal(target){
-  jumpTarget=target||'calendar';
-  let d;
-  if(jumpTarget==='eventStart'){
-    const v=document.getElementById('eventStart').value;
-    d=v?new Date(v):new Date(state.currentDate);
-    document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到開始日期</span>';
-    document.getElementById('jumpYmdGrid').style.display='';
-  }else if(jumpTarget==='birthYear'){
-    const by=parseInt(document.getElementById('eventBirthYear').value,10);
-    d=!isNaN(by)?new Date(by,0,1):new Date(state.currentDate);
-    document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到出生年份</span>';
-    document.getElementById('jumpYmdGrid').style.display='none';
-  }else{
-    d=new Date(state.currentDate);
-    document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span>';
-    document.getElementById('jumpYmdGrid').style.display='';
-  }
-  document.getElementById('jumpYear').value=d.getFullYear();
-  document.getElementById('jumpMonth').value=d.getMonth()+1;
-  document.getElementById('jumpDay').value=d.getDate();
-  const m=document.getElementById('jumpDateModal');
-  m.classList.remove('hidden');
-  setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95');document.getElementById('jumpYear').focus();document.getElementById('jumpYear').select()},10);
-  if(typeof lucide!=='undefined')lucide.createIcons();
-}
-function closeJumpDateModal(){
-  const m=document.getElementById('jumpDateModal');
-  m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');
-  setTimeout(()=>m.classList.add('hidden'),200);
-}
-function applyJumpDelta(unit,delta){
-  let y=parseInt(document.getElementById('jumpYear').value)||new Date().getFullYear();
-  let mo=parseInt(document.getElementById('jumpMonth').value)||1;
-  let da=parseInt(document.getElementById('jumpDay').value)||1;
-  let dt=new Date(y,mo-1,da);
-  if(unit==='day')dt.setDate(dt.getDate()+delta);
-  else if(unit==='week')dt.setDate(dt.getDate()+delta*7);
-  else if(unit==='month')dt.setMonth(dt.getMonth()+delta);
-  else if(unit==='year')dt.setFullYear(dt.getFullYear()+delta);
-  document.getElementById('jumpYear').value=dt.getFullYear();
-  document.getElementById('jumpMonth').value=dt.getMonth()+1;
-  document.getElementById('jumpDay').value=dt.getDate();
-}
-function confirmJumpDate(){
-  const y=parseInt(document.getElementById('jumpYear').value);
-  if(isNaN(y)){showToast('請輸入有效年份');return}
-  if(jumpTarget==='birthYear'){
-    document.getElementById('eventBirthYear').value=y;
-    updateLunarPreview();
-    showToast(`已設定出生年份：${y}`);
-    closeJumpDateModal();
-    return;
-  }
-  const m=parseInt(document.getElementById('jumpMonth').value);
-  const d=parseInt(document.getElementById('jumpDay').value);
-  if(isNaN(m)||isNaN(d)){showToast('請輸入有效日期');return}
-  const dt=new Date(y,m-1,d);
-  if(isNaN(dt.getTime())){showToast('日期無效');return}
-  if(jumpTarget==='eventStart'){
-    const startInput=document.getElementById('eventStart');
-    const endInput=document.getElementById('eventEnd');
-    const oldStart=startInput.value?new Date(startInput.value):new Date();
-    const oldEnd=endInput.value?new Date(endInput.value):new Date(oldStart.getTime()+3600000);
-    const dur=Math.max(60000,oldEnd-oldStart);
-    const newStart=new Date(dt);
-    newStart.setHours(oldStart.getHours(),oldStart.getMinutes(),0,0);
-    const newEnd=new Date(newStart.getTime()+dur);
-    startInput.value=formatDateForInput(newStart);
-    endInput.value=formatDateForInput(newEnd);
-    showToast(`已設為 ${y}年${m}月${d}日`);
-  }else{
-    state.currentDate=dt;
-    state.miniDate=new Date(dt);
-    renderAll();
-    showToast(`已跳轉到 ${y}年${m}月${d}日`);
-  }
-  closeJumpDateModal();
-}
+let jumpType='solar'; // 'solar' 或 'lunar'
 
 function populateLunarDropdowns(){
   const monthSel=document.getElementById('eventLunarMonth');
@@ -702,6 +651,142 @@ function populateLunarDropdowns(){
   if(daySel.options.length===0){
     daySel.innerHTML=LUNAR_DAYS.map((d,i)=>`<option value="${i+1}">${d}</option>`).join('');
   }
+  // ★ 跳轉彈窗的農曆下拉選單
+  const jMonth=document.getElementById('jumpLunarMonth');
+  const jDay=document.getElementById('jumpLunarDay');
+  if(jMonth&&jMonth.options.length===0){
+    jMonth.innerHTML=LUNAR_MONTHS.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+  }
+  if(jDay&&jDay.options.length===0){
+    jDay.innerHTML=LUNAR_DAYS.map((d,i)=>`<option value="${i+1}">${d}</option>`).join('');
+  }
+}
+
+function openJumpDateModal(target){
+  jumpTarget=target||'calendar';
+  let d;
+  if(jumpTarget==='eventStart'){
+    const v=document.getElementById('eventStart').value;
+    d=v?new Date(v):new Date(state.currentDate);
+    document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到開始日期</span>';
+  }else if(jumpTarget==='birthYear'){
+    const by=parseInt(document.getElementById('eventBirthYear').value,10);
+    d=!isNaN(by)?new Date(by,0,1):new Date(state.currentDate);
+    document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到出生年份</span>';
+  }else{
+    d=new Date(state.currentDate);
+    document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span>';
+  }
+
+  // 回填公曆輸入
+  document.getElementById('jumpYear').value=d.getFullYear();
+  document.getElementById('jumpMonth').value=d.getMonth()+1;
+  document.getElementById('jumpDay').value=d.getDate();
+
+  // 回填農曆輸入
+  document.getElementById('jumpLunarYear').value=d.getFullYear();
+  try{
+    const lunar=Solar.fromDate(d).getLunar();
+    const lm=lunar.getMonth(); // 1-12，負數代表閏月
+    const ld=lunar.getDay();
+    document.getElementById('jumpLunarMonth').value=lm>0?lm:-lm;
+    document.getElementById('jumpLunarDay').value=ld;
+  }catch(e){}
+
+  // 回填搜索詞
+  document.getElementById('modalSearchInput').value=state.searchQuery||'';
+  document.getElementById('clearSearchBtn').style.display=state.searchQuery?'block':'none';
+
+  // 重置為公曆視圖
+  setJumpType('solar');
+
+  const m=document.getElementById('jumpDateModal');
+  m.classList.remove('hidden');
+  setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95');document.getElementById('modalSearchInput').focus()},10);
+  if(typeof lucide!=='undefined')lucide.createIcons();
+}
+function closeJumpDateModal(){
+  const m=document.getElementById('jumpDateModal');
+  m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');
+  setTimeout(()=>m.classList.add('hidden'),200);
+}
+function setJumpType(type){
+  jumpType=type;
+  const solarBtn=document.getElementById('jumpTypeSolar');
+  const lunarBtn=document.getElementById('jumpTypeLunar');
+  const solarInputs=document.getElementById('jumpSolarInputs');
+  const lunarInputs=document.getElementById('jumpLunarInputs');
+  const lunarHint=document.getElementById('jumpLunarHint');
+
+  if(type==='solar'){
+    solarBtn.classList.add('active');lunarBtn.classList.remove('active');
+    solarInputs.style.display='grid';lunarInputs.style.display='none';lunarHint.style.display='none';
+  }else{
+    solarBtn.classList.remove('active');lunarBtn.classList.add('active');
+    solarInputs.style.display='none';lunarInputs.style.display='grid';lunarHint.style.display='block';
+  }
+}
+function confirmJumpDate(){
+  if(jumpTarget==='birthYear'){
+    const y=parseInt(document.getElementById('jumpYear').value);
+    if(isNaN(y)){showToast('請輸入有效年份');return}
+    document.getElementById('eventBirthYear').value=y;
+    updateLunarPreview();
+    showToast(`已設定出生年份：${y}`);
+    closeJumpDateModal();
+    return;
+  }
+
+  let y,m,d;
+  if(jumpType==='solar'){
+    y=parseInt(document.getElementById('jumpYear').value);
+    m=parseInt(document.getElementById('jumpMonth').value);
+    d=parseInt(document.getElementById('jumpDay').value);
+  }else{
+    y=parseInt(document.getElementById('jumpLunarYear').value);
+    m=parseInt(document.getElementById('jumpLunarMonth').value);
+    d=parseInt(document.getElementById('jumpLunarDay').value);
+  }
+
+  if(isNaN(y)||isNaN(m)||isNaN(d)){showToast('請輸入有效日期');return}
+
+  let dt;
+  if(jumpType==='solar'){
+    dt=new Date(y,m-1,d);
+    if(isNaN(dt.getTime())){showToast('日期無效');return}
+  }else{
+    // 農曆轉公曆
+    if(typeof Lunar==='undefined'){showToast('農曆庫未載入，請稍後再試');return}
+    try{
+      const lunar=Lunar.fromYmd(y,m,d);
+      const solar=lunar.getSolar();
+      dt=new Date(solar.getYear(),solar.getMonth()-1,solar.getDay());
+    }catch(e){
+      showToast('農曆日期無效（可能為閏月或不存在）');
+      return;
+    }
+  }
+
+  if(jumpTarget==='eventStart'){
+    const startInput=document.getElementById('eventStart');
+    const endInput=document.getElementById('eventEnd');
+    const oldStart=startInput.value?new Date(startInput.value):new Date();
+    const oldEnd=endInput.value?new Date(endInput.value):new Date(oldStart.getTime()+3600000);
+    const dur=Math.max(60000,oldEnd-oldStart);
+    const newStart=new Date(dt);
+    newStart.setHours(oldStart.getHours(),oldStart.getMinutes(),0,0);
+    const newEnd=new Date(newStart.getTime()+dur);
+    startInput.value=formatDateForInput(newStart);
+    endInput.value=formatDateForInput(newEnd);
+    showToast(`已設為 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`);
+  }else{
+    state.currentDate=dt;
+    state.miniDate=new Date(dt);
+    renderAll();
+    const wd=['日','一','二','三','四','五','六'][dt.getDay()];
+    showToast(`已跳轉到 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日 週${wd}`);
+  }
+  closeJumpDateModal();
 }
 
 function renderEventTypeButtons(){
@@ -804,9 +889,7 @@ function addInterval(date,freq,interval){
   return d;
 }
 
-/* ★★★ 修復：農曆展開若 Lunar 不存在則回退至公曆 ★★★ */
 function expandLunarBirthday(evt,rangeStart,rangeEnd,out){
-  // 回退：Lunar 未載入時，直接用 start 日期顯示
   if(typeof Lunar==='undefined'){
     const start=new Date(evt.start);
     const end=new Date(evt.end||evt.start);
@@ -843,10 +926,9 @@ function expandLunarBirthday(evt,rangeStart,rangeEnd,out){
         });
         pushed++;
       }
-    }catch(e){/* 閏月或無效日期跳過 */}
+    }catch(e){}
   }
 
-  // ★ 若展開失敗，回退到用 start 日期顯示，避免事件「消失」
   if(pushed===0){
     const start=new Date(evt.start);
     const end=new Date(evt.end||evt.start);
@@ -861,7 +943,6 @@ function expandEvent(evt,rangeStart,rangeEnd,out){
     try{
       expandLunarBirthday(evt,rangeStart,rangeEnd,out);
     }catch(e){
-      // 出錯時回退到公曆顯示
       const start=new Date(evt.start);
       const end=new Date(evt.end||evt.start);
       if(!isNaN(start.getTime())&&end>=rangeStart&&start<=rangeEnd){
@@ -933,10 +1014,8 @@ function expandEvent(evt,rangeStart,rangeEnd,out){
   }
 }
 
-/* ★★★ 修復：getFilteredEvents 對異常分類更寬容 ★★★ */
 function getFilteredEvents(){
   return state.events.filter(evt=>{
-    // 分類不存在於清單中（資料異常）→ 仍然顯示，避免事件無故消失
     const catExists=state.categories.some(c=>c.id===evt.category);
     if(catExists){
       if(!state.activeCategories.includes(evt.category))return false;
@@ -1158,7 +1237,7 @@ function renderMonthView(){
     else if(isHoliday&&item.isCurrentMonth)numClass+='text-rose-600 dark:text-rose-400 font-extrabold';
     else if(item.isCurrentMonth)numClass+='text-ink-700 dark:text-ink-200';
     else numClass+='text-ink-300 dark:text-ink-600';
-    html+=`<div class="month-cell p-1 flex flex-col hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition cursor-pointer overflow-hidden cell-day" data-date="${item.date.toISOString()}"><div class="flex flex-col items-center mb-0.5">${index%7===0?`<span class="mobile-only-wk text-[7px] text-ink-300 dark:text-ink-600 font-bold leading-none mb-0.5">W${getWeekNumber(item.date)}</span>`:''}<span class="${numClass}">${item.date.getDate()}</span>${sub.text?`<span class="${subTextClass(sub.type)}">${escapeHtml(sub.text)}</span>`:''}</div><div class="flex-1 overflow-hidden space-y-0.5">${dayEvents.slice(0,3).map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const prefix=(evt._isRecurring&&!age)?'↻ ':'';return`<div class="month-event-block" style="--c:${cat.color}" data-id="${evt.id}">${prefix}${escapeHtml(evt.title)}${age?` · ${age}`:''}</div>`}).join('')}${dayEvents.length>3?`<div class="text-[9px] text-ink-400 font-semibold px-1">+${dayEvents.length-3}</div>`:''}</div></div>`;
+    html+=`<div class="month-cell p-1 flex flex-col hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition cursor-pointer overflow-y-auto cell-day" data-date="${item.date.toISOString()}"><div class="flex flex-col items-center mb-0.5">${index%7===0?`<span class="mobile-only-wk text-[7px] text-ink-300 dark:text-ink-600 font-bold leading-none mb-0.5">W${getWeekNumber(item.date)}</span>`:''}<span class="${numClass}">${item.date.getDate()}</span>${sub.text?`<span class="${subTextClass(sub.type)}">${escapeHtml(sub.text)}</span>`:''}</div><div class="flex-1 overflow-hidden space-y-0.5">${dayEvents.slice(0,3).map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const prefix=(evt._isRecurring&&!age)?'↻ ':'';return`<div class="month-event-block" style="--c:${cat.color}" data-id="${evt.id}">${prefix}${escapeHtml(evt.title)}${age?` · ${age}`:''}</div>`}).join('')}${dayEvents.length>3?`<div class="text-[9px] text-ink-400 font-semibold px-1">+${dayEvents.length-3}</div>`:''}</div></div>`;
   });
   html+=`</div></div></div>`;
   c.innerHTML=html;
@@ -1805,7 +1884,10 @@ function openIcsModal(){
 }
 
 function initEventListeners(){
-  document.getElementById('todayBtn').addEventListener('click',()=>{state.currentDate=new Date();state.miniDate=new Date();renderAll()});
+  document.getElementById('todayBtn').addEventListener('click',()=>{
+    if(state.view==='my')state.view='month';
+    state.currentDate=new Date();state.miniDate=new Date();renderAll();
+  });
   document.getElementById('prevBtn').addEventListener('click',()=>{if(state.view==='month')state.currentDate.setMonth(state.currentDate.getMonth()-1);else if(state.view==='week')state.currentDate.setDate(state.currentDate.getDate()-7);else state.currentDate.setDate(state.currentDate.getDate()-1);renderAll()});
   document.getElementById('nextBtn').addEventListener('click',()=>{if(state.view==='month')state.currentDate.setMonth(state.currentDate.getMonth()+1);else if(state.view==='week')state.currentDate.setDate(state.currentDate.getDate()+7);else state.currentDate.setDate(state.currentDate.getDate()+1);renderAll()});
   document.getElementById('miniPrevBtn').addEventListener('click',()=>{state.miniDate.setMonth(state.miniDate.getMonth()-1);renderMiniCalendar()});
@@ -1822,19 +1904,31 @@ function initEventListeners(){
   document.getElementById('confirmCategoryBtn').addEventListener('click',saveCategory);
   document.getElementById('newCatName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveCategory()}});
 
+  // 跳轉日期
   document.getElementById('jumpDateBtn').addEventListener('click',()=>openJumpDateModal('calendar'));
   document.getElementById('jumpStartBtn').addEventListener('click',()=>openJumpDateModal('eventStart'));
-
   document.getElementById('closeJumpDateModalBtn').addEventListener('click',closeJumpDateModal);
   document.getElementById('cancelJumpDateBtn').addEventListener('click',closeJumpDateModal);
   document.getElementById('confirmJumpDateBtn').addEventListener('click',confirmJumpDate);
-  document.querySelectorAll('.jump-quick-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>applyJumpDelta(btn.dataset.unit,parseInt(btn.dataset.delta,10)));
+  
+  // 跳轉類型切換
+  document.getElementById('jumpTypeSolar').addEventListener('click',()=>setJumpType('solar'));
+  document.getElementById('jumpTypeLunar').addEventListener('click',()=>setJumpType('lunar'));
+
+  // 搜尋框
+  document.getElementById('modalSearchInput').addEventListener('input',e=>{
+    state.searchQuery=e.target.value;
+    document.getElementById('clearSearchBtn').style.display=e.target.value?'block':'none';
+    renderMainView();
   });
-  ['jumpYear','jumpMonth','jumpDay'].forEach(id=>{
-    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();confirmJumpDate()}});
+  document.getElementById('clearSearchBtn').addEventListener('click',()=>{
+    state.searchQuery='';
+    document.getElementById('modalSearchInput').value='';
+    document.getElementById('clearSearchBtn').style.display='none';
+    renderMainView();
   });
 
+  // 快速回到 N 年前
   document.querySelectorAll('.quick-year-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const years=parseInt(btn.dataset.years,10);
@@ -1861,6 +1955,7 @@ function initEventListeners(){
     });
   });
 
+  // 事件類型按鈕
   document.querySelectorAll('.event-type-btn').forEach(btn=>btn.addEventListener('click',()=>{
     document.getElementById('eventType').value=btn.dataset.type;
     renderEventTypeButtons();
@@ -1871,13 +1966,11 @@ function initEventListeners(){
       const catSel=document.getElementById('eventCategory');
       if(state.categories.some(c=>c.id===ANNIVERSARY_CAT_ID)){
         catSel.value=ANNIVERSARY_CAT_ID;
-        // ★ 修復：自動確保分類啟用
         ensureCategoryActive(ANNIVERSARY_CAT_ID);
       }
     }
   }));
 
-  // ★ 分類變更時確保啟用
   document.getElementById('eventCategory').addEventListener('change',e=>{
     ensureCategoryActive(e.target.value);
   });
@@ -1923,7 +2016,6 @@ function initEventListeners(){
     }
 
     const catId=document.getElementById('eventCategory').value;
-    // ★★★ 修復：儲存前確保分類處於啟用狀態 ★★★
     ensureCategoryActive(catId);
 
     const evt={
@@ -1968,9 +2060,7 @@ function initEventListeners(){
       catch(err){state.events=state.events.filter(x=>x.id!==id);saveEvents();closeEventModal();renderAll()}
     }else{state.events=state.events.filter(x=>x.id!==id);saveEvents();showToast('日程已刪除');closeEventModal();renderAll()}
   });
-  const hs=e=>{state.searchQuery=e.target.value;renderMainView()};
-  document.getElementById('searchInput').addEventListener('input',hs);
-  document.getElementById('mobileSearchInput').addEventListener('input',hs);
+
   document.getElementById('closeDataModalBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.add('hidden')});
   document.getElementById('exportJsonBtn').addEventListener('click',()=>{
     const payload={version:1,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events};
@@ -1987,7 +2077,6 @@ function initEventListeners(){
         if(data&&Array.isArray(data.categories)&&Array.isArray(data.events)){state.categories=data.categories;ie=data.events}
         else if(Array.isArray(data)){ie=data}
         else throw new Error('格式錯誤');
-        // ★ 匯入後確保所有事件的分類都在 activeCategories
         ie.forEach(e=>ensureCategoryActive(e.category));
         if(window.currentUser&&typeof window.saveEventToCloud==='function'){
           for(const e of ie){try{await window.saveEventToCloud(e)}catch(err){}}
@@ -2062,12 +2151,10 @@ window.onload=function(){
   const allIds=state.categories.map(c=>c.id);
   state.activeCategories=(sa||allIds).filter(id=>state.categories.some(c=>c.id===id));
 
-  // ★★★ 修復：啟動時確保「生日和紀念日」分類一律啟用 ★★★
   if(state.categories.some(c=>c.id===ANNIVERSARY_CAT_ID)&&!state.activeCategories.includes(ANNIVERSARY_CAT_ID)){
     state.activeCategories.push(ANNIVERSARY_CAT_ID);
     try{localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories))}catch(e){}
   }
-  // ★ 同時確保每個事件的分類都被啟用（防止舊資料殘留）
   state.events=loadSavedEvents();
   state.events.forEach(e=>{
     if(e.category&&state.categories.some(c=>c.id===e.category)&&!state.activeCategories.includes(e.category)){
@@ -2148,7 +2235,6 @@ async function loadCategoriesFromCloud(){
     }else{
       await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories});
     }
-    // ★ 雲端載入後確保所有事件分類啟用
     if(window.state.events){
       window.state.events.forEach(e=>{
         if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){
@@ -2195,7 +2281,6 @@ function startListening(){
     snap.forEach(d=>{const data=d.data();const{userId,...evt}=data;arr.push({id:d.id,...evt})});
     if(window.state){
       window.state.events=arr;
-      // ★ 自動確保事件分類啟用
       arr.forEach(e=>{
         if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){
           window.state.activeCategories.push(e.category);
