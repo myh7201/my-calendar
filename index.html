@@ -730,29 +730,11 @@ function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{retur
 function saveEvents(){localStorage.setItem(EVT_KEY,JSON.stringify(state.events))}
 const TASK_KEY='calendar_tasks_v1';
 function loadSavedTasks(){const s=localStorage.getItem(TASK_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
-function saveTasks(){
-  localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks));
-  if(window.currentUser && typeof window.saveTaskToCloud === 'function'){
-    state.tasks.forEach(task => {
-      window.saveTaskToCloud(task).catch(e => console.error('Task sync error:', e));
-    });
-  } else {
-    window._pendingTaskSync = true;
-  }
-}
+function saveTasks(){localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks))}
 const NOTE_KEY='calendar_notes_v1';
 const FOLDER_KEY='calendar_folders_v1';
 function loadSavedNotes(){const s=localStorage.getItem(NOTE_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
-function saveNotes(){
-  localStorage.setItem(NOTE_KEY,JSON.stringify(state.notes));
-  if(window.currentUser && typeof window.saveNoteToCloud === 'function'){
-    state.notes.forEach(note => {
-      window.saveNoteToCloud(note).catch(e => console.error('Note sync error:', e));
-    });
-  } else {
-    window._pendingNoteSync = true;
-  }
-}
+function saveNotes(){localStorage.setItem(NOTE_KEY,JSON.stringify(state.notes))}
 function loadSavedFolders(){const s=localStorage.getItem(FOLDER_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
 function saveFolders(){
   localStorage.setItem(FOLDER_KEY,JSON.stringify(state.folders||[]));
@@ -1803,6 +1785,9 @@ function renderTasksView(){
     const newTask={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now()};
     state.tasks.push(newTask);
     saveTasks();
+    if(window.currentUser && typeof window.saveTaskToCloud === 'function'){
+      try{await window.saveTaskToCloud(newTask)}catch(e){console.error(e)}
+    }
     input.value='';
     renderTasksView();
   };
@@ -1816,6 +1801,9 @@ function renderTasksView(){
     if(!task)return;
     task.completed=!task.completed;
     saveTasks();
+    if(window.currentUser && typeof window.saveTaskToCloud === 'function'){
+      try{await window.saveTaskToCloud(task)}catch(e){console.error(e)}
+    }
     renderTasksView();
   }));
 
@@ -1823,7 +1811,7 @@ function renderTasksView(){
     const id=btn.dataset.id;
     state.tasks=state.tasks.filter(t=>t.id!==id);
     saveTasks();
-    if(window.currentUser&&typeof window.deleteTaskFromCloud==='function'){
+    if(window.currentUser && typeof window.deleteTaskFromCloud === 'function'){
       try{await window.deleteTaskFromCloud(id)}catch(e){console.error(e)}
     }
     renderTasksView();
@@ -2064,6 +2052,9 @@ async function saveNote(){
   else{state.notes.push(newNote)}
   
   saveNotes();
+  if(window.currentUser && typeof window.saveNoteToCloud === 'function'){
+    try{await window.saveNoteToCloud(newNote)}catch(e){console.error(e)}
+  }
   closeNoteModal();
   showToast('筆記已儲存');
   renderNotesView();
@@ -2834,14 +2825,12 @@ onAuthStateChanged(auth,async user=>{
   cu=user;window.currentUser=user;
   if(user){
     updateLoginUI(user);
-    // 首次登录时，检查本地数据并迁移上云
     if(!hml){
       try{
         const stateHasLocalEvents = window.state && window.state.events && window.state.events.length > 0;
         const stateHasLocalTasks = window.state && window.state.tasks && window.state.tasks.length > 0;
         const stateHasLocalNotes = window.state && window.state.notes && window.state.notes.length > 0;
 
-        // 1. 迁移日程
         if (stateHasLocalEvents) {
           const q = query(collection(db, "events"), where("userId", "==", user.uid));
           const snap = await getDocs(q);
@@ -2853,7 +2842,6 @@ onAuthStateChanged(auth,async user=>{
           }
         }
 
-        // 2. 迁移任务
         if (stateHasLocalTasks || window._pendingTaskSync) {
           const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
           const snap = await getDocs(q);
@@ -2866,7 +2854,6 @@ onAuthStateChanged(auth,async user=>{
           window._pendingTaskSync = false;
         }
 
-        // 3. 迁移笔记
         if (stateHasLocalNotes || window._pendingNoteSync) {
           const q = query(collection(db, "notes"), where("userId", "==", user.uid));
           const snap = await getDocs(q);
@@ -2960,7 +2947,6 @@ function startListeningCategories(){
     if(!snap.exists())return;
     const data=snap.data();
     
-    // 分类同步
     if(Array.isArray(data.categories)&&data.categories.length>0){
       const same=JSON.stringify(data.categories)===JSON.stringify(window.state.categories);
       if(!same){
@@ -2975,7 +2961,6 @@ function startListeningCategories(){
       }
     }
 
-    // 文件夹同步
     if(Array.isArray(data.folders)){
       const sameFolders = JSON.stringify(data.folders)===JSON.stringify(window.state.folders || []);
       if(!sameFolders){
