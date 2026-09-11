@@ -736,6 +736,8 @@ function saveTasks(){
     state.tasks.forEach(task => {
       window.saveTaskToCloud(task).catch(e => console.error('Task sync error:', e));
     });
+  } else {
+    window._pendingTaskSync = true;
   }
 }
 const NOTE_KEY='calendar_notes_v1';
@@ -747,16 +749,18 @@ function saveNotes(){
     state.notes.forEach(note => {
       window.saveNoteToCloud(note).catch(e => console.error('Note sync error:', e));
     });
+  } else {
+    window._pendingNoteSync = true;
   }
 }
 function loadSavedFolders(){const s=localStorage.getItem(FOLDER_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
 function saveFolders(){
   localStorage.setItem(FOLDER_KEY,JSON.stringify(state.folders||[]));
-  // 如果已登入，连文件夹也一起上传到云端
   if(window.currentUser && typeof window.saveCategoriesToCloud==='function'){
      window.saveCategoriesToCloud().catch(e=>console.error(e));
   }
-}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function formatTime(s){return new Date(s).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
 function formatDateForInput(dt){const p=n=>n<10?'0'+n:n;return`${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}T${p(dt.getHours())}:${p(dt.getMinutes())}`}
@@ -2841,33 +2845,38 @@ onAuthStateChanged(auth,async user=>{
         if (stateHasLocalEvents) {
           const q = query(collection(db, "events"), where("userId", "==", user.uid));
           const snap = await getDocs(q);
-          if (snap.empty) {
-            for (const e of window.state.events) {
+          const cloudEventIds = new Set(snap.docs.map(d => d.id));
+          for (const e of window.state.events) {
+            if (!cloudEventIds.has(e.id)) {
               await setDoc(doc(db, "events", e.id), { ...e, userId: user.uid });
             }
           }
         }
 
         // 2. 迁移任务
-        if (stateHasLocalTasks) {
+        if (stateHasLocalTasks || window._pendingTaskSync) {
           const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
           const snap = await getDocs(q);
-          if (snap.empty) {
-            for (const t of window.state.tasks) {
+          const cloudTaskIds = new Set(snap.docs.map(d => d.id));
+          for (const t of window.state.tasks) {
+            if (!cloudTaskIds.has(t.id)) {
               await setDoc(doc(db, "tasks", t.id), { ...t, userId: user.uid });
             }
           }
+          window._pendingTaskSync = false;
         }
 
         // 3. 迁移笔记
-        if (stateHasLocalNotes) {
+        if (stateHasLocalNotes || window._pendingNoteSync) {
           const q = query(collection(db, "notes"), where("userId", "==", user.uid));
           const snap = await getDocs(q);
-          if (snap.empty) {
-            for (const n of window.state.notes) {
+          const cloudNoteIds = new Set(snap.docs.map(d => d.id));
+          for (const n of window.state.notes) {
+            if (!cloudNoteIds.has(n.id)) {
               await setDoc(doc(db, "notes", n.id), { ...n, userId: user.uid });
             }
           }
+          window._pendingNoteSync = false;
         }
 
         hml = true;
@@ -2918,12 +2927,10 @@ async function loadCategoriesFromCloud(){
         window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));
         try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}
       }
-      // 读取云端的文件夹列表
       if(Array.isArray(data.folders)){
         window.state.folders = data.folders;
         try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}
       } else if (window.state.folders && window.state.folders.length > 0) {
-        // 如果云端没有但本地有，上传一次
         await window.saveCategoriesToCloud();
       }
     }else{
@@ -2974,7 +2981,6 @@ function startListeningCategories(){
       if(!sameFolders){
         window.state.folders = data.folders;
         try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}
-        // 如果当前在笔记页面，立刻刷新
         if(typeof window.renderNotesView==='function' && window.state.view==='notes'){
           window.renderNotesView();
         }
@@ -2988,7 +2994,7 @@ window.saveCategoriesToCloud=async function(){
   await setDoc(ref,{
     categories:window.state.categories,
     activeCategories:window.state.activeCategories,
-    folders: window.state.folders || []   // 新增这一行，同步文件夹列表
+    folders: window.state.folders || []
   },{merge:true});
 };
 function startListening(){
@@ -3020,12 +3026,23 @@ function startListeningTasks(){
     const arr=[];
     snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});
     if(window.state){
-      window.state.tasks=arr; // 永远以云端为准
+      window.state.tasks=arr;
       try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}
       if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();
     }
   },err=>console.error("監聽任務失敗:",err));
 }
+
+window.saveTaskToCloud=async function(task){
+  if(!cu)return;
+  const ref=doc(db,"tasks",task.id);
+  await setDoc(ref,{...task,userId:cu.uid});
+};
+
+window.deleteTaskFromCloud=async function(id){
+  if(!cu)return;
+  await deleteDoc(doc(db,"tasks",id));
+};
 
 function startListeningNotes(){
   if(!cu)return;
@@ -3034,12 +3051,13 @@ function startListeningNotes(){
     const arr=[];
     snap.forEach(d=>{const data=d.data();const{userId,...note}=data;arr.push({id:d.id,...note})});
     if(window.state){
-      window.state.notes=arr; // 永远以云端为准
+      window.state.notes=arr;
       try{localStorage.setItem('calendar_notes_v1',JSON.stringify(arr))}catch(e){}
       if(typeof window.renderNotesView==='function' && window.state.view==='notes')window.renderNotesView();
     }
   },err=>console.error("監聽筆記失敗:",err));
 }
+
 window.saveNoteToCloud=async function(note){
   if(!cu)return;
   const ref=doc(db,"notes",note.id);
