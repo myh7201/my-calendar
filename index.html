@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW" class="h-full">
 <head>
+<link id="dynamicFavicon" rel="icon" type="image/png" sizes="128x128">
 <script>
 window.FIREBASE_CONFIG={apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
   authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
@@ -566,6 +567,92 @@ const LUNAR_DAYS=['初一','初二','初三','初四','初五','初六','初七'
                   '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
                   '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
 
+/* ★ 動態日曆圖標 */
+function updateFavicon() {
+  try {
+    const size = 128;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    const today = new Date();
+    const day = today.getDate();
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    const weekday = '週' + weekdays[today.getDay()];
+
+    // 1. 白色圓角背景
+    const radius = 22;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(radius, 0);
+    ctx.lineTo(size - radius, 0);
+    ctx.quadraticCurveTo(size, 0, size, radius);
+    ctx.lineTo(size, size - radius);
+    ctx.quadraticCurveTo(size, size, size - radius, size);
+    ctx.lineTo(radius, size);
+    ctx.quadraticCurveTo(0, size, 0, size - radius);
+    ctx.lineTo(0, radius);
+    ctx.quadraticCurveTo(0, 0, radius, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // 2. 頂部主題色橫條
+    const headerHeight = size * 0.32;
+    ctx.fillStyle = '#6366f1';
+    ctx.beginPath();
+    ctx.moveTo(radius, 0);
+    ctx.lineTo(size - radius, 0);
+    ctx.quadraticCurveTo(size, 0, size, radius);
+    ctx.lineTo(size, headerHeight);
+    ctx.lineTo(0, headerHeight);
+    ctx.lineTo(0, radius);
+    ctx.quadraticCurveTo(0, 0, radius, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. 星期幾文字（頂部白色）
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${Math.round(size * 0.18)}px "Noto Sans TC", "PingFang TC", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(weekday, size / 2, headerHeight / 2);
+
+    // 4. 日期數字
+    ctx.fillStyle = '#1e293b';
+    ctx.font = `bold ${Math.round(size * 0.52)}px "Noto Sans TC", "PingFang TC", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(day), size / 2, headerHeight + (size - headerHeight) / 2 + 2);
+
+    // 5. 更新 favicon
+    const dataUrl = canvas.toDataURL('image/png');
+    let link = document.getElementById('dynamicFavicon');
+    if (!link) {
+      link = document.createElement('link');
+      link.id = 'dynamicFavicon';
+      link.rel = 'icon';
+      link.type = 'image/png';
+      document.head.appendChild(link);
+    }
+    link.href = dataUrl;
+    link.sizes = '128x128';
+
+    // 6. 同時更新 apple-touch-icon（手機加到主畫面時使用）
+    let appleLink = document.getElementById('dynamicAppleIcon');
+    if (!appleLink) {
+      appleLink = document.createElement('link');
+      appleLink.id = 'dynamicAppleIcon';
+      appleLink.rel = 'apple-touch-icon';
+      document.head.appendChild(appleLink);
+    }
+    appleLink.href = dataUrl;
+  } catch (err) {
+    console.error('Favicon 更新失敗：', err);
+  }
+}
+
+/* ★ 農曆資訊 */
 function getSolarTerm(date){
   if(typeof Solar!=='undefined'){
     try{const jq=Solar.fromDate(date).getLunar().getJieQi();if(jq)return jq;}catch(e){}
@@ -2225,6 +2312,16 @@ function initEventListeners(){
   });
 }
 window.onload=function(){
+  updateFavicon(); // ★ 初始化動態日曆圖標
+  setInterval(() => { // ★ 每分鐘檢查是否跨日，若跨日則更新圖標
+    const today = new Date().getDate();
+    if (today !== window._lastFaviconDay) {
+      window._lastFaviconDay = today;
+      updateFavicon();
+    }
+  }, 60000);
+  window._lastFaviconDay = new Date().getDate();
+
   state.categories=loadCategories();
   const sa=loadActiveCats();
   const allIds=state.categories.map(c=>c.id);
