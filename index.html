@@ -600,19 +600,109 @@ function initMonthSwipe(){
 }
 function renderWeekView(){
   const c=document.getElementById('calendarViewContainer');
-  const curr=new Date(state.currentDate);const first=curr.getDate()-curr.getDay();
-  const weekDays=[];const today=new Date();
+  const curr=new Date(state.currentDate);
+  const first=curr.getDate()-curr.getDay();
+  const weekDays=[];
+  const today=new Date();
   for(let i=0;i<7;i++){const d=new Date(curr);d.setDate(first+i);weekDays.push(d)}
   const events=getFilteredEvents();
-  let html=`<div class="h-full flex flex-col min-w-[720px] anim-in"><div class="grid grid-cols-8 border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center py-2.5 text-[11px] font-bold shrink-0"><div class="text-ink-400">時間</div>${weekDays.map(d=>{const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const sub=getDaySubText(d);let dateCls='text-base ';if(isToday)dateCls+='font-extrabold text-brand-600 dark:text-brand-400';else if(isHoliday)dateCls+='font-extrabold text-rose-600 dark:text-rose-400';return`<div><div class="text-[10px] font-semibold">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="${dateCls}">${d.getDate()}</div>${sub.text?`<div class="${subTextClass(sub.type,'text-[9px]')}">${escapeHtml(sub.text)}</div>`:''}</div>`}).join('')}</div><div class="flex-1 overflow-y-auto relative">`;
+  const HOUR_H=56;
+
+  const allDayByDay=weekDays.map(d=>events.filter(e=>isSameDay(new Date(e.start),d)&&e.allDay));
+  const timedByDay=weekDays.map(d=>events.filter(e=>isSameDay(new Date(e.start),d)&&!e.allDay));
+
+  // 计算每个定时事件的列位置（处理重叠）
+  const laidOut=timedByDay.map(list=>{
+    const sorted=list.slice().sort((a,b)=>new Date(a.start)-new Date(b.start));
+    const groups=[];
+    let cur=null;
+    sorted.forEach(evt=>{
+      const st=new Date(evt.start).getTime();
+      const et=new Date(evt.end).getTime();
+      if(!cur||st>=cur.end){cur={events:[evt],end:et};groups.push(cur)}
+      else{cur.events.push(evt);cur.end=Math.max(cur.end,et)}
+    });
+    groups.forEach(g=>{
+      const cols=[];
+      g.events.forEach(evt=>{
+        const st=new Date(evt.start).getTime();
+        let ci=-1;
+        for(let i=0;i<cols.length;i++){if(cols[i]<=st){ci=i;break}}
+        if(ci===-1){ci=cols.length;cols.push(0)}
+        cols[ci]=new Date(evt.end).getTime();
+        evt._col=ci;
+      });
+      g.events.forEach(evt=>{evt._colCount=cols.length});
+    });
+    return sorted;
+  });
+
+  const headerHtml=weekDays.map(d=>{
+    const isToday=isSameDay(d,today);
+    const isHoliday=hasHolidayEvent(d);
+    const sub=getDaySubText(d);
+    let dateCls='text-base ';
+    if(isToday)dateCls+='font-extrabold text-brand-600 dark:text-brand-400';
+    else if(isHoliday)dateCls+='font-extrabold text-rose-600 dark:text-rose-400';
+    return `<div class="py-1"><div class="text-[10px] font-semibold">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="${dateCls}">${d.getDate()}</div>${sub.text?`<div class="${subTextClass(sub.type,'text-[9px]')}">${escapeHtml(sub.text)}</div>`:''}</div>`;
+  }).join('');
+
+  const allDayRow=weekDays.map((d,i)=>{
+    const items=allDayByDay[i];
+    return `<div class="border-r border-ink-200/70 dark:border-ink-800/70 p-0.5 flex flex-col gap-0.5 cell-allday cursor-pointer min-h-[34px] max-h-[90px] overflow-y-auto" data-date="${d.toISOString()}">
+      ${items.map(evt=>{const cat=getCat(evt.category);return `<div class="event-pill cat-chip text-[10px] px-1.5 py-0.5 rounded border font-medium truncate" style="--c:${cat.color}" data-id="${evt.id}">${escapeHtml(evt.title)}</div>`}).join('')}
+    </div>`;
+  }).join('');
+
+  let timeLabelsHtml='';
   for(let h=0;h<24;h++){
     const ts=(h<10?'0'+h:h)+':00';
-    html+=`<div class="grid grid-cols-8 min-h-[56px] hour-row border-b border-ink-100/70 dark:border-ink-800/50"><div class="text-[10px] text-ink-400 p-1.5 text-center border-r border-ink-200/70 dark:border-ink-800/70 tabular-nums">${ts}</div>${weekDays.map(d=>{const cellEvents=events.filter(e=>{const st=new Date(e.start);return isSameDay(st,d)&&st.getHours()===h});return`<div class="border-r border-ink-200/70 dark:border-ink-800/70 p-0.5 hover:bg-brand-50/40 dark:hover:bg-brand-950/20 cell-hour" data-date="${d.toISOString()}" data-hour="${h}">${cellEvents.map(evt=>{const cat=getCat(evt.category);return`<div class="event-pill cat-chip text-[10px] p-1.5 rounded-md border font-medium truncate mb-1" style="--c:${cat.color}" data-id="${evt.id}">${escapeHtml(evt.title)}</div>`}).join('')}</div>`}).join('')}</div>`;
+    timeLabelsHtml+=`<div class="text-[10px] text-ink-400 text-center border-r border-ink-200/70 dark:border-ink-800/70 tabular-nums" style="height:${HOUR_H}px;line-height:${HOUR_H}px;">${ts}</div>`;
   }
-  html+=`</div></div>`;
+
+  const colsHtml=weekDays.map((d,i)=>{
+    const list=laidOut[i];
+    const itemsHtml=list.map(evt=>{
+      const st=new Date(evt.start);
+      const et=new Date(evt.end);
+      const top=(st.getHours()+st.getMinutes()/60)*HOUR_H;
+      let durHours=(et-st)/3600000;
+      if(durHours<=0)durHours=0.5;
+      const height=Math.max(durHours*HOUR_H-2,22);
+      const colCount=evt._colCount||1;
+      const col=evt._col||0;
+      const widthPct=100/colCount;
+      const leftPct=col*widthPct;
+      const cat=getCat(evt.category);
+      const timeStr=formatTime(evt.start)+' - '+formatTime(evt.end);
+      return `<div class="timed-event cat-chip absolute rounded-md border p-1 overflow-hidden cursor-pointer transition hover:z-10 hover:shadow-lg" style="--c:${cat.color};top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);" data-id="${evt.id}" title="${escapeHtml(evt.title)} &#10;${timeStr}">
+        <div class="text-[10px] font-semibold leading-tight truncate">${escapeHtml(evt.title)}</div>
+        <div class="text-[9px] opacity-75 leading-tight tabular-nums">${timeStr}</div>
+      </div>`;
+    }).join('');
+    return `<div class="week-col relative border-r border-ink-200/70 dark:border-ink-800/70" style="height:${24*HOUR_H}px;" data-date="${d.toISOString()}">${itemsHtml}</div>`;
+  }).join('');
+
+  const gridBg=`background-image:repeating-linear-gradient(to bottom, transparent 0px, transparent ${HOUR_H-1}px, rgba(148,163,184,.18) ${HOUR_H-1}px, rgba(148,163,184,.18) ${HOUR_H}px);`;
+
+  let html=`<div class="h-full flex flex-col min-w-[720px] anim-in">
+    <div class="grid grid-cols-8 border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center text-[11px] font-bold shrink-0">
+      <div class="text-ink-400 py-2 flex items-center justify-center">時間</div>
+      ${headerHtml}
+    </div>
+    <div class="grid grid-cols-8 border-b-2 border-ink-200/70 dark:border-ink-800/70 bg-ink-50/30 dark:bg-ink-900/20 shrink-0">
+      <div class="text-[10px] text-ink-400 p-1.5 text-center border-r border-ink-200/70 dark:border-ink-800/70 leading-tight flex items-center justify-center">全日</div>
+      ${allDayRow}
+    </div>
+    <div class="flex-1 overflow-y-auto relative">
+      <div class="grid grid-cols-8" style="${gridBg}">
+        <div>${timeLabelsHtml}</div>
+        ${colsHtml}
+      </div>
+    </div>
+  </div>`;
   c.innerHTML=html;
-}
-function renderDayView(){
+}function renderDayView(){
   const c=document.getElementById('calendarViewContainer');
   const d=state.currentDate;
   const events=getFilteredEvents().filter(e=>isSameDay(new Date(e.start),d));
@@ -839,23 +929,50 @@ function openEventModal(eventObj=null,defaultDate=null){
 }
 function closeEventModal(){const m=document.getElementById('eventModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200)}
 function bindDynamicEvents(){
-  document.querySelectorAll('.cell-day').forEach(cell=>cell.addEventListener('click',e=>{
-    if(e.target.closest('.month-event-block'))return;if(state.swiping)return;openDayDetail(cell.dataset.date);
-  }));
-  document.querySelectorAll('.cell-hour').forEach(cell=>cell.addEventListener('click',e=>{
-    if(e.target.closest('.event-pill'))return;const d=new Date(cell.dataset.date);d.setHours(parseInt(cell.dataset.hour));openDayDetail(d.toISOString());
-  }));
-  document.querySelectorAll('.event-pill, .schedule-card, .month-event-block').forEach(p=>p.addEventListener('click',e=>{
-    e.stopPropagation();const evt=state.events.find(x=>x.id===p.dataset.id);if(evt)openEventModal(evt);
-  }));
-  document.querySelectorAll('.empty-day').forEach(el=>el.addEventListener('click',()=>{openDayDetail(el.dataset.date)}));
-}
-function sendNotification(title,body){
-  if(!('Notification'in window)||Notification.permission!=='granted')return;
-  try{const n=new Notification(title,{body,tag:title+'|'+body});n.onclick=()=>{window.focus();n.close()}}catch(e){}
-}
-const REMINDER_KEY='calendar_reminders_v1';
-function loadReminded(){try{const s=localStorage.getItem(REMINDER_KEY);return s?new Set(JSON.parse(s)):new Set()}catch(e){return new Set()}}
+  // 月视图：点日期格
+  document.querySelectorAll('.cell-day').forEach(cell=>{
+    cell.addEventListener('click',e=>{
+      if(e.target.closest('.month-event-block'))return;
+      if(state.swiping)return;
+      openDayDetail(cell.dataset.date);
+    });
+  });
+  // 周视图：点时间轴空白处 → 新建定时事件
+  document.querySelectorAll('.week-col').forEach(col=>{
+    col.addEventListener('click',e=>{
+      if(e.target.closest('.timed-event'))return;
+      const rect=col.getBoundingClientRect();
+      const y=e.clientY-rect.top+col.parentElement.parentElement.scrollTop;
+      let h=Math.floor(y/56);
+      let m=Math.floor((y-h*56)/56*60/15)*15;
+      if(h<0)h=0;if(h>23)h=23;if(m<0)m=0;if(m>45)m=45;
+      const d=new Date(col.dataset.date);
+      d.setHours(h,m,0,0);
+      openEventModal(null,d);
+    });
+  });
+  // 周视图：点「全日」行 → 新建全天事件
+  document.querySelectorAll('.cell-allday').forEach(cell=>{
+    cell.addEventListener('click',e=>{
+      if(e.target.closest('.event-pill'))return;
+      const d=new Date(cell.dataset.date);
+      openEventModal(null,d);
+      setTimeout(()=>{const cb=document.getElementById('eventAllDay');if(cb)cb.checked=true},50);
+    });
+  });
+  // 所有事件块点击 → 编辑
+  document.querySelectorAll('.event-pill, .schedule-card, .month-event-block, .timed-event').forEach(p=>{
+    p.addEventListener('click',e=>{
+      e.stopPropagation();
+      const evt=state.events.find(x=>x.id===p.dataset.id);
+      if(evt)openEventModal(evt);
+    });
+  });
+  // 「没有计划」区域点击
+  document.querySelectorAll('.empty-day').forEach(el=>{
+    el.addEventListener('click',()=>{openDayDetail(el.dataset.date)});
+  });
+}function loadReminded(){try{const s=localStorage.getItem(REMINDER_KEY);return s?new Set(JSON.parse(s)):new Set()}catch(e){return new Set()}}
 function saveReminded(set){const a=Array.from(set).slice(-500);try{localStorage.setItem(REMINDER_KEY,JSON.stringify(a))}catch(e){}}
 let reminded=loadReminded();
 function checkReminders(){
