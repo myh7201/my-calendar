@@ -13,6 +13,16 @@ window.FIREBASE_CONFIG={apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>日曆</title>
+<script>
+// 提前套用主题，避免闪白/闪黑
+(function(){
+  try {
+    var theme = localStorage.getItem('calendar_theme_v1') || 'system';
+    var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) document.documentElement.classList.add('dark');
+  } catch(e){}
+})();
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config={darkMode:'class',theme:{extend:{
@@ -726,6 +736,23 @@ function getLunarBirthdaySolarDate(lunarMonth,lunarDay,year){
     return new Date(solar.getYear(),solar.getMonth()-1,solar.getDay());
   }catch(e){return null;}
 }
+
+function getTheme(){
+  try { return localStorage.getItem('calendar_theme_v1') || 'system'; } catch(e){ return 'system'; }
+}
+function setTheme(theme){
+  try { localStorage.setItem('calendar_theme_v1', theme); } catch(e){}
+  applyTheme();
+}
+function applyTheme(){
+  const theme = getTheme();
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if (isDark) document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
+}
+window.getTheme = getTheme;
+window.setTheme = setTheme;
+window.applyTheme = applyTheme;
 
 let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],folders:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};window.state=state;
 let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
@@ -1633,7 +1660,13 @@ function renderMyView(){
   .sort((a,b)=>a.diffDays-b.diffDays).slice(0,6);
 
   const formatAnnDate=d=>{const wd=['日','一','二','三','四','五','六'][d.getDay()];return`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 週${wd}`};
-  const isDark=document.documentElement.classList.contains('dark');
+  const currentTheme = getTheme();
+  const isDark = currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  let themeLabel = '跟随系统';
+  let themeIcon = 'monitor-smartphone';
+  let themeStatusText = '自動';
+  if (currentTheme === 'dark') { themeLabel = '深色模式'; themeIcon = 'moon'; themeStatusText = '開'; }
+  else if (currentTheme === 'light') { themeLabel = '浅色模式'; themeIcon = 'sun'; themeStatusText = '關'; }
   const notifPerm=('Notification'in window)?Notification.permission:'unsupported';
   const notifLabel=notifPerm==='granted'?'已開啟':(notifPerm==='denied'?'已封鎖':'未開啟');
   const isLoggedIn=!!window.currentUser;
@@ -1687,8 +1720,13 @@ function renderMyView(){
       <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-3">設定</h3>
       <div class="space-y-1">
         <button id="myThemeBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
-          <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300"><i data-lucide="${isDark?'sun':'moon'}" class="w-4 h-4"></i></span><span class="text-sm font-semibold">深色模式</span></span>
-          <span class="text-xs text-ink-400">${isDark?'開':'關'}</span>
+          <span class="flex items-center space-x-2.5">
+            <span class="p-1.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300">
+              <i data-lucide="${themeIcon}" class="w-4 h-4"></i>
+            </span>
+            <span class="text-sm font-semibold">${themeLabel}</span>
+          </span>
+          <span class="text-xs text-ink-400">${themeStatusText}</span>
         </button>
         <button id="myNotifBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition">
           <span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-4 h-4"></i></span><span class="text-sm font-semibold">通知提醒</span></span>
@@ -1710,7 +1748,15 @@ function renderMyView(){
   c.innerHTML=html;
   lucide.createIcons();
   document.getElementById('backToCalendarBtn').addEventListener('click',()=>{state.view='month';renderAll()});
-  document.getElementById('myThemeBtn').addEventListener('click',()=>{document.documentElement.classList.toggle('dark');renderMyView()});
+  document.getElementById('myThemeBtn').addEventListener('click',() => {
+    const current = getTheme();
+    let next = 'system';
+    if (current === 'system') next = 'light';
+    else if (current === 'light') next = 'dark';
+    else if (current === 'dark') next = 'system';
+    setTheme(next);
+    renderMyView();
+  });
   document.getElementById('myNotifBtn').addEventListener('click',async()=>{
     if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}
     if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}
@@ -2723,6 +2769,8 @@ function initEventListeners(){
   });
 }
 window.onload=function(){
+  applyTheme();
+
   updateFavicon(); 
   setInterval(() => { 
     const today = new Date().getDate();
@@ -2761,6 +2809,16 @@ window.onload=function(){
   renderAll();
   updateTopHeaderVisibility();
   lucide.createIcons();
+
+  // 监听系统主题变化（仅在"跟随系统"模式下生效）
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (getTheme() === 'system') {
+      applyTheme();
+      if (window.state && window.state.view === 'my' && typeof window.renderMyView === 'function') {
+        window.renderMyView();
+      }
+    }
+  });
 };
 </script>
 
