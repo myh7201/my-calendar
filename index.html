@@ -212,7 +212,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 </main>
 </div>
 
-<!-- ★ 底部導航欄（全平台顯示） -->
 <nav id="mobileBottomNav" class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-ink-900/95 backdrop-blur-lg border-t border-ink-200 dark:border-ink-800 z-50 pb-safe">
     <div class="flex justify-around items-center h-16 max-w-2xl mx-auto">
         <button class="bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-brand-600 transition-colors" data-nav="month">
@@ -234,14 +233,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
     </div>
 </nav>
 
-<!-- ★ 跳轉日期彈窗 -->
 <div id="jumpDateModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85] hidden opacity-0 transition-opacity duration-200">
 <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
 <div class="flex items-center justify-between">
 <h3 id="jumpDateTitle" class="text-base font-bold tracking-tight flex items-center space-x-2"><i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span></h3>
 <button id="closeJumpDateModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
 </div>
-
 <div>
 <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">搜尋日程</label>
 <div class="relative">
@@ -250,12 +247,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <button id="clearSearchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-ink-400 hover:text-ink-600 hidden"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
 </div>
 </div>
-
 <div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1">
 <button id="jumpTypeSolar" class="jump-tab-btn active" data-type="solar">公曆</button>
 <button id="jumpTypeLunar" class="jump-tab-btn" data-type="lunar">農曆</button>
 </div>
-
 <div id="jumpSolarInputs" class="grid grid-cols-3 gap-2">
 <div>
 <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">年</label>
@@ -270,7 +265,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <input type="number" id="jumpDay" min="1" max="31" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums">
 </div>
 </div>
-
 <div id="jumpLunarInputs" class="grid grid-cols-3 gap-2" style="display:none">
 <div>
 <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">農曆年</label>
@@ -285,11 +279,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <select id="jumpLunarDay" class="lunar-select"></select>
 </div>
 </div>
-
 <p id="jumpLunarHint" class="text-[10px] text-brand-600/80 dark:text-brand-300/80 leading-relaxed" style="display:none">
 <i data-lucide="info" class="w-3 h-3 inline -mt-0.5"></i> 若選擇閏月，請在農曆月輸入負數（例如 -8 代表閏八月），或直接由日曆點選。
 </p>
-
 <div class="flex justify-end space-x-2 pt-2">
 <button type="button" id="cancelJumpDateBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">取消</button>
 <button type="button" id="confirmJumpDateBtn" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 rounded-xl shadow-glow transition">跳轉</button>
@@ -561,13 +553,11 @@ const HOLIDAY_CAT_ID='holiday',ANNIVERSARY_CAT_ID='anniversary';
 const LUNAR_FESTIVALS={'1-1':'春節','1-15':'元宵','5-5':'端午','7-7':'七夕','8-15':'中秋','9-9':'重陽','12-8':'臘八'};
 const REMINDER_KEY='calendar_reminded_v1';
 
-// ★ 修正簡體「腊月」為繁體「臘月」
 const LUNAR_MONTHS=['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','臘月'];
 const LUNAR_DAYS=['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
                   '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
                   '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
 
-/* ★ 動態日曆圖標 */
 function updateFavicon() {
   try {
     const size = 128;
@@ -581,7 +571,6 @@ function updateFavicon() {
     const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
     const weekday = '週' + weekdays[today.getDay()];
 
-    // 1. 白色圓角背景
     const radius = 22;
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
@@ -597,7 +586,6 @@ function updateFavicon() {
     ctx.closePath();
     ctx.fill();
 
-    // 2. 頂部主題色橫條
     const headerHeight = size * 0.32;
     ctx.fillStyle = '#6366f1';
     ctx.beginPath();
@@ -611,21 +599,18 @@ function updateFavicon() {
     ctx.closePath();
     ctx.fill();
 
-    // 3. 星期幾文字（頂部白色）
     ctx.fillStyle = '#ffffff';
     ctx.font = `bold ${Math.round(size * 0.18)}px "Noto Sans TC", "PingFang TC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(weekday, size / 2, headerHeight / 2);
 
-    // 4. 日期數字
     ctx.fillStyle = '#1e293b';
     ctx.font = `bold ${Math.round(size * 0.52)}px "Noto Sans TC", "PingFang TC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(String(day), size / 2, headerHeight + (size - headerHeight) / 2 + 2);
 
-    // 5. 更新 favicon
     const dataUrl = canvas.toDataURL('image/png');
     let link = document.getElementById('dynamicFavicon');
     if (!link) {
@@ -638,7 +623,6 @@ function updateFavicon() {
     link.href = dataUrl;
     link.sizes = '128x128';
 
-    // 6. 同時更新 apple-touch-icon（手機加到主畫面時使用）
     let appleLink = document.getElementById('dynamicAppleIcon');
     if (!appleLink) {
       appleLink = document.createElement('link');
@@ -652,14 +636,12 @@ function updateFavicon() {
   }
 }
 
-/* ★ 農曆資訊 */
 function getSolarTerm(date){
   if(typeof Solar!=='undefined'){
     try{const jq=Solar.fromDate(date).getLunar().getJieQi();if(jq)return jq;}catch(e){}
   }
   return null;
 }
-// ★ 修正：將簡體「闰」和「腊」替換為繁體
 function getLunarInfo(date){
   if(typeof Solar!=='undefined'){
     try{
@@ -705,7 +687,7 @@ function getLunarBirthdaySolarDate(lunarMonth,lunarDay,year){
   }catch(e){return null;}
 }
 
-let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};
+let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],pendingIcsEvents:[],drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};
 window.state=state;
 let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
 function loadCategories(){try{const s=localStorage.getItem(CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a}}catch(e){}return DEFAULT_CATEGORIES.map(c=>({...c}))}
@@ -716,6 +698,9 @@ function getCat(id){return state.categories.find(c=>c.id===id)||{id:'_unknown',n
 const EVT_KEY='calendar_events_v1';
 function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
 function saveEvents(){localStorage.setItem(EVT_KEY,JSON.stringify(state.events))}
+const TASK_KEY='calendar_tasks_v1';
+function loadSavedTasks(){const s=localStorage.getItem(TASK_KEY);if(s){try{return JSON.parse(s)}catch(e){}}return[]}
+function saveTasks(){localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks))}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function formatTime(s){return new Date(s).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
@@ -740,7 +725,6 @@ function getMonthGridDays(year,month){
   return days;
 }
 
-// ★ 修正：初一顯示農曆月份（例如「八月」），而不是「初一」
 function getDaySubText(date){
   const t=getSolarTerm(date);
   if(t)return{text:t,type:'term'};
@@ -1695,8 +1679,97 @@ function renderMyView(){
 }
 function renderTasksView(){
   const c=document.getElementById('calendarViewContainer');
-  c.innerHTML=`<div class="h-full flex flex-col items-center justify-center p-5 text-center anim-in"><div class="w-20 h-20 bg-brand-50 dark:bg-brand-950/40 text-brand-500 rounded-full flex items-center justify-center mb-4"><i data-lucide="check-square" class="w-10 h-10"></i></div><h2 class="text-xl font-bold mb-2">任務</h2><p class="text-sm text-ink-500">任務功能開發中，敬請期待</p></div>`;
+  const tasks=state.tasks||[];
+  const completedCount=tasks.filter(t=>t.completed).length;
+  const totalCount=tasks.length;
+  const progress=totalCount>0?Math.round((completedCount/totalCount)*100):0;
+
+  let html=`<div class="h-full flex flex-col anim-in">
+    <div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2">
+          <i data-lucide="check-square" class="w-6 h-6 text-brand-500"></i>
+          <span>任務清單</span>
+        </h2>
+        <span class="text-xs text-ink-400 font-medium">${completedCount} / ${totalCount} 已完成</span>
+      </div>
+      <div class="w-full bg-ink-200 dark:bg-ink-700 rounded-full h-2 mt-3">
+        <div class="bg-gradient-to-r from-brand-500 to-fuchsia-500 h-2 rounded-full transition-all duration-500" style="width:${progress}%"></div>
+      </div>
+    </div>
+
+    <div class="p-4 flex items-center gap-2 bg-white/60 dark:bg-ink-900/60 border-b border-ink-200/70 dark:border-ink-800/70">
+      <input type="text" id="taskInput" placeholder="新增任務..." class="flex-1 px-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
+      <button id="addTaskBtn" class="p-2.5 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl shadow-glow active:scale-95 transition">
+        <i data-lucide="plus" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-2 bg-white/30 dark:bg-ink-900/30">
+      ${tasks.length===0?`
+        <div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in">
+          <i data-lucide="clipboard-list" class="w-16 h-16 mb-4 opacity-30"></i>
+          <p class="text-sm font-medium">還沒有任務</p>
+          <p class="text-xs mt-1">在上方輸入框新增一個吧！</p>
+        </div>
+      `:tasks.sort((a,b)=>a.completed===b.completed?a.createdAt-b.createdAt:b.completed-a.completed).map(task=>`
+        <div class="group flex items-start gap-3 p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm hover:shadow-md transition">
+          <button class="toggle-task-btn shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${task.completed?'bg-brand-500 border-brand-500':'border-ink-300 dark:border-ink-600 hover:border-brand-400'}" data-id="${task.id}">
+            ${task.completed?'<i data-lucide="check" class="w-3 h-3 text-white"></i>':''}
+          </button>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium break-words ${task.completed?'line-through text-ink-400 dark:text-ink-500':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p>
+            <p class="text-[10px] text-ink-400 mt-1">${new Date(task.createdAt).toLocaleString()}</p>
+          </div>
+          <button class="delete-task-btn shrink-0 p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-id="${task.id}">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+
+  c.innerHTML=html;
   lucide.createIcons();
+
+  const addTask=async()=>{
+    const input=document.getElementById('taskInput');
+    const text=input.value.trim();
+    if(!text)return;
+    const newTask={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now()};
+    state.tasks.push(newTask);
+    saveTasks();
+    if(window.currentUser&&typeof window.saveTaskToCloud==='function'){
+      try{await window.saveTaskToCloud(newTask)}catch(e){console.error(e)}
+    }
+    input.value='';
+    renderTasksView();
+  };
+
+  document.getElementById('addTaskBtn').addEventListener('click',addTask);
+  document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask()});
+
+  document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{
+    const id=btn.dataset.id;
+    const task=state.tasks.find(t=>t.id===id);
+    if(!task)return;
+    task.completed=!task.completed;
+    saveTasks();
+    if(window.currentUser&&typeof window.saveTaskToCloud==='function'){
+      try{await window.saveTaskToCloud(task)}catch(e){console.error(e)}
+    }
+    renderTasksView();
+  }));
+
+  document.querySelectorAll('.delete-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{
+    const id=btn.dataset.id;
+    state.tasks=state.tasks.filter(t=>t.id!==id);
+    saveTasks();
+    if(window.currentUser&&typeof window.deleteTaskFromCloud==='function'){
+      try{await window.deleteTaskFromCloud(id)}catch(e){console.error(e)}
+    }
+    renderTasksView();
+  }));
 }
 function renderNotesView(){
   const c=document.getElementById('calendarViewContainer');
@@ -1723,7 +1796,6 @@ function renderMainView(animationDir){
   if(state.view==='schedule')fab.classList.remove('hidden');else fab.classList.add('hidden');
   lucide.createIcons();
   bindDynamicEvents();
-  // ★ 已移除：updateBottomNavHighlight(); 改在 renderAll 中呼叫
 }
 window.renderMainView=renderMainView;
 function updateHeaderInfo(){
@@ -1745,7 +1817,6 @@ function renderAll(){
   renderMiniCalendar();
   renderStats();
   renderMainView();
-  // ★ 新增：確保每次渲染時導航欄高亮都能更新
   updateBottomNavHighlight();
 }
 window.renderAll=renderAll;
@@ -2312,8 +2383,8 @@ function initEventListeners(){
   });
 }
 window.onload=function(){
-  updateFavicon(); // ★ 初始化動態日曆圖標
-  setInterval(() => { // ★ 每分鐘檢查是否跨日，若跨日則更新圖標
+  updateFavicon(); 
+  setInterval(() => { 
     const today = new Date().getDate();
     if (today !== window._lastFaviconDay) {
       window._lastFaviconDay = today;
@@ -2332,6 +2403,7 @@ window.onload=function(){
     try{localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories))}catch(e){}
   }
   state.events=loadSavedEvents();
+  state.tasks=loadSavedTasks();
   state.events.forEach(e=>{
     if(e.category&&state.categories.some(c=>c.id===e.category)&&!state.activeCategories.includes(e.category)){
       state.activeCategories.push(e.category);
@@ -2350,17 +2422,53 @@ window.onload=function(){
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithCredential,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
 const fc=window.FIREBASE_CONFIG;
 const app=initializeApp(fc);
 const auth=getAuth(app);
 const db=getFirestore(app);
 const gp=new GoogleAuthProvider();
+
 let cu=null,ue=null,cue=null,hml=false;
 window.currentUser=null;
-window.signInWithGoogle=async function(){try{await signInWithPopup(auth,gp)}catch(e){console.error(e);alert("登入失敗："+e.message)}};
+
+window.signInWithGoogle = async function() {
+  // 1. 檢查插件是否存在
+  if (!window.FirebaseAuthentication) {
+    alert("❌ 錯誤 1：沒有找到 FirebaseAuthentication 插件！請確認是否安裝了 @capacitor-firebase/authentication 並執行了 npx cap sync。");
+    return;
+  }
+  
+  try {
+    alert("✅ 步驟 1：開始呼叫原生登入...");
+    const result = await window.FirebaseAuthentication.signInWithGoogle();
+    
+    if (!result) {
+      alert("❌ 錯誤 2：原生登入回傳空值，可能使用者取消了登入。");
+      return;
+    }
+    
+    alert("✅ 步驟 2：原生登入成功！準備檢查憑證...\n回傳內容：" + JSON.stringify(result));
+    
+    if (result.credential && result.credential.idToken) {
+      alert("✅ 步驟 3：成功獲取 idToken！準備傳給 Firebase...");
+      
+      const credential = GoogleAuthProvider.credential(result.credential.idToken);
+      await signInWithCredential(auth, credential);
+      
+      alert("🎉 步驟 4：Firebase 登入完全成功！");
+    } else {
+      alert("❌ 錯誤 3：沒有拿到 idToken！請檢查 Firebase 控制台的 SHA-1 指紋是否填對，以及 google-services.json 是否放在正確位置。");
+    }
+  } catch (e) {
+    alert("❌ 錯誤 4：發生異常！\n錯誤代碼：" + e.code + "\n錯誤訊息：" + e.message);
+  }
+};
+
 window.signOutUser=async function(){try{await signOut(auth)}catch(e){console.error(e)}};
+
 onAuthStateChanged(auth,async user=>{
   cu=user;window.currentUser=user;
   if(user){
@@ -2377,6 +2485,7 @@ onAuthStateChanged(auth,async user=>{
     await loadCategoriesFromCloud();
     startListening();
     startListeningCategories();
+    startListeningTasks();
     updateStorageHint(true);
   }else{
     updateLoginUI(null);
@@ -2393,6 +2502,7 @@ onAuthStateChanged(auth,async user=>{
     updateStorageHint(false);
   }
 });
+
 async function loadCategoriesFromCloud(){
   if(!cu)return;
   try{
@@ -2469,6 +2579,32 @@ function startListening(){
 }
 window.saveEventToCloud=async function(event){if(!cu)throw new Error("未登入");const ref=doc(db,"events",event.id);await setDoc(ref,{...event,userId:cu.uid})};
 window.deleteEventFromCloud=async function(id){if(!cu)throw new Error("未登入");await deleteDoc(doc(db,"events",id))};
+
+function startListeningTasks(){
+  if(!cu)return;
+  const q=query(collection(db,"tasks"),where("userId","==",cu.uid));
+  onSnapshot(q,snap=>{
+    const arr=[];
+    snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});
+    if(window.state){
+      window.state.tasks=arr;
+      try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}
+      if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();
+    }
+  },err=>console.error("監聽任務失敗:",err));
+}
+
+window.saveTaskToCloud=async function(task){
+  if(!cu)return;
+  const ref=doc(db,"tasks",task.id);
+  await setDoc(ref,{...task,userId:cu.uid});
+};
+
+window.deleteTaskFromCloud=async function(id){
+  if(!cu)return;
+  await deleteDoc(doc(db,"tasks",id));
+};
+
 function updateLoginUI(user){
   const lb=document.getElementById('loginBtn'),ui=document.getElementById('userInfo'),un=document.getElementById('userName'),ua=document.getElementById('userAvatar');
   const sa=document.getElementById('sideAvatar'),sp=document.getElementById('sideAvatarPlaceholder'),sn=document.getElementById('sideUserName'),ss=document.getElementById('sideUserSub');
