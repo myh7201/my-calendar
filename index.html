@@ -1752,7 +1752,11 @@ async function uploadRemote(payload){
 }
 async function syncNow(silent){
   if(!window.syncConfig.enabled){ if(!silent) showToast('請先啟用雲端同步並填寫設定'); return; }
-  if(!window.syncConfig.username || !window.syncConfig.password){ if(!silent) showToast('請填寫帳號密碼'); return; }
+  // 如果使用的是 Cloudflare KV 模式（URL 含 /api/sync），就跳过账号密码检查
+if(!window.syncConfig.url.includes('/api/sync') && (!window.syncConfig.username || !window.syncConfig.password)){
+    if(!silent) showToast('請填寫帳號密碼');
+    return;
+}
   if(syncInProgress) return;
   if(!navigator.onLine){ if(!silent) showToast('目前離線，已存本機，連網後會自動同步'); return; }
   syncInProgress = true; updateSyncStatusUI();
