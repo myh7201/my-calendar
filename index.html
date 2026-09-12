@@ -1314,40 +1314,99 @@ function renderDayView(){
 function renderScheduleView(){
   const c=document.getElementById('calendarViewContainer');
   const base=new Date();base.setHours(0,0,0,0);
-  const rangeStart=new Date(base);rangeStart.setDate(rangeStart.getDate()-30);
-  const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);
+
+  // 找出所有历史事件中最早的日期，往前留 7 天余量
+  let earliestDate=new Date();earliestDate.setHours(0,0,0,0);
+  state.events.forEach(e=>{
+    const d=new Date(e.start);
+    if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);
+  });
+  earliestDate.setDate(earliestDate.getDate()-7);
+
+  const rangeStart=earliestDate;
+  const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+365);rangeEnd.setHours(23,59,59,999);
+
   const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));
   const groups={};
-  events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt)});
+  events.forEach(evt=>{
+    const d=new Date(evt._occStart);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(!groups[key])groups[key]={date:d,events:[]};
+    groups[key].events.push(evt);
+  });
+
   const tm=new Date();tm.setHours(0,0,0,0);
   const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;
   if(!groups[tk])groups[tk]={date:tm,events:[]};
-  const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();
+
+  const sortedKeys=Object.keys(groups).sort();
+  const today=new Date();
+  const now=new Date();
   const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});
+  const nowTime=now.getTime();
+
+  // 生成单张事件卡片的 HTML
+  const renderCard=(evt)=>{
+    const cat=getCat(evt.category);
+    const age=getYearsLabel(evt,evt._occStart);
+    const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';
+    const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3 h-3 opacity-50"></i>':'';
+    const timeStr=evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;
+    return `<div class="schedule-card" style="--c:${cat.color}" data-id="${evt.id}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap">${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`;
+  };
+  const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;
+
   let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;
+
   sortedKeys.forEach(key=>{
-    const group=groups[key];const d=group.date;
-    const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);
-    const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);
-    let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';
+    const group=groups[key];
+    const d=group.date;
+    const isToday=isSameDay(d,today);
+    const isHoliday=hasHolidayEvent(d);
+    const weekday=['日','一','二','三','四','五','六'][d.getDay()];
+    const sub=getDaySubText(d);
+    let daynumCls='';
+    if(isToday)daynumCls='text-brand-600 dark:text-brand-400';
+    else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';
+
     html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;
-    if(group.events.length===0){const emptyMsg=isToday?'今天沒有計劃。點擊建立。':'沒有計劃。點擊建立。';html+=`<div class="empty-day" data-date="${d.toISOString()}"><span class="empty-text">${emptyMsg}</span></div>`}
-    else{group.events.forEach(evt=>{
-      const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);
-      const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';
-      const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3 h-3 opacity-50"></i>':'';
-      const timeStr=evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;
-      html+=`<div class="schedule-card" style="--c:${cat.color}" data-id="${evt.id}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap">${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`
-    })}
+
+    if(isToday){
+      // 今天：根据当前时间正确插入 now-line
+      let nowInserted=false;
+      if(group.events.length===0){
+        html+=`<div class="empty-day" data-date="${d.toISOString()}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;
+        html+=nowLineHtml;
+        nowInserted=true;
+      }else{
+        group.events.forEach(evt=>{
+          const evtStart=new Date(evt._occStart).getTime();
+          // 当前时间早于这个事件开始时间，先插入 now-line
+          if(!nowInserted&&nowTime<evtStart){
+            html+=nowLineHtml;
+            nowInserted=true;
+          }
+          html+=renderCard(evt);
+        });
+        // 所有事件都在当前时间之前，now-line 放最后
+        if(!nowInserted){html+=nowLineHtml;}
+      }
+    }else{
+      if(group.events.length===0){
+        html+=`<div class="empty-day" data-date="${d.toISOString()}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;
+      }else{
+        group.events.forEach(evt=>{html+=renderCard(evt);});
+      }
+    }
+
     html+=`</div></div>`;
-    if(isToday){html+=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`}
   });
+
   html+=`</div></div>`;
   c.innerHTML=html;
   lucide.createIcons();
   setTimeout(()=>{const el=document.getElementById('todayScheduleItem');if(el)el.scrollIntoView({behavior:'auto',block:'start'})},100);
-}
-function renderMyView(){
+}function renderMyView(){
   const c=document.getElementById('calendarViewContainer');
   const today=new Date();
   const ts=new Date(today);ts.setHours(0,0,0,0);const te=new Date(today);te.setHours(23,59,59,999);
