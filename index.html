@@ -655,7 +655,37 @@ function loadActiveCats(){try{const s=localStorage.getItem(ACTIVE_CAT_KEY);if(s)
 function saveActiveCats(){localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories));if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e))}}
 function getCat(id){return state.categories.find(c=>c.id===id)||{id:'_unknown',name:'未分類',color:'#94a3b8'}}
 const EVT_KEY='calendar_events_v1';
-function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p))return p.filter(e=>e&&typeof e==='object')}catch(e){}}return[]}
+function normalizeSpecialEvent(evt){
+  if(!evt||typeof evt!=='object')return evt;
+  const isSpecial=evt.eventType==='birthday'||evt.eventType==='anniversary';
+  if(!isSpecial)return evt;
+  const start=new Date(evt.start);
+  if(isNaN(start.getTime()))return evt;
+  const fixedStart=new Date(start);
+  fixedStart.setHours(0,0,0,0);
+  const fixedEnd=new Date(fixedStart);
+  fixedEnd.setHours(23,59,0,0);
+  evt.start=formatDateForInput(fixedStart);
+  evt.end=formatDateForInput(fixedEnd);
+  evt.allDay=true;
+  evt.recurrence={freq:'yearly',interval:1,until:null};
+  evt.category=ANNIVERSARY_CAT_ID;
+  return evt;
+}
+function normalizeSpecialEvents(){
+  if(!Array.isArray(state.events))return false;
+  let changed=false;
+  state.events.forEach(evt=>{
+    if(!evt||(evt.eventType!=='birthday'&&evt.eventType!=='anniversary'))return;
+    const before=JSON.stringify({start:evt.start,end:evt.end,allDay:evt.allDay,category:evt.category,recurrence:evt.recurrence});
+    normalizeSpecialEvent(evt);
+    const after=JSON.stringify({start:evt.start,end:evt.end,allDay:evt.allDay,category:evt.category,recurrence:evt.recurrence});
+    if(before!==after)changed=true;
+  });
+  return changed;
+}
+window.normalizeSpecialEvents=normalizeSpecialEvents;
+function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p)){const events=p.filter(e=>e&&typeof e==='object');events.forEach(normalizeSpecialEvent);return events}}catch(e){}}return[]}
 function saveEvents(syncCloud=true){localStorage.setItem(EVT_KEY,JSON.stringify(state.events));if(syncCloud&&window.currentUser&&typeof window.saveEventToCloud==='function'){state.events.forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('雲端同步事件失敗',err)))}}
 const TASK_KEY='calendar_tasks_v1';
 function loadSavedTasks(){const s=localStorage.getItem(TASK_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p))return p.filter(t=>t&&typeof t==='object')}catch(e){}}return[]}
@@ -1742,9 +1772,10 @@ function initEventListeners(){
       }
       
       solarDate.setHours(0, 0, 0, 0);
+      // 全日事件的結束時間必須仍在同一天，不能延伸到隔天。
+      // 舊版設成「隔天 23:59」，因此生日/紀念日會同時出現在兩天的抽屜。
       const endDate = new Date(solarDate);
-      endDate.setDate(endDate.getDate() + 1);
-      endDate.setHours(23, 59, 59, 999);
+      endDate.setHours(23, 59, 0, 0);
 
       startValue = formatDateForInput(solarDate);
       endValue = formatDateForInput(endDate);
@@ -1862,6 +1893,7 @@ window.onload=function(){
   state.activeCategories=(sa||allIds).filter(id=>state.categories.some(c=>c.id===id));
   if(state.categories.some(c=>c.id===ANNIVERSARY_CAT_ID)&&!state.activeCategories.includes(ANNIVERSARY_CAT_ID)){state.activeCategories.push(ANNIVERSARY_CAT_ID);}
   state.events=loadSavedEvents();
+  if(normalizeSpecialEvents()) saveEvents(false);
   state.tasks=loadSavedTasks();
   state.notes=loadSavedNotes();
   state.folders=loadSavedFolders()||[];
@@ -1951,7 +1983,7 @@ onAuthStateChanged(auth,async user=>{
     if(ue){ue();ue=null}
     if(cue){cue=null}
     if(window.state){
-      const s=localStorage.getItem('calendar_events_v1');try{window.state.events=s?JSON.parse(s):[]}catch(e){window.state.events=[]}
+      const s=localStorage.getItem('calendar_events_v1');try{window.state.events=s?JSON.parse(s):[];if(typeof window.normalizeSpecialEvents==='function')window.normalizeSpecialEvents();}catch(e){window.state.events=[]}
       const sc=localStorage.getItem('calendar_categories_v1');try{window.state.categories=sc?JSON.parse(sc):[]}catch(e){}
       const st=localStorage.getItem('calendar_tasks_v1');try{window.state.tasks=st?JSON.parse(st):[]}catch(e){window.state.tasks=[]}
       const sn=localStorage.getItem('calendar_notes_v1');try{window.state.notes=sn?JSON.parse(sn):[]}catch(e){window.state.notes=[]}
@@ -1965,7 +1997,7 @@ onAuthStateChanged(auth,async user=>{
 async function loadCategoriesFromCloud(){if(!cu)return;try{const ref=doc(db,"userSettings",cu.uid);const snap=await getDoc(ref);if(snap.exists()){const data=snap.data();if(Array.isArray(data.categories)&&data.categories.length>0){window.state.categories=data.categories;try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}}if(Array.isArray(data.activeCategories)){window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(Array.isArray(data.folders)){window.state.folders = data.folders;try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}} else if (window.state.folders && window.state.folders.length > 0) {await window.saveCategoriesToCloud();}}else{await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories,folders: window.state.folders || []});}if(window.state.events){window.state.events.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(typeof window.renderCategories==='function')window.renderCategories();if(typeof window.renderAll==='function')window.renderAll();}catch(e){console.error("載入分類失敗:",e)}}
 function startListeningCategories(){if(!cu)return;if(cue)cue();const ref=doc(db,"userSettings",cu.uid);cue=onSnapshot(ref,snap=>{if(!snap.exists())return;const data=snap.data();if(Array.isArray(data.categories)&&data.categories.length>0){const same=JSON.stringify(data.categories)===JSON.stringify(window.state.categories);if(!same){window.state.categories=data.categories;try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}if(Array.isArray(data.activeCategories)){window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(typeof window.renderCategories==='function')window.renderCategories();if(typeof window.renderAll==='function')window.renderAll();}}if(Array.isArray(data.folders)){const sameFolders = JSON.stringify(data.folders)===JSON.stringify(window.state.folders || []);if(!sameFolders){window.state.folders = data.folders;try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}if(typeof window.renderNotesView==='function' && window.state.view==='notes'){window.renderNotesView();}}}},err=>console.error(err));}
 window.saveCategoriesToCloud=async function(){if(!cu)return;const ref=doc(db,"userSettings",cu.uid);await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories,folders: window.state.folders || []},{merge:true});};
-function startListening(){if(!cu)return;if(ue)ue();const q=query(collection(db,"events"),where("userId","==",cu.uid));ue=onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...evt}=data;arr.push({id:d.id,...evt})});if(window.state){window.state.events=arr;arr.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_events_v1',JSON.stringify(arr))}catch(e){}if(typeof window.renderAll==='function')window.renderAll();}},err=>console.error(err));}
+function startListening(){if(!cu)return;if(ue)ue();const q=query(collection(db,"events"),where("userId","==",cu.uid));ue=onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...evt}=data;arr.push({id:d.id,...evt})});if(window.state){window.state.events=arr;const repaired=typeof window.normalizeSpecialEvents==='function'&&window.normalizeSpecialEvents();arr.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_events_v1',JSON.stringify(window.state.events))}catch(e){}if(repaired&&typeof window.saveEventToCloud==='function'){window.state.events.filter(e=>e.eventType==='birthday'||e.eventType==='anniversary').forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('修復生日/紀念日失敗',err)));}if(typeof window.renderAll==='function')window.renderAll();}},err=>console.error(err));}
 window.saveEventToCloud=async function(event){if(!cu)throw new Error("未登入");const ref=doc(db,"events",event.id);await setDoc(ref,{...event,userId:cu.uid})};
 window.deleteEventFromCloud=async function(id){if(!cu)throw new Error("未登入");await deleteDoc(doc(db,"events",id))};
 function startListeningTasks(){if(!cu)return;const q=query(collection(db,"tasks"),where("userId","==",cu.uid));onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});if(window.state){window.state.tasks=arr;try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();}},err=>console.error("監聽任務失敗:",err));}
