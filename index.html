@@ -41,6 +41,11 @@ body{background:radial-gradient(1200px 600px at 100% -10%,rgba(99,102,241,.08),t
 .dark .cat-chip{background:color-mix(in srgb,var(--c,#6366f1) 20%,transparent);color:color-mix(in srgb,var(--c,#6366f1) 65%,#fff);border-color:color-mix(in srgb,var(--c,#6366f1) 38%,transparent)}
 .month-event-block{background:color-mix(in srgb,var(--c,#3b82f6) 15%,#fff);color:color-mix(in srgb,var(--c,#3b82f6) 80%,#1e293b);border-radius:3px;padding:2px 4px;font-size:10px;line-height:1.3;font-weight:500;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-all}
 .dark .month-event-block{background:color-mix(in srgb,var(--c,#3b82f6) 25%,#1e293b);color:color-mix(in srgb,var(--c,#3b82f6) 90%,#e2e8f0)}
+.month-multi-event{border-radius:0;margin-left:-4px;margin-right:-4px;padding-left:8px;padding-right:8px;white-space:nowrap;display:block;min-height:18px;line-height:14px;overflow:hidden;text-overflow:clip}
+.month-multi-start{border-top-left-radius:5px;border-bottom-left-radius:5px;margin-left:0}
+.month-multi-end{border-top-right-radius:5px;border-bottom-right-radius:5px;margin-right:0}
+.month-multi-start.month-multi-end{border-radius:5px;margin-left:0;margin-right:0}
+
 .schedule-item{display:flex;gap:12px;padding:12px 4px 12px 0}
 .schedule-date-col{width:64px;flex-shrink:0;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
 .schedule-date-col .weekday{font-size:11px;font-weight:700;color:#64748b}
@@ -1619,7 +1624,65 @@ function renderStats(){const y=state.currentDate.getFullYear(),m=state.currentDa
 function goToPrevMonth(){state.currentDate.setMonth(state.currentDate.getMonth()-1);state.currentDate.setDate(1);state.miniDate=new Date(state.currentDate);updateHeaderInfo();renderMiniCalendar();renderStats();renderMainView('right')}
 function goToNextMonth(){state.currentDate.setMonth(state.currentDate.getMonth()+1);state.currentDate.setDate(1);state.miniDate=new Date(state.currentDate);updateHeaderInfo();renderMiniCalendar();renderStats();renderMainView('left')}
 
-function renderMonthView(){const c=document.getElementById('calendarViewContainer');const y=state.currentDate.getFullYear(),m=state.currentDate.getMonth();const days=getMonthGridDays(y,m);const rangeStart=new Date(days[0].date);rangeStart.setHours(0,0,0,0);const rangeEnd=new Date(days[days.length-1].date);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd);const today=new Date();let html=`<div class="swipe-container h-full" id="monthSwipeContainer"><div class="month-view-wrapper h-full flex flex-col"><div class="grid grid-cols-[36px_repeat(7,1fr)] border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center py-2.5 text-[11px] font-bold text-ink-500 shrink-0 month-header"><div class="wk-cell"></div><div class="text-rose-500">週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div class="text-brand-500">週六</div></div><div class="flex-1 grid grid-cols-[36px_repeat(7,1fr)] month-grid" style="grid-template-rows: repeat(${Math.ceil(days.length/7)}, minmax(0, 1fr));">`;days.forEach((item,index)=>{if(index%7===0){const wkNum=getWeekNumber(item.date);html+=`<div class="month-cell wk-cell flex flex-col items-center justify-center text-[10px] text-ink-400 leading-tight"><span>WK</span><span class="font-semibold text-ink-500">${wkNum}</span></div>`}const isToday=isSameDay(item.date,today);const dayEvents=events.filter(e=>{const st=new Date(e._occStart),et=new Date(e._occEnd),ds=new Date(item.date);ds.setHours(0,0,0,0);const de=new Date(item.date);de.setHours(23,59,59,999);return st<=de&&et>=ds;});const sub=getDaySubText(item.date);const isHoliday=hasHolidayEvent(item.date);let numClass='text-xs font-semibold ';if(isToday)numClass+='w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center';else if(isHoliday&&item.isCurrentMonth)numClass+='text-rose-600 dark:text-rose-400 font-extrabold';else if(item.isCurrentMonth)numClass+='text-ink-700 dark:text-ink-200';else numClass+='text-ink-300 dark:text-ink-600';html+=`<div class="month-cell p-1 flex flex-col hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition cursor-pointer overflow-y-auto cell-day" data-date="${dateKey(item.date)}"><div class="flex flex-col items-center mb-0.5"><span class="${numClass}">${item.date.getDate()}</span>${sub.text?`<span class="${subTextClass(sub.type)}">${escapeHtml(sub.text)}</span>`:''}${index%7===0?`<span class="mobile-only-wk text-[7px] text-ink-300 dark:text-ink-600 font-bold leading-none mt-0.5">W${getWeekNumber(item.date)}</span>`:''}</div><div class="flex-1 overflow-hidden space-y-0.5">${dayEvents.slice(0,3).map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const prefix=(evt._isRecurring&&!age)?'↻ ':'';return`<div class="month-event-block" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(item.date)}">${prefix}${escapeHtml(evt.title)}${age?` · ${age}`:''}</div>`}).join('')}${dayEvents.length>3?`<div class="text-[9px] text-ink-400 font-semibold px-1">+${dayEvents.length-3}</div>`:''}</div></div>`;});html+=`</div></div></div>`;c.innerHTML=html;}
+function renderMonthView(){
+  const c=document.getElementById('calendarViewContainer');
+  const y=state.currentDate.getFullYear(),m=state.currentDate.getMonth();
+  const days=getMonthGridDays(y,m);
+  const rangeStart=new Date(days[0].date);rangeStart.setHours(0,0,0,0);
+  const rangeEnd=new Date(days[days.length-1].date);rangeEnd.setHours(23,59,59,999);
+  const events=getOccurrencesInRange(rangeStart,rangeEnd);
+  const today=new Date();
+  let html=`<div class="swipe-container h-full" id="monthSwipeContainer"><div class="month-view-wrapper h-full flex flex-col"><div class="grid grid-cols-[36px_repeat(7,1fr)] border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center py-2.5 text-[11px] font-bold text-ink-500 shrink-0 month-header"><div class="wk-cell"></div><div class="text-rose-500">週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div class="text-brand-500">週六</div></div><div class="flex-1 grid grid-cols-[36px_repeat(7,1fr)] month-grid" style="grid-template-rows: repeat(${Math.ceil(days.length/7)}, minmax(0, 1fr));">`;
+
+  days.forEach((item,index)=>{
+    if(index%7===0){
+      const wkNum=getWeekNumber(item.date);
+      html+=`<div class="month-cell wk-cell flex flex-col items-center justify-center text-[10px] text-ink-400 leading-tight"><span>WK</span><span class="font-semibold text-ink-500">${wkNum}</span></div>`;
+    }
+
+    const isToday=isSameDay(item.date,today);
+    const dayEvents=events
+      .filter(e=>{
+        const st=new Date(e._occStart);st.setHours(0,0,0,0);
+        const en=new Date(e._occEnd);en.setHours(23,59,59,999);
+        return st<=new Date(item.date.getFullYear(),item.date.getMonth(),item.date.getDate(),23,59,59,999) && en>=new Date(item.date.getFullYear(),item.date.getMonth(),item.date.getDate(),0,0,0,0);
+      })
+      .sort((a,b)=>new Date(a._occStart)-new Date(b._occStart) || new Date(b._occEnd)-new Date(a._occEnd));
+
+    const sub=getDaySubText(item.date);
+    const isHoliday=hasHolidayEvent(item.date);
+    let numClass='text-xs font-semibold ';
+    if(isToday)numClass+='w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center';
+    else if(isHoliday&&item.isCurrentMonth)numClass+='text-rose-600 dark:text-rose-400 font-extrabold';
+    else if(item.isCurrentMonth)numClass+='text-ink-700 dark:text-ink-200';
+    else numClass+='text-ink-300 dark:text-ink-600';
+
+    const visibleEventLimit=4;
+    const visibleEvents=dayEvents.slice(0,visibleEventLimit);
+    const eventHtml=visibleEvents.map(evt=>{
+      const cat=getCat(evt.category);
+      const evtStart=new Date(evt._occStart);evtStart.setHours(0,0,0,0);
+      const evtEnd=new Date(evt._occEnd);evtEnd.setHours(23,59,59,999);
+      const dayStart=new Date(item.date);dayStart.setHours(0,0,0,0);
+      const dayEnd=new Date(item.date);dayEnd.setHours(23,59,59,999);
+      const isMulti=evtStart<evtEnd && !isSameDay(evtStart,evtEnd);
+      const startsHere=isSameDay(evtStart,item.date);
+      const endsHere=isSameDay(evtEnd,item.date);
+      const continuesIn=isMulti && evtStart<dayStart && evtEnd>dayEnd;
+      const partClass=isMulti?` month-multi-event ${startsHere?'month-multi-start':endsHere?'month-multi-end':continuesIn?'month-multi-middle':''}`:'';
+      const showTitle=!isMulti || startsHere || evtStart<rangeStart;
+      const age=getYearsLabel(evt,evt._occStart);
+      const prefix=(evt._isRecurring&&!age)?'↻ ':'';
+      const label=showTitle?`${prefix}${escapeHtml(evt.title)}${age?` · ${age}`:''}`:'&nbsp;';
+      return `<div class="month-event-block${partClass}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}" title="${escapeHtml(evt.title)}">${label}</div>`;
+    }).join('');
+    const more=dayEvents.length>visibleEventLimit?`<div class="text-[9px] text-ink-400 font-semibold px-1">+${dayEvents.length-visibleEventLimit}</div>`:'';
+
+    html+=`<div class="month-cell p-1 flex flex-col hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition cursor-pointer overflow-y-auto cell-day" data-date="${dateKey(item.date)}"><div class="flex flex-col items-center mb-0.5"><span class="${numClass}">${item.date.getDate()}</span>${sub.text?`<span class="${subTextClass(sub.type)}">${escapeHtml(sub.text)}</span>`:''}${index%7===0?`<span class="mobile-only-wk text-[7px] text-ink-300 dark:text-ink-600 font-bold leading-none mt-0.5">W${getWeekNumber(item.date)}</span>`:''}</div><div class="flex-1 overflow-hidden space-y-0.5">${eventHtml}${more}</div></div>`;
+  });
+  html+=`</div></div></div>`;
+  c.innerHTML=html;
+}
 
 /* ===== 週檢視：手機橫向滾動 + 合理欄寬 ===== */
 function renderWeekView(){
@@ -1633,8 +1696,8 @@ function renderWeekView(){
   const weekEnd=new Date(weekDays[6]);weekEnd.setHours(23,59,59,999);
   const events=getOccurrencesInRange(weekStart,weekEnd);
   const HOUR_H=56;
-  const allDayByDay=weekDays.map(d=>events.filter(e=>{if(!e.allDay)return false;const st=new Date(e._occStart),et=new Date(e._occEnd),ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);return st<=de&&et>=ds;}));
-  const timedByDay=weekDays.map(d=>events.filter(e=>{if(e.allDay)return false;const st=new Date(e._occStart),et=new Date(e._occEnd),ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);return st<=de&&et>=ds;}).map(e=>{const ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);const st=new Date(e._occStart),et=new Date(e._occEnd);return Object.assign({},e,{_occStart:st<ds?ds:st,_occEnd:et>de?de:et});}));
+  const allDayByDay=weekDays.map(d=>events.filter(e=>isSameDay(new Date(e._occStart),d)&&e.allDay));
+  const timedByDay=weekDays.map(d=>events.filter(e=>isSameDay(new Date(e._occStart),d)&&!e.allDay));
   const laidOut=timedByDay.map(list=>{
     const sorted=list.slice().sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));
     const groups=[];let cur=null;
@@ -1685,7 +1748,7 @@ function renderWeekView(){
       const cat=getCat(evt.category);
       const age=getYearsLabel(evt,evt._occStart);
       const timeStr=formatTime(evt._occStart)+' - '+formatTime(evt._occEnd);
-      return `<div class="timed-event cat-chip absolute rounded-md border p-1 overflow-hidden cursor-pointer transition hover:z-10 hover:shadow-lg" style="--c:${cat.color};top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);" data-id="${evt.id}" data-day-date="${dateKey(d)}" title="${escapeHtml(evt.title)} &#10;${timeStr}"><div class="text-[10px] font-semibold leading-tight truncate">${escapeHtml(evt.title)}${age?` · ${age}`:''}</div><div class="text-[9px] opacity-75 leading-tight tabular-nums">${timeStr}</div></div>`;
+      return `<div class="timed-event cat-chip absolute rounded-md border p-1 overflow-hidden cursor-pointer transition hover:z-10 hover:shadow-lg" style="--c:${cat.color};top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}" title="${escapeHtml(evt.title)} &#10;${timeStr}"><div class="text-[10px] font-semibold leading-tight truncate">${escapeHtml(evt.title)}${age?` · ${age}`:''}</div><div class="text-[9px] opacity-75 leading-tight tabular-nums">${timeStr}</div></div>`;
     }).join('');
     return `<div class="week-col relative border-r border-ink-200/70 dark:border-ink-800/70" style="height:${24*HOUR_H}px;" data-date="${dateKey(d)}">${itemsHtml}</div>`;
   }).join('');
