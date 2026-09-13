@@ -126,6 +126,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 .mobile-only-wk{display:block}
 }
 </style>
+
+<style>
+.lunar-convert-tab{color:rgb(107 114 128)}
+.lunar-convert-tab.active{background:white;color:rgb(124 58 237);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+@media (prefers-color-scheme:dark){.lunar-convert-tab.active{background:rgb(31 41 55);color:rgb(196 181 253)}}
+</style>
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
 
@@ -242,6 +248,85 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
     </div>
 </nav>
 
+
+<div id="dateToolsModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[84] hidden opacity-0 transition-opacity duration-200">
+<div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-md p-5 space-y-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
+  <div class="flex items-center justify-between">
+    <h3 class="text-base font-bold tracking-tight flex items-center gap-2"><i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>日期工具</span></h3>
+    <button id="closeDateToolsBtn" type="button" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+  </div>
+  <div>
+    <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">搜尋日程</label>
+    <div class="relative">
+      <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
+      <input type="text" id="toolSearchInput" value="" placeholder="輸入關鍵字..." class="w-full pl-9 pr-9 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
+      <button id="clearToolSearchBtn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-ink-400 hover:text-ink-600 hidden"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+    </div>
+  </div>
+  <div class="space-y-2.5">
+    <button id="dateJumpToolBtn" type="button" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left hover:border-brand-300 hover:bg-brand-50/30 dark:hover:bg-brand-950/10 transition">
+      <span class="flex items-center gap-3"><span class="p-2.5 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-300"><i data-lucide="calendar-search" class="w-5 h-5"></i></span><span><span class="block text-sm font-bold">日期跳轉</span><span class="block text-[10px] text-ink-400 mt-1">可跳轉公曆或農曆日期</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i>
+    </button>
+    <button id="dateCalcToolBtn" type="button" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left hover:border-brand-300 hover:bg-brand-50/30 dark:hover:bg-brand-950/10 transition">
+      <span class="flex items-center gap-3"><span class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><i data-lucide="calculator" class="w-5 h-5"></i></span><span><span class="block text-sm font-bold">日期推算</span><span class="block text-[10px] text-ink-400 mt-1">由開始日期按天數推算目標日期</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i>
+    </button>
+    <button id="dateIntervalToolBtn" type="button" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left hover:border-brand-300 hover:bg-brand-50/30 dark:hover:bg-brand-950/10 transition">
+      <span class="flex items-center gap-3"><span class="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-range" class="w-5 h-5"></i></span><span><span class="block text-sm font-bold">日期間隔</span><span class="block text-[10px] text-ink-400 mt-1">計算兩個日期相差多少日</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i>
+    </button>
+    <button id="lunarConvertToolBtn" type="button" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left hover:border-brand-300 hover:bg-brand-50/30 dark:hover:bg-brand-950/10 transition">
+      <span class="flex items-center gap-3"><span class="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400"><i data-lucide="repeat-2" class="w-5 h-5"></i></span><span><span class="block text-sm font-bold">公農曆換算</span><span class="block text-[10px] text-ink-400 mt-1">公曆與農曆日期互相換算</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i>
+    </button>
+  </div>
+</div>
+</div>
+
+<div id="dateCalculatorModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[86] hidden opacity-0 transition-opacity duration-200">
+<div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200">
+  <div class="flex items-center justify-between"><h3 class="text-base font-bold tracking-tight flex items-center gap-2"><i data-lucide="calculator" class="w-4 h-4 text-brand-500"></i><span>日期推算</span></h3><button id="closeDateCalculatorBtn" type="button" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+  <div><label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">開始日期</label><input type="date" id="dateCalcStart" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950"></div>
+  <div><label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">天數</label><input type="number" id="dateCalcDays" min="0" step="1" placeholder="請輸入天數" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950"></div>
+  <div class="grid grid-cols-2 gap-2"><button id="dateCalcAfterBtn" type="button" class="date-calc-dir py-2.5 rounded-xl border font-semibold text-sm">往後推算</button><button id="dateCalcBeforeBtn" type="button" class="date-calc-dir py-2.5 rounded-xl border font-semibold text-sm">往前推算</button></div>
+  <div id="dateCalcResultBox" class="rounded-2xl bg-ink-50 dark:bg-ink-800/60 p-4 text-center hidden"><div class="text-[10px] text-ink-400 mb-1">推算結果</div><div id="dateCalcResultText" class="text-xl font-extrabold text-brand-600 dark:text-brand-300"></div><div id="dateCalcResultSub" class="text-[10px] text-ink-400 mt-1"></div></div>
+  <button id="runDateCalculatorBtn" type="button" class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition">開始推算</button>
+</div>
+</div>
+
+<div id="dateIntervalModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[86] hidden opacity-0 transition-opacity duration-200">
+<div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200">
+  <div class="flex items-center justify-between"><h3 class="text-base font-bold tracking-tight flex items-center gap-2"><i data-lucide="calendar-range" class="w-4 h-4 text-brand-500"></i><span>日期間隔</span></h3><button id="closeDateIntervalBtn" type="button" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+  <div><label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">開始日期</label><input type="date" id="dateIntervalStart" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950"></div>
+  <div><label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">結束日期</label><input type="date" id="dateIntervalEnd" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950"></div>
+  <div id="dateIntervalResultBox" class="rounded-2xl bg-ink-50 dark:bg-ink-800/60 p-4 text-center hidden"><div class="text-[10px] text-ink-400 mb-1">日期間隔</div><div id="dateIntervalResultText" class="text-xl font-extrabold text-brand-600 dark:text-brand-300"></div><div id="dateIntervalResultSub" class="text-[10px] text-ink-400 mt-1"></div></div>
+  <button id="runDateIntervalBtn" type="button" class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition">開始計算</button>
+</div>
+</div>
+
+<div id="lunarConvertModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[87] hidden opacity-0 transition-opacity duration-200">
+<div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
+  <div class="flex items-center justify-between"><h3 class="text-base font-bold tracking-tight flex items-center gap-2"><i data-lucide="repeat-2" class="w-4 h-4 text-brand-500"></i><span>公農曆換算</span></h3><button id="closeLunarConvertBtn" type="button" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+  <div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1">
+    <button id="lunarConvertSolarTab" type="button" class="lunar-convert-tab active flex-1 py-2 rounded-lg text-xs font-semibold">公曆 → 農曆</button>
+    <button id="lunarConvertLunarTab" type="button" class="lunar-convert-tab flex-1 py-2 rounded-lg text-xs font-semibold">農曆 → 公曆</button>
+  </div>
+  <div id="lunarConvertSolarPanel">
+    <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">公曆日期</label>
+    <input type="date" id="lunarConvertSolarDate" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950">
+  </div>
+  <div id="lunarConvertLunarPanel" class="hidden space-y-3">
+    <div class="grid grid-cols-3 gap-2">
+      <div><label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">農曆年</label><input type="number" id="lunarConvertYear" min="1900" max="2200" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 text-center"></div>
+      <div><label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">農曆月</label><select id="lunarConvertMonth" class="lunar-select"></select></div>
+      <div><label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1">農曆日</label><select id="lunarConvertDay" class="lunar-select"></select></div>
+    </div>
+    <p class="text-[10px] text-brand-600/80 dark:text-brand-300/80 leading-relaxed">閏月會以「閏X月」顯示。</p>
+  </div>
+  <div id="lunarConvertResultBox" class="rounded-2xl bg-ink-50 dark:bg-ink-800/60 p-4 text-center hidden">
+    <div class="text-[10px] text-ink-400 mb-1">換算結果</div><div id="lunarConvertResultText" class="text-lg font-extrabold text-brand-600 dark:text-brand-300"></div><div id="lunarConvertResultSub" class="text-[10px] text-ink-400 mt-1"></div>
+  </div>
+  <button id="runLunarConvertBtn" type="button" class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition">開始換算</button>
+</div>
+</div>
+
 <div id="jumpDateModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85] hidden opacity-0 transition-opacity duration-200">
 <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
 <div class="flex items-center justify-between">
@@ -322,22 +407,30 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 </div>
 <div>
 <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">日程標題</label>
-<input type="text" id="eventTitle" required placeholder="例如：媽媽生日" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
+<input type="text" id="eventTitle" required placeholder="例如:開會時間" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
 </div>
 
-<!-- 普通事件：公历开始/结束时间 -->
-<div id="gregorianDateInputs" class="grid grid-cols-2 gap-4">
-<div>
-<label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">開始時間</label>
-<div class="flex items-center gap-1.5">
-<input type="datetime-local" id="eventStart" class="flex-1 min-w-0 px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-<button type="button" id="jumpStartBtn" class="shrink-0 p-2.5 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 text-ink-500 hover:bg-ink-50 dark:hover:bg-ink-800 hover:text-brand-600 transition" title="跳轉日期"><i data-lucide="calendar-search" class="w-4 h-4"></i></button>
-</div>
-</div>
-<div>
-<label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">結束時間</label>
-<input type="datetime-local" id="eventEnd" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-</div>
+<!-- 普通事件：公历开始/结束时间（日期與時間分開手動輸入） -->
+<div id="gregorianDateInputs" class="space-y-4">
+  <input type="hidden" id="eventStart">
+  <input type="hidden" id="eventEnd">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="p-3 rounded-2xl border border-ink-200 dark:border-ink-700 bg-ink-50/40 dark:bg-ink-900/30">
+      <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">開始</label>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="block text-[10px] font-semibold text-ink-400 mb-1">日期</label><input type="text" id="eventStartDate" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="YYYY/MM/DD" aria-label="開始日期" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums"></div>
+        <div><label class="block text-[10px] font-semibold text-ink-400 mb-1">時間</label><input type="text" id="eventStartTime" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="HH:MM" aria-label="開始時間" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums"></div>
+      </div>
+    </div>
+    <div class="p-3 rounded-2xl border border-ink-200 dark:border-ink-700 bg-ink-50/40 dark:bg-ink-900/30">
+      <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">結束</label>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="block text-[10px] font-semibold text-ink-400 mb-1">日期</label><input type="text" id="eventEndDate" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="YYYY/MM/DD" aria-label="結束日期" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums"></div>
+        <div><label class="block text-[10px] font-semibold text-ink-400 mb-1">時間</label><input type="text" id="eventEndTime" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="HH:MM" aria-label="結束時間" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums"></div>
+      </div>
+    </div>
+  </div>
+  <p class="text-[10px] text-ink-400">日期與時間分開輸入，例如日期「2026/09/21」、時間「09:00」。</p>
 </div>
 
 <div id="normalEventOptions" class="grid grid-cols-2 gap-4">
@@ -354,17 +447,17 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <!-- 生日/纪念日：公历 年/月/日 输入 -->
 <div id="gregorianSpecialDateInputs" class="space-y-3" style="display:none">
   <div class="grid grid-cols-3 gap-2">
-    <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">出生/起始年份</label><input type="number" id="eventBirthYearGregorian" min="1900" max="2100" placeholder="1990" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums"></div>
+    <div><label id="eventGregorianYearLabel" class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">出生年份</label><input type="number" id="eventBirthYearGregorian" min="1900" max="2100" placeholder="1990" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums"></div>
     <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">月</label><select id="eventBirthMonthGregorian" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select></div>
     <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">日</label><select id="eventBirthDayGregorian" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select></div>
   </div>
-  <p class="text-[10px] text-brand-600/90 dark:text-brand-300/90">此事件會每年自動重複，請填寫初始年份與日期。</p>
+  <p id="specialGregorianHint" class="text-[10px] text-brand-600/90 dark:text-brand-300/90">生日會每年自動重複，請填寫出生年份與日期。</p>
 </div>
 
 <!-- 生日/纪念日：农历 年/月/日 输入 -->
 <div id="lunarDateInputs" class="space-y-3" style="display:none">
 <div class="grid grid-cols-3 gap-2">
-<div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">出生/起始年份</label><input type="number" id="eventBirthYear" min="1900" max="2100" placeholder="1990" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums"></div>
+<div><label id="eventLunarYearLabel" class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">出生年份</label><input type="number" id="eventBirthYear" min="1900" max="2100" placeholder="1990" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums"></div>
 <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">農曆月</label><select id="eventLunarMonth" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select></div>
 <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">農曆日</label><select id="eventLunarDay" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select></div>
 </div>
@@ -372,7 +465,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <p class="text-[10px] text-brand-700 dark:text-brand-300 leading-relaxed flex items-start gap-1.5"><i data-lucide="sparkles" class="w-3 h-3 mt-0.5 shrink-0"></i><span id="lunarPreviewText">請填寫出生年份並選擇農曆月日</span></p>
 </div>
 </div>
-<p id="eventTypeHint" class="text-[10px] text-brand-600/90 dark:text-brand-300/90 leading-relaxed" style="display:none"><i data-lucide="info" class="w-3 h-3 inline -mt-0.5"></i> 生日請填寫出生年份；紀念日請填寫起始年份。開啟農曆後系統會每年自動對應農曆日期。</p>
+<p id="eventTypeHint" class="text-[10px] text-brand-600/90 dark:text-brand-300/90 leading-relaxed" style="display:none"><i data-lucide="info" class="w-3 h-3 inline -mt-0.5"></i><span id="eventTypeHintText">生日請填寫出生年份。開啟農曆後系統會每年自動對應農曆日期。</span></p>
 
 <!-- 提前提醒开关 -->
 <div class="flex items-center justify-between pt-1">
@@ -645,8 +738,9 @@ function setTheme(theme){try{localStorage.setItem('calendar_theme_v1',theme);}ca
 function applyTheme(){const theme=getTheme();const isDark=theme==='dark'||(theme==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(isDark)document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');}
 window.getTheme=getTheme;window.setTheme=setTheme;window.applyTheme=applyTheme;
 
-let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],folders:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],pendingIcsFileName:'',drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60};
+let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],folders:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],pendingIcsFileName:'',drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60,dateToolLevel:'menu',dateCalcDirection:'after',dateCalcResult:null,dateIntervalResult:null};
 window.state=state;
+const _counterSettings=loadCounterSettings();state.counterMode=_counterSettings.mode;state.counterSelectedIds=_counterSettings.selectedIds;
 let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
 
 function loadCategories(){try{const s=localStorage.getItem(CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a}}catch(e){}return DEFAULT_CATEGORIES.map(c=>({...c}))}
@@ -655,6 +749,7 @@ function loadActiveCats(){try{const s=localStorage.getItem(ACTIVE_CAT_KEY);if(s)
 function saveActiveCats(){localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories));if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e))}}
 function getCat(id){return state.categories.find(c=>c.id===id)||{id:'_unknown',name:'未分類',color:'#94a3b8'}}
 const EVT_KEY='calendar_events_v1';
+const COUNTER_KEY='calendar_event_counter_v1';
 function normalizeSpecialEvent(evt){
   if(!evt||typeof evt!=='object')return evt;
   const isSpecial=evt.eventType==='birthday'||evt.eventType==='anniversary';
@@ -703,6 +798,98 @@ function dateKey(date){const d=new Date(date);if(isNaN(d.getTime()))return '';co
 function parseDateKey(value){if(value instanceof Date)return new Date(value);const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));const d=new Date(value);return isNaN(d.getTime())?new Date(NaN):d;}
 function formatTime(s){return new Date(s).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
 function formatDateForInput(dt){const p=n=>n<10?'0'+n:n;return`${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}T${p(dt.getHours())}:${p(dt.getMinutes())}`}
+function parseDateTimeInput(value){
+  const raw=String(value||'').trim();
+  if(!raw)return null;
+  // 接受程式原本儲存的 YYYY-MM-DDTHH:mm，也接受使用者手動輸入的
+  // YYYY/MM/DD HH:mm、YYYY-MM-DD HH:mm 等格式。
+  const m=raw.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})(?:[T\s]+(\d{1,2}):(\d{2}))?$/);
+  if(!m)return null;
+  const y=Number(m[1]), mo=Number(m[2]), d=Number(m[3]);
+  const h=m[4]===undefined?0:Number(m[4]), min=m[5]===undefined?0:Number(m[5]);
+  if(y<1900||y>2200||mo<1||mo>12||d<1||h<0||h>23||min<0||min>59)return null;
+  const dt=new Date(y,mo-1,d,h,min,0,0);
+  if(dt.getFullYear()!==y||dt.getMonth()!==mo-1||dt.getDate()!==d||dt.getHours()!==h||dt.getMinutes()!==min)return null;
+  return dt;
+}
+function getSplitDateTime(which){
+  const dateEl=document.getElementById(which==='start'?'eventStartDate':'eventEndDate');
+  const timeEl=document.getElementById(which==='start'?'eventStartTime':'eventEndTime');
+  if(!dateEl||!timeEl)return null;
+  const date=String(dateEl.value||'').trim(), time=String(timeEl.value||'').trim();
+  if(!date||!time)return null;
+  return parseDateTimeInput(`${date} ${time}`);
+}
+function setSplitDateTime(which,value){
+  const dateEl=document.getElementById(which==='start'?'eventStartDate':'eventEndDate');
+  const timeEl=document.getElementById(which==='start'?'eventStartTime':'eventEndTime');
+  const hiddenEl=document.getElementById(which==='start'?'eventStart':'eventEnd');
+  if(!dateEl||!timeEl)return;
+  const dt=value instanceof Date?new Date(value):parseDateTimeInput(value);
+  if(!dt||isNaN(dt.getTime())){dateEl.value='';timeEl.value='';if(hiddenEl)hiddenEl.value='';return;}
+  const p=n=>String(n).padStart(2,'0');
+  dateEl.value=`${dt.getFullYear()}/${p(dt.getMonth()+1)}/${p(dt.getDate())}`;
+  timeEl.value=`${p(dt.getHours())}:${p(dt.getMinutes())}`;
+  if(hiddenEl)hiddenEl.value=formatDateForInput(dt);
+}
+function syncSplitDateTime(which){
+  const dt=getSplitDateTime(which);
+  const hiddenEl=document.getElementById(which==='start'?'eventStart':'eventEnd');
+  if(hiddenEl)hiddenEl.value=dt?formatDateForInput(dt):'';
+  return dt;
+}
+
+// 日期／時間輸入：輸入到指定位數後自動插入分隔符號。
+// 日期：YYYY -> YYYY/ -> YYYY/MM -> YYYY/MM/ -> YYYY/MM/DD
+// 時間：HH -> HH: -> HH:MM
+function autoFormatDateInput(el){
+  if(!el)return;
+  const oldValue=String(el.value||'');
+  const oldPos=typeof el.selectionStart==='number'?el.selectionStart:oldValue.length;
+  const digitsBefore=(oldValue.slice(0,oldPos).match(/\d/g)||[]).length;
+  let digits=oldValue.replace(/\D/g,'').slice(0,8);
+  let out=digits;
+  if(digits.length>=4)out=digits.slice(0,4)+'/'+digits.slice(4);
+  if(digits.length>=6)out=digits.slice(0,4)+'/'+digits.slice(4,6)+'/'+digits.slice(6);
+  let pos=digitsBefore;
+  if(pos>=4)pos+=1;
+  if(pos>=6)pos+=1;
+  pos=Math.min(pos,out.length);
+  el.value=out;
+  try{el.setSelectionRange(pos,pos);}catch(e){}
+}
+function autoFormatTimeInput(el){
+  if(!el)return;
+  const oldValue=String(el.value||'');
+  const oldPos=typeof el.selectionStart==='number'?el.selectionStart:oldValue.length;
+  const digitsBefore=(oldValue.slice(0,oldPos).match(/\d/g)||[]).length;
+  const digits=oldValue.replace(/\D/g,'').slice(0,4);
+  let out=digits;
+  if(digits.length>=2)out=digits.slice(0,2)+':'+digits.slice(2);
+  let pos=digitsBefore+(digitsBefore>=2?1:0);
+  pos=Math.min(pos,out.length);
+  el.value=out;
+  try{el.setSelectionRange(pos,pos);}catch(e){}
+}
+function bindAutoDateTimeInput(el,type,which){
+  if(!el)return;
+  el.addEventListener('input',()=>{
+    if(type==='date')autoFormatDateInput(el);
+    else autoFormatTimeInput(el);
+    syncSplitDateTime(which);
+  });
+  el.addEventListener('keydown',e=>{
+    if(e.key!=='Backspace' || el.selectionStart!==el.selectionEnd)return;
+    const pos=el.selectionStart||0;
+    const separator=type==='date'?'/':':';
+    if(pos>0 && el.value[pos-1]===separator){
+      e.preventDefault();
+      el.setSelectionRange(pos-2,pos-1);
+      document.execCommand('delete');
+    }
+  });
+}
+function clearSplitDateTimes(){setSplitDateTime('start',null);setSplitDateTime('end',null);}
 function showToast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.remove('translate-y-10','opacity-0');clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.add('translate-y-10','opacity-0'),2400)}
 window.showToast=showToast;
 
@@ -720,10 +907,27 @@ const gMonth=document.getElementById('eventBirthMonthGregorian');const gDay=docu
 if(gMonth&&gMonth.options.length===0){gMonth.innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}月</option>`).join('');}
 if(gDay&&gDay.options.length===0){gDay.innerHTML=Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}日</option>`).join('');}
 }
-function openJumpDateModal(target){jumpTarget=target||'calendar';let d;if(jumpTarget==='eventStart'){const v=document.getElementById('eventStart').value;d=v?new Date(v):new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到開始日期</span>';}else if(jumpTarget==='birthYear'){const by=parseInt(document.getElementById('eventBirthYear').value,10);d=!isNaN(by)?new Date(by,0,1):new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到出生年份</span>';}else{d=new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span>';}document.getElementById('jumpYear').value=d.getFullYear();document.getElementById('jumpMonth').value=d.getMonth()+1;document.getElementById('jumpDay').value=d.getDate();document.getElementById('jumpLunarYear').value=d.getFullYear();try{const lunar=Solar.fromDate(d).getLunar();const lm=lunar.getMonth();const ld=lunar.getDay();document.getElementById('jumpLunarMonth').value=lm>0?lm:-lm;document.getElementById('jumpLunarDay').value=ld;}catch(e){}document.getElementById('modalSearchInput').value=state.searchQuery||'';document.getElementById('clearSearchBtn').style.display=state.searchQuery?'block':'none';setJumpType('solar');const m=document.getElementById('jumpDateModal');m.classList.remove('hidden');setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95');document.getElementById('modalSearchInput').focus()},10);if(typeof lucide!=='undefined')lucide.createIcons();}
+
+function localDateKey(d){const x=new Date(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;}
+function openSimpleOverlay(id){const m=document.getElementById(id);if(!m)return;m.classList.remove('hidden');requestAnimationFrame(()=>{m.classList.remove('opacity-0');const panel=m.querySelector(':scope > div');if(panel)panel.classList.remove('scale-95');});if(typeof lucide!=='undefined')lucide.createIcons();}
+function closeSimpleOverlay(id){const m=document.getElementById(id);if(!m)return;m.classList.add('opacity-0');const panel=m.querySelector(':scope > div');if(panel)panel.classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),180);}
+function openDateTools(){const input=document.getElementById('toolSearchInput');if(input)input.value=state.searchQuery||'';const clear=document.getElementById('clearToolSearchBtn');if(clear)clear.classList.toggle('hidden',!(state.searchQuery||''));openSimpleOverlay('dateToolsModal');}
+function closeDateTools(){closeSimpleOverlay('dateToolsModal');}
+function syncDateToolSearch(v){state.searchQuery=v||'';const clear=document.getElementById('clearToolSearchBtn');if(clear)clear.classList.toggle('hidden',!state.searchQuery);renderMainView();}
+function openDateCalculator(){closeDateTools();const d=new Date(state.currentDate);document.getElementById('dateCalcStart').value=localDateKey(d);document.getElementById('dateCalcDays').value='';state.dateCalcDirection='after';document.getElementById('dateCalcResultBox').classList.add('hidden');updateDateCalcDirection();setTimeout(()=>openSimpleOverlay('dateCalculatorModal'),80);}
+function updateDateCalcDirection(){document.querySelectorAll('.date-calc-dir').forEach(b=>{const active=(b.id==='dateCalcAfterBtn'&&state.dateCalcDirection==='after')||(b.id==='dateCalcBeforeBtn'&&state.dateCalcDirection==='before');b.className='date-calc-dir py-2.5 rounded-xl border font-semibold text-sm '+(active?'border-brand-500 bg-brand-50 text-brand-600 dark:bg-brand-950/30 dark:text-brand-300':'border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-ink-600 dark:text-ink-300');});}
+function calculateDate(){const raw=document.getElementById('dateCalcStart').value;const days=parseInt(document.getElementById('dateCalcDays').value,10);if(!raw||isNaN(days)||days<0){showToast('請輸入開始日期和有效天數');return;}const parts=raw.split('-').map(Number);const d=new Date(parts[0],parts[1]-1,parts[2]);d.setDate(d.getDate()+(state.dateCalcDirection==='before'?-days:days));const text=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;document.getElementById('dateCalcResultText').textContent=text;document.getElementById('dateCalcResultSub').textContent=`${state.dateCalcDirection==='before'?'往前':'往後'} ${days} 日`;document.getElementById('dateCalcResultBox').classList.remove('hidden');}
+function openDateInterval(){closeDateTools();const d=new Date(state.currentDate);const key=localDateKey(d);document.getElementById('dateIntervalStart').value=key;document.getElementById('dateIntervalEnd').value=key;document.getElementById('dateIntervalResultBox').classList.add('hidden');setTimeout(()=>openSimpleOverlay('dateIntervalModal'),80);}
+function calculateDateInterval(){const aRaw=document.getElementById('dateIntervalStart').value,bRaw=document.getElementById('dateIntervalEnd').value;if(!aRaw||!bRaw){showToast('請選擇開始和結束日期');return;}const [ay,am,ad]=aRaw.split('-').map(Number),[by,bm,bd]=bRaw.split('-').map(Number);const a=Date.UTC(ay,am-1,ad),b=Date.UTC(by,bm-1,bd);const diff=Math.round(Math.abs(b-a)/86400000);document.getElementById('dateIntervalResultText').textContent=`${diff} 日`;document.getElementById('dateIntervalResultSub').textContent=b>=a?`${aRaw.replaceAll('-','/')} → ${bRaw.replaceAll('-','/')}`:`${bRaw.replaceAll('-','/')} → ${aRaw.replaceAll('-','/')}`;document.getElementById('dateIntervalResultBox').classList.remove('hidden');}
+let lunarConvertType='solar';
+function populateLunarConvertDropdowns(){const m=document.getElementById('lunarConvertMonth'),d=document.getElementById('lunarConvertDay');if(!m||!d)return;if(m.options.length===0){m.innerHTML=LUNAR_MONTHS.map((x,i)=>`<option value="${i+1}">${x}</option>`).join('');}if(d.options.length===0){d.innerHTML=LUNAR_DAYS.map((x,i)=>`<option value="${i+1}">${x}</option>`).join('');}}
+function setLunarConvertType(type){lunarConvertType=type;const st=document.getElementById('lunarConvertSolarTab'),lt=document.getElementById('lunarConvertLunarTab'),sp=document.getElementById('lunarConvertSolarPanel'),lp=document.getElementById('lunarConvertLunarPanel');if(type==='solar'){st.classList.add('active');lt.classList.remove('active');sp.classList.remove('hidden');lp.classList.add('hidden');}else{st.classList.remove('active');lt.classList.add('active');sp.classList.add('hidden');lp.classList.remove('hidden');}}
+function openLunarConvert(){closeDateTools();populateLunarConvertDropdowns();const d=new Date(state.currentDate);document.getElementById('lunarConvertSolarDate').value=localDateKey(d);document.getElementById('lunarConvertYear').value=d.getFullYear();try{const l=Solar.fromDate(d).getLunar();document.getElementById('lunarConvertMonth').value=Math.abs(l.getMonth());document.getElementById('lunarConvertDay').value=l.getDay();}catch(e){}document.getElementById('lunarConvertResultBox').classList.add('hidden');setLunarConvertType('solar');setTimeout(()=>openSimpleOverlay('lunarConvertModal'),80);}
+function runLunarConvert(){const box=document.getElementById('lunarConvertResultBox'),text=document.getElementById('lunarConvertResultText'),sub=document.getElementById('lunarConvertResultSub');if(typeof Lunar==='undefined'||typeof Solar==='undefined'){showToast('農曆庫未載入');return;}try{if(lunarConvertType==='solar'){const raw=document.getElementById('lunarConvertSolarDate').value;if(!raw){showToast('請選擇公曆日期');return;}const [y,m,d]=raw.split('-').map(Number);const dt=new Date(y,m-1,d);if(isNaN(dt.getTime())){showToast('日期無效');return;}const l=Solar.fromDate(dt).getLunar();const lm=Math.abs(l.getMonth());const leap=l.getMonth()<0?'閏':'';text.textContent=`農曆 ${l.getYear()}年 ${leap}${LUNAR_MONTHS[lm-1]||lm+'月'} ${LUNAR_DAYS[l.getDay()-1]||l.getDay()+'日'}`;sub.textContent=`公曆 ${y}年${m}月${d}日`; }else{const y=parseInt(document.getElementById('lunarConvertYear').value,10),m=parseInt(document.getElementById('lunarConvertMonth').value,10),d=parseInt(document.getElementById('lunarConvertDay').value,10);if(!y||!m||!d){showToast('請完整選擇農曆日期');return;}const l=Lunar.fromYmd(y,m,d),s=l.getSolar();const sm=s.getMonth(),sd=s.getDay(),sy=s.getYear();text.textContent=`公曆 ${sy}年${sm}月${sd}日`;sub.textContent=`農曆 ${y}年${LUNAR_MONTHS[m-1]||m+'月'}${LUNAR_DAYS[d-1]||d+'日'}`;}box.classList.remove('hidden');}catch(e){showToast('農曆日期無效，請確認日期');}}
+function openJumpDateModal(target){jumpTarget=target||'calendar';let d;if(jumpTarget==='eventStart'){const v=getSplitDateTime('start');d=v?new Date(v):new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到開始日期</span>';}else if(jumpTarget==='birthYear'){const by=parseInt(document.getElementById('eventBirthYear').value,10);d=!isNaN(by)?new Date(by,0,1):new Date(state.currentDate);const specialType=document.getElementById('eventType')?.value||'birthday';const yearWord=specialType==='anniversary'?'紀念日起始年份':'出生年份';document.getElementById('jumpDateTitle').innerHTML=`<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到${yearWord}</span>`;}else{d=new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span>';}document.getElementById('jumpYear').value=d.getFullYear();document.getElementById('jumpMonth').value=d.getMonth()+1;document.getElementById('jumpDay').value=d.getDate();document.getElementById('jumpLunarYear').value=d.getFullYear();try{const lunar=Solar.fromDate(d).getLunar();const lm=lunar.getMonth();const ld=lunar.getDay();document.getElementById('jumpLunarMonth').value=lm>0?lm:-lm;document.getElementById('jumpLunarDay').value=ld;}catch(e){}document.getElementById('modalSearchInput').value=state.searchQuery||'';document.getElementById('clearSearchBtn').style.display=state.searchQuery?'block':'none';setJumpType('solar');const m=document.getElementById('jumpDateModal');m.classList.remove('hidden');setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95');document.getElementById('modalSearchInput').focus()},10);if(typeof lucide!=='undefined')lucide.createIcons();}
 function closeJumpDateModal(){const m=document.getElementById('jumpDateModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200);}
 function setJumpType(type){jumpType=type;const solarBtn=document.getElementById('jumpTypeSolar');const lunarBtn=document.getElementById('jumpTypeLunar');const solarInputs=document.getElementById('jumpSolarInputs');const lunarInputs=document.getElementById('jumpLunarInputs');const lunarHint=document.getElementById('jumpLunarHint');if(type==='solar'){solarBtn.classList.add('active');lunarBtn.classList.remove('active');solarInputs.style.display='grid';lunarInputs.style.display='none';lunarHint.style.display='none';}else{solarBtn.classList.remove('active');lunarBtn.classList.add('active');solarInputs.style.display='none';lunarInputs.style.display='grid';lunarHint.style.display='block';}}
-function confirmJumpDate(){if(jumpTarget==='birthYear'){const y=parseInt(document.getElementById('jumpYear').value);if(isNaN(y)){showToast('請輸入有效年份');return}document.getElementById('eventBirthYear').value=y;updateLunarPreview();showToast(`已設定出生年份：${y}`);closeJumpDateModal();return;}let y,m,d;if(jumpType==='solar'){y=parseInt(document.getElementById('jumpYear').value);m=parseInt(document.getElementById('jumpMonth').value);d=parseInt(document.getElementById('jumpDay').value);}else{y=parseInt(document.getElementById('jumpLunarYear').value);m=parseInt(document.getElementById('jumpLunarMonth').value);d=parseInt(document.getElementById('jumpLunarDay').value);}if(isNaN(y)||isNaN(m)||isNaN(d)){showToast('請輸入有效日期');return}let dt;if(jumpType==='solar'){dt=new Date(y,m-1,d);if(isNaN(dt.getTime())){showToast('日期無效');return}}else{if(typeof Lunar==='undefined'){showToast('農曆庫未載入');return}try{const lunar=Lunar.fromYmd(y,m,d);const solar=lunar.getSolar();dt=new Date(solar.getYear(),solar.getMonth()-1,solar.getDay());}catch(e){showToast('農曆日期無效');return;}}if(jumpTarget==='eventStart'){const startInput=document.getElementById('eventStart');const endInput=document.getElementById('eventEnd');const oldStart=startInput.value?new Date(startInput.value):new Date();const oldEnd=endInput.value?new Date(endInput.value):new Date(oldStart.getTime()+3600000);const dur=Math.max(60000,oldEnd-oldStart);const newStart=new Date(dt);newStart.setHours(oldStart.getHours(),oldStart.getMinutes(),0,0);const newEnd=new Date(newStart.getTime()+dur);startInput.value=formatDateForInput(newStart);endInput.value=formatDateForInput(newEnd);showToast(`已設為 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`);}else{state.currentDate=dt;state.miniDate=new Date(dt);renderAll();const wd=['日','一','二','三','四','五','六'][dt.getDay()];showToast(`已跳轉到 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日 週${wd}`);}closeJumpDateModal();}
+function confirmJumpDate(){if(jumpTarget==='birthYear'){const y=parseInt(document.getElementById('jumpYear').value);if(isNaN(y)){showToast('請輸入有效年份');return}document.getElementById('eventBirthYear').value=y;updateLunarPreview();const yearWord=(document.getElementById('eventType')?.value==='anniversary')?'紀念日起始年份':'出生年份';showToast(`已設定${yearWord}：${y}`);closeJumpDateModal();return;}let y,m,d;if(jumpType==='solar'){y=parseInt(document.getElementById('jumpYear').value);m=parseInt(document.getElementById('jumpMonth').value);d=parseInt(document.getElementById('jumpDay').value);}else{y=parseInt(document.getElementById('jumpLunarYear').value);m=parseInt(document.getElementById('jumpLunarMonth').value);d=parseInt(document.getElementById('jumpLunarDay').value);}if(isNaN(y)||isNaN(m)||isNaN(d)){showToast('請輸入有效日期');return}let dt;if(jumpType==='solar'){dt=new Date(y,m-1,d);if(isNaN(dt.getTime())){showToast('日期無效');return}}else{if(typeof Lunar==='undefined'){showToast('農曆庫未載入');return}try{const lunar=Lunar.fromYmd(y,m,d);const solar=lunar.getSolar();dt=new Date(solar.getYear(),solar.getMonth()-1,solar.getDay());}catch(e){showToast('農曆日期無效');return;}}if(jumpTarget==='eventStart'){const oldStart=getSplitDateTime('start')||new Date();const oldEnd=getSplitDateTime('end')||new Date(oldStart.getTime()+3600000);const dur=Math.max(60000,oldEnd-oldStart);const newStart=new Date(dt);newStart.setHours(oldStart.getHours(),oldStart.getMinutes(),0,0);const newEnd=new Date(newStart.getTime()+dur);setSplitDateTime('start',newStart);setSplitDateTime('end',newEnd);showToast(`已設為 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`);}else{state.currentDate=dt;state.miniDate=new Date(dt);renderAll();const wd=['日','一','二','三','四','五','六'][dt.getDay()];showToast(`已跳轉到 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日 週${wd}`);}closeJumpDateModal();}
 
 function renderEventTypeButtons(){
   const curEl = document.getElementById('eventType');
@@ -783,13 +987,41 @@ function renderEventTypeButtons(){
   updateLunarVisibility();
 }
 
+function updateSpecialEventLabels(){
+  const typeEl=document.getElementById('eventType');
+  const type=typeEl?typeEl.value:'normal';
+  const isBirthday=type==='birthday';
+  const isAnniversary=type==='anniversary';
+  if(!isBirthday&&!isAnniversary)return;
+  const yearLabel=isBirthday?'出生年份':'開始時間';
+  const gLabel=document.getElementById('eventGregorianYearLabel');
+  const lLabel=document.getElementById('eventLunarYearLabel');
+  if(gLabel)gLabel.textContent=yearLabel;
+  if(lLabel)lLabel.textContent=yearLabel;
+  const gHint=document.getElementById('specialGregorianHint');
+  if(gHint)gHint.textContent=isBirthday?'生日會每年自動重複，請填寫出生年份與日期。':'紀念日會每年自動重複，請填寫開始時間（年月日）。';
+  const hint=document.getElementById('eventTypeHintText');
+  if(hint)hint.textContent=isBirthday?'生日請填寫出生年份。開啟農曆後系統會每年自動對應農曆日期。':'紀念日請填寫開始時間（年月日）。開啟農曆後系統會每年自動對應農曆日期。';
+  const title=document.getElementById('eventTitle');
+  if(title&&!document.getElementById('eventId').value){
+    title.placeholder=isBirthday?'例如：媽媽生日':'例如：結婚紀念日';
+  }
+  const preview=document.getElementById('lunarPreviewText');
+  if(preview&&!preview.dataset.hasValue){preview.textContent=isBirthday?'請填寫出生年份並選擇農曆月日':'請填寫紀念日開始時間並選擇農曆月日';}
+}
+
 function updateLunarVisibility(){
+  updateSpecialEventLabels();
   const typeEl = document.getElementById('eventType');
   if (!typeEl) return;
   const type = typeEl.value;
   const isSpecial = type === 'birthday' || type === 'anniversary';
   const isLunarEl = document.getElementById('eventIsLunar');
   const useLunar = isSpecial && isLunarEl && isLunarEl.checked;
+  const annStart=document.getElementById('anniversaryStartDateInput');
+  const gregSpecial=document.getElementById('gregorianSpecialDateInputs');
+  if(annStart) annStart.style.display='none';
+  if(gregSpecial) gregSpecial.style.display=(isSpecial && !useLunar)?'grid':'none';
 
   const toggleArea = document.getElementById('lunarToggleArea');
   if (toggleArea) toggleArea.style.display = isSpecial ? 'flex' : 'none';
@@ -815,7 +1047,7 @@ function updateLunarVisibility(){
   }
 }
 
-function updateLunarPreview(){const preview=document.getElementById('lunarPreviewText');if(!preview)return;const by=parseInt(document.getElementById('eventBirthYear').value,10);const lm=parseInt(document.getElementById('eventLunarMonth').value,10);const ld=parseInt(document.getElementById('eventLunarDay').value,10);if(!by||!lm||!ld){preview.textContent='請填寫出生年份並選擇農曆月日';return;}const solar=getLunarBirthdaySolarDate(lm,ld,by);if(solar){const y=solar.getFullYear(),m=solar.getMonth()+1,d=solar.getDate();const wd=['日','一','二','三','四','五','六'][solar.getDay()];preview.textContent=`${by}年${LUNAR_MONTHS[lm-1]}${LUNAR_DAYS[ld-1]} → 公曆 ${y}年${m}月${d}日 週${wd}`;}else{preview.textContent='此農曆日期在該年份不存在（可能為閏月）';}}
+function updateLunarPreview(){const preview=document.getElementById('lunarPreviewText');if(!preview)return;const type=document.getElementById('eventType')?.value||'birthday';const isBirthday=type==='birthday';const by=parseInt(document.getElementById('eventBirthYear').value,10);const lm=parseInt(document.getElementById('eventLunarMonth').value,10);const ld=parseInt(document.getElementById('eventLunarDay').value,10);if(!by||!lm||!ld){preview.dataset.hasValue='';preview.textContent=isBirthday?'請填寫出生年份並選擇農曆月日':'請填寫紀念日開始時間並選擇農曆月日';return;}const solar=getLunarBirthdaySolarDate(lm,ld,by);if(solar){const y=solar.getFullYear(),m=solar.getMonth()+1,d=solar.getDate();const wd=['日','一','二','三','四','五','六'][solar.getDay()];preview.dataset.hasValue='1';preview.textContent=`${by}年${LUNAR_MONTHS[lm-1]}${LUNAR_DAYS[ld-1]} → 公曆 ${y}年${m}月${d}日 週${wd}`;}else{preview.dataset.hasValue='1';preview.textContent='此農曆日期在該年份不存在（可能為閏月）';}}
 function getYearsLabel(evt,occStart){const type=evt.eventType;if(type!=='birthday'&&type!=='anniversary')return '';const origin=new Date(evt.start);const occ=new Date(occStart||evt.start);if(isNaN(origin.getTime())||isNaN(occ.getTime()))return '';const years=occ.getFullYear()-origin.getFullYear();if(years<=0)return '';const suffix=evt.isLunar?' 🌙':'';return type==='birthday'?`${years}歲${suffix}`:`${years}週年`;}
 function getTypeBadgeClass(type){if(type==='birthday')return 'bg-pink-100 dark:bg-pink-950/50 text-pink-600 dark:text-pink-300';if(type==='anniversary')return 'bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-300';return 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300';}
 function addInterval(date,freq,interval){const d=new Date(date);const iv=Math.max(1,interval||1);if(freq==='daily'||freq==='weekdays'){d.setDate(d.getDate()+iv)}else if(freq==='weekly'){d.setDate(d.getDate()+7*iv)}else if(freq==='monthly'){const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+iv);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));}else if(freq==='yearly'){const m=d.getMonth(),day=d.getDate();d.setDate(1);d.setFullYear(d.getFullYear()+iv);d.setMonth(m);const last=new Date(d.getFullYear(),m+1,0).getDate();d.setDate(Math.min(day,last));}return d;}
@@ -1408,7 +1640,368 @@ function renderDayView(){const c=document.getElementById('calendarViewContainer'
 
 function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3 h-3 opacity-50"></i>':'';const timeStr=evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;return `<div class="schedule-card" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap">${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();setTimeout(()=>{const el=document.getElementById('todayScheduleItem');if(el)el.scrollIntoView({behavior:'auto',block:'start'})},100);}
 
-function renderMyView(){const c=document.getElementById('calendarViewContainer');const today=new Date();const ts=new Date(today);ts.setHours(0,0,0,0);const te=new Date(today);te.setHours(23,59,59,999);const todayEvents=getOccurrencesInRange(ts,te);const totalEvents=state.events.length;const dayCounts=[0,0,0,0,0,0,0];state.events.forEach(e=>{dayCounts[new Date(e.start).getDay()]++});const maxCount=Math.max(...dayCounts);const weekdays=['週日','週一','週二','週三','週四','週五','週六'];const busiestDay=maxCount>0?weekdays[dayCounts.indexOf(maxCount)]:'無';const catCounts={};state.categories.forEach(cat=>catCounts[cat.id]=0);state.events.forEach(e=>{if(catCounts[e.category]!==undefined)catCounts[e.category]++});const catData=state.categories.map(cat=>({...cat,count:catCounts[cat.id]})).filter(cat=>cat.count>0).sort((a,b)=>b.count-a.count);const totalCatCount=catData.reduce((sum,c)=>sum+c.count,0);let gp=[],cp=0;catData.forEach(cat=>{const p=(cat.count/totalCatCount)*100;const e=cp+p;gp.push(`${cat.color} ${cp}% ${e}%`);cp=e});const gradientStyle=gp.length>0?`conic-gradient(${gp.join(', ')})`:'conic-gradient(#e2e8f0 0% 100%)';const tm=new Date();tm.setHours(0,0,0,0);const anniversaries=state.events.filter(e=>{if(e.eventType==='birthday'||e.eventType==='anniversary')return true;const cat=getCat(e.category);return e.category===ANNIVERSARY_CAT_ID||(cat&&(cat.name.includes('生日')||cat.name.includes('紀念日')));}).map(e=>{let nextDate=null;if(e.isLunar&&e.eventType==='birthday'&&e.lunarMonth&&e.lunarDay){const solarThisYear=getLunarBirthdaySolarDate(e.lunarMonth,e.lunarDay,tm.getFullYear());const solarNextYear=getLunarBirthdaySolarDate(e.lunarMonth,e.lunarDay,tm.getFullYear()+1);nextDate=solarThisYear&&solarThisYear>=tm?solarThisYear:solarNextYear;}else{const ed=new Date(e.start);ed.setHours(0,0,0,0);nextDate=new Date(tm.getFullYear(),ed.getMonth(),ed.getDate());if(nextDate<tm)nextDate=new Date(tm.getFullYear()+1,ed.getMonth(),ed.getDate());}if(!nextDate)return null;const dd=Math.round((nextDate-tm)/86400000);const birthDate=new Date(e.start);const years=nextDate.getFullYear()-birthDate.getFullYear();let label='';if(years>0){if(e.eventType==='birthday')label=`${years}歲`;else label=`${years}週年`;}return {title:e.title,nextDate,diffDays:dd,ageLabel:label,eventType:e.eventType||'anniversary',isLunar:!!e.isLunar};}).filter(Boolean).sort((a,b)=>a.diffDays-b.diffDays).slice(0,6);const formatAnnDate=d=>{const wd=['日','一','二','三','四','五','六'][d.getDay()];return`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 週${wd}`};const currentTheme=getTheme();const isDark=currentTheme==='dark'||(currentTheme==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);let themeLabel='跟随系统';let themeIcon='monitor-smartphone';let themeStatusText='自動';if(currentTheme==='dark'){themeLabel='深色模式';themeIcon='moon';themeStatusText='開';}else if(currentTheme==='light'){themeLabel='浅色模式';themeIcon='sun';themeStatusText='關';}const notifPerm=('Notification'in window)?Notification.permission:'unsupported';const notifLabel=notifPerm==='granted'?'已開啟':(notifPerm==='denied'?'已封鎖':'未開啟');const isLoggedIn=!!window.currentUser;const displayName=isLoggedIn?(window.currentUser.displayName||window.currentUser.email||'使用者'):'本地使用者';const displayEmail=isLoggedIn?(window.currentUser.email||''):'資料僅存於此裝置';const avatarURL=isLoggedIn?(window.currentUser.photoURL||''):'';let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in"><div class="flex items-center justify-between mb-6"><h2 class="text-2xl font-extrabold tracking-tight">我的</h2></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 mb-5 shadow-soft flex items-center space-x-3">${avatarURL?`<img class="w-12 h-12 rounded-full border border-ink-200 dark:border-ink-700 shrink-0" src="${avatarURL}" referrerpolicy="no-referrer">`:`<div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-500 to-fuchsia-500 text-white flex items-center justify-center font-bold shrink-0"><i data-lucide="user" class="w-5 h-5"></i></div>`}<div class="flex-1 overflow-hidden"><p class="font-bold text-sm truncate">${escapeHtml(displayName)}</p><p class="text-[11px] text-ink-400 truncate">${escapeHtml(displayEmail)}</p></div></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">摘要</h3><div class="grid grid-cols-2 gap-4"><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center"><i data-lucide="calendar-check" class="w-5 h-5 text-orange-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">今日事件</div><div class="text-xl font-extrabold tabular-nums">${todayEvents.length}</div></div></div><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center"><i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">所有事件</div><div class="text-xl font-extrabold tabular-nums">${totalEvents}</div></div></div><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center"><i data-lucide="briefcase" class="w-5 h-5 text-emerald-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">最忙碌的一天</div><div class="text-base font-extrabold">${busiestDay}</div></div></div><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center"><i data-lucide="file-pen" class="w-5 h-5 text-rose-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">總備忘錄數</div><div class="text-xl font-extrabold tabular-nums">0</div></div></div></div></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">事件&行事曆分類</h3><div class="flex items-center justify-center md:justify-start gap-6"><div class="donut-chart" style="background: ${gradientStyle};"><div class="donut-inner"><div class="total">${totalCatCount}</div><div class="label">總數</div></div></div><div class="flex-1 space-y-2">${catData.length>0?catData.map(cat=>`<div class="flex items-center justify-between text-xs"><div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-sm" style="background:${cat.color}"></span><span class="font-medium text-ink-700 dark:text-ink-300">${escapeHtml(cat.name)}</span></div><span class="font-semibold tabular-nums text-ink-500">${cat.count}</span></div>`).join(''):'<div class="text-xs text-ink-400">暫無分類數據</div>'}</div></div></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft"><div class="flex items-center justify-between mb-4"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200">日曆與分類</h3><button id="myAddCatBtn" class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/40 transition"><i data-lucide="plus" class="w-4 h-4"></i></button></div><div class="space-y-1">${state.categories.map(cat=>`<div class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition"><div class="flex items-center space-x-2.5 min-w-0"><span class="w-3 h-3 rounded-full shrink-0" style="background:${cat.color}"></span><span class="text-sm font-medium truncate">${escapeHtml(cat.name)}</span></div><div class="flex items-center space-x-1 shrink-0"><button class="my-cat-edit-btn p-1.5 rounded-lg text-ink-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 transition" data-cat="${cat.id}"><i data-lucide="pencil" class="w-3.5 h-3.5 pointer-events-none"></i></button><button class="my-cat-del-btn p-1.5 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-cat="${cat.id}"><i data-lucide="x" class="w-3.5 h-3.5 pointer-events-none"></i></button></div></div>`).join('')}</div></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">🎂 近期生日和紀念日</h3><div class="space-y-4">${anniversaries.length>0?anniversaries.map(a=>{const dd=a.diffDays===0?'今天':`${a.diffDays} D`;const badge=a.ageLabel?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(a.eventType)} font-bold">${a.ageLabel}${a.isLunar?' 🌙':''}</span>`:'';return`<div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="font-bold text-sm text-ink-800 dark:text-ink-100 flex items-center gap-1.5 flex-wrap"><span class="truncate">${escapeHtml(a.title)}</span>${badge}</div><div class="text-[10px] text-ink-400 mt-0.5">${formatAnnDate(a.nextDate)}</div></div><div class="text-base font-extrabold tabular-nums shrink-0 ${a.diffDays===0?'text-rose-500':'text-ink-800 dark:text-ink-100'}">${dd}</div></div>`}).join(''):'<div class="text-xs text-ink-400 text-center py-4">暫無生日或紀念日</div>'}</div></div><div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-3">設定</h3><div class="space-y-1"><button id="myThemeBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition"><span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300"><i data-lucide="${themeIcon}" class="w-4 h-4"></i></span><span class="text-sm font-semibold">${themeLabel}</span></span><span class="text-xs text-ink-400">${themeStatusText}</span></button><button id="myNotifBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition"><span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-4 h-4"></i></span><span class="text-sm font-semibold">通知提醒</span></span><span class="text-xs text-ink-400">${notifLabel}</span></button><button id="myDataBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition"><span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="database" class="w-4 h-4"></i></span><span class="text-sm font-semibold">資料備份與還原</span></span><i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i></button><button id="myIcsBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-ink-50 dark:hover:bg-ink-800/60 transition"><span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-down" class="w-4 h-4"></i></span><span class="text-sm font-semibold">ICS 匯入匯出</span></span><i data-lucide="chevron-right" class="w-4 h-4 text-ink-400"></i></button>${isLoggedIn?`<button id="mySignOutBtn" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 transition"><span class="flex items-center space-x-2.5"><span class="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"><i data-lucide="log-out" class="w-4 h-4"></i></span><span class="text-sm font-semibold text-rose-600 dark:text-rose-400">登出</span></span></button>`:''}</div></div><button id="backToCalendarBtn" class="w-full py-3 rounded-2xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 text-sm font-semibold hover:bg-ink-200 dark:hover:bg-ink-700 transition mb-4">返回日曆</button></div>`;c.innerHTML=html;lucide.createIcons();document.getElementById('backToCalendarBtn').addEventListener('click',()=>{state.view='month';renderAll()});document.getElementById('myThemeBtn').addEventListener('click',()=>{const current=getTheme();let next='system';if(current==='system')next='light';else if(current==='light')next='dark';else if(current==='dark')next='system';setTheme(next);renderMyView();});document.getElementById('myNotifBtn').addEventListener('click',async()=>{if(!('Notification' in window)){showToast('此瀏覽器不支援通知');return}if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}if(Notification.permission==='denied'){alert('通知已被封鎖。請到瀏覽器設定允許。');return}const perm=await Notification.requestPermission();if(perm==='granted'){showToast('通知已開啟 ✓');renderMyView();}else{showToast('未開啟通知');renderMyView();}});document.getElementById('myDataBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.remove('hidden')});document.getElementById('myIcsBtn').addEventListener('click',()=>{openIcsModal()});document.getElementById('myAddCatBtn').addEventListener('click',()=>{openCategoryModal(null)});document.querySelectorAll('.my-cat-edit-btn').forEach(btn=>btn.addEventListener('click',()=>{openCategoryModal(btn.dataset.cat)}));document.querySelectorAll('.my-cat-del-btn').forEach(btn=>btn.addEventListener('click',()=>{deleteCategory(btn.dataset.cat)}));const so=document.getElementById('mySignOutBtn');if(so)so.addEventListener('click',()=>{if(confirm('確定要登出嗎？'))signOutUser()});}
+
+function loadCounterSettings(){
+  try{
+    const raw=localStorage.getItem(COUNTER_KEY);
+    if(!raw)return {mode:null,selectedIds:[]};
+    const data=JSON.parse(raw)||{};
+    return {mode:data.mode==='up'||data.mode==='down'?data.mode:null,selectedIds:Array.isArray(data.selectedIds)?data.selectedIds.map(String):[]};
+  }catch(e){return {mode:null,selectedIds:[]};}
+}
+function saveCounterSettings(){
+  try{localStorage.setItem(COUNTER_KEY,JSON.stringify({mode:state.counterMode,selectedIds:state.counterSelectedIds||[]}));}catch(e){}
+}
+function counterDayStamp(d){const x=new Date(d);return Date.UTC(x.getFullYear(),x.getMonth(),x.getDate());}
+function counterDiffDays(from,to){return Math.round((counterDayStamp(to)-counterDayStamp(from))/86400000);}
+function counterEventOccurrences(evt,center){
+  const c=new Date(center);c.setHours(0,0,0,0);
+  const rs=new Date(c);rs.setDate(rs.getDate()-370);
+  const re=new Date(c);re.setDate(re.getDate()+370);
+  const out=[];
+  try{expandEvent(evt,rs,re,out);}catch(e){}
+  return out.filter(o=>o&&o._occStart&& !isNaN(new Date(o._occStart).getTime())).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));
+}
+function getCounterOccurrence(evt,mode,center=new Date()){
+  if(!evt)return null;
+  const start=new Date(evt.start);
+  if(isNaN(start.getTime()))return null;
+  const occurrences=counterEventOccurrences(evt,center);
+  const today=new Date(center);today.setHours(0,0,0,0);
+  if(occurrences.length){
+    if(mode==='down'){
+      const future=occurrences.find(o=>counterDayStamp(new Date(o._occStart))>=counterDayStamp(today));
+      if(future)return new Date(future._occStart);
+      const last=occurrences[occurrences.length-1];
+      return new Date(last._occStart);
+    }
+    let latest=null;
+    occurrences.forEach(o=>{if(counterDayStamp(new Date(o._occStart))<=counterDayStamp(today))latest=o;});
+    if(latest)return new Date(latest._occStart);
+    return new Date(occurrences[0]._occStart);
+  }
+  return start;
+}
+function getCounterEventInfo(evt,mode,center=new Date()){
+  const target=getCounterOccurrence(evt,mode,center);
+  if(!target)return null;
+  const today=new Date(center);today.setHours(0,0,0,0);
+  const targetDay=new Date(target);targetDay.setHours(0,0,0,0);
+  const diff=counterDiffDays(today,targetDay);
+  return {evt,target,targetDay,diff,isFuture:diff>0,isPast:diff<0,isToday:diff===0};
+}
+function counterEventDateText(d){
+  const x=new Date(d);const wd=['日','一','二','三','四','五','六'][x.getDay()];
+  return `${x.getFullYear()}年${x.getMonth()+1}月${x.getDate()}日 週${wd}`;
+}
+function counterEventLabel(evt){
+  if(evt.eventType==='birthday')return '生日';
+  if(evt.eventType==='anniversary')return '紀念日';
+  const cat=getCat(evt.category);return cat&&cat.name?cat.name:'一般事件';
+}
+function getCounterTitle(evt,info){
+  const age=getYearsLabel(evt,info.target);
+  return age?`${evt.title} · ${age}`:evt.title;
+}
+function getCounterSelectedEvents(mode){
+  const ids=new Set((state.counterSelectedIds||[]).map(String));
+  return state.events.filter(e=>e&&ids.has(String(e.id))).map(e=>getCounterEventInfo(e,mode)).filter(Boolean);
+}
+function renderMyCounterModeView(){
+  const c=document.getElementById('calendarViewContainer');
+  let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
+    <div class="flex items-center gap-3 mb-6"><button id="myCounterBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div><h2 class="text-2xl font-extrabold tracking-tight">事件計日</h2><p class="text-[11px] text-ink-400 mt-0.5">第二級：選擇正數或倒數</p></div></div>
+    <div class="space-y-3">
+      <button id="counterUpBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border ${state.counterMode==='up'?'border-brand-500 ring-2 ring-brand-100 dark:ring-brand-950/40':''} border-ink-200/70 dark:border-ink-800/70 p-5 shadow-soft flex items-center justify-between text-left"><span class="flex items-center gap-3"><span class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><i data-lucide="arrow-up-right" class="w-5 h-5"></i></span><span><span class="block text-base font-bold">正數</span><span class="block text-xs text-ink-400 mt-1">從事件發生日起，計算已經過了多少日</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+      <button id="counterDownBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border ${state.counterMode==='down'?'border-brand-500 ring-2 ring-brand-100 dark:ring-brand-950/40':''} border-ink-200/70 dark:border-ink-800/70 p-5 shadow-soft flex items-center justify-between text-left"><span class="flex items-center gap-3"><span class="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="arrow-down-right" class="w-5 h-5"></i></span><span><span class="block text-base font-bold">倒數</span><span class="block text-xs text-ink-400 mt-1">計算距離事件還有多少日</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+    </div>
+  </div>`;
+  c.innerHTML=html;lucide.createIcons();
+  document.getElementById('myCounterBackBtn').addEventListener('click',()=>{state.view='my';renderAll();});
+  document.getElementById('counterUpBtn').addEventListener('click',()=>{state.counterMode='up';saveCounterSettings();state.view='my-counter-select';renderAll();});
+  document.getElementById('counterDownBtn').addEventListener('click',()=>{state.counterMode='down';saveCounterSettings();state.view='my-counter-select';renderAll();});
+}
+function renderMyCounterSelectView(){
+  const c=document.getElementById('calendarViewContainer');
+  const ids=new Set((state.counterSelectedIds||[]).map(String));
+  const events=state.events.filter(e=>e&&e.start&&!isNaN(new Date(e.start).getTime())).slice().sort((a,b)=>new Date(a.start)-new Date(b.start));
+  // 清理已被刪除的事件，避免計日頁面保留失效選項。
+  state.counterSelectedIds=Array.from(ids).filter(id=>events.some(e=>String(e.id)===id));
+  const modeLabel=state.counterMode==='up'?'正數':'倒數';
+  const selectedEvents=events.filter(e=>state.counterSelectedIds.includes(String(e.id)));
+  const selectedCount=selectedEvents.length;
+  let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
+    <div class="flex items-center gap-3 mb-5"><button id="myCounterSelectBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div class="min-w-0"><h2 class="text-2xl font-extrabold tracking-tight">選擇事件</h2><p class="text-[11px] text-ink-400 mt-0.5">第三級：搜尋並選擇要${modeLabel}的事件</p></div></div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 mb-4 shadow-soft">
+      <div class="relative"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i><input id="counterEventSearch" type="search" class="w-full pl-9 pr-3 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/50 text-sm outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900" placeholder="搜尋事件名稱，例如：生日、開會、旅行…" autocomplete="off"></div>
+      <p class="text-[10px] text-ink-400 mt-2">請輸入事件名稱後再選擇；不會一次列出全部事件。</p>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 mb-4 shadow-soft">
+      <div class="flex items-center justify-between gap-3 mb-3"><div><h3 class="text-sm font-bold">已選事件</h3><p id="counterSelectedHint" class="text-[10px] text-ink-400 mt-1">${selectedCount?`目前已選 ${selectedCount} 個`:'搜尋後點選事件加入'}</p></div><span id="counterSelectedCount" class="text-xs text-brand-600 dark:text-brand-300 font-bold">${selectedCount} 個</span></div>
+      <div id="counterSelectedChips" class="flex flex-wrap gap-2">${selectedEvents.length?selectedEvents.map(evt=>`<button type="button" class="counter-selected-chip inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 text-xs font-semibold" data-id="${escapeHtml(evt.id)}"><span class="truncate max-w-[180px]">${escapeHtml(evt.title)}</span><span class="opacity-60">×</span></button>`).join(''):'<span class="text-xs text-ink-400">尚未選擇事件</span>'}</div>
+    </div>
+
+    <div id="counterSearchResults" class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 shadow-soft overflow-hidden hidden">
+      <div class="p-4 border-b border-ink-100 dark:border-ink-800 flex items-center justify-between"><div><h3 class="text-sm font-bold">搜尋結果</h3><p class="text-[10px] text-ink-400 mt-1">點一下整張卡片即可選取或取消</p></div><span id="counterVisibleCount" class="text-[10px] text-ink-400">0 個</span></div>
+      <div id="counterEventList" class="divide-y divide-ink-100 dark:divide-ink-800"></div>
+    </div>
+
+    <button id="counterSelectContinueBtn" class="w-full mt-4 px-4 py-3.5 rounded-2xl bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white text-sm font-bold shadow-glow ${selectedCount?'':'opacity-50'}">查看${modeLabel}</button>
+  </div>`;
+  c.innerHTML=html;lucide.createIcons();
+
+  const searchInput=document.getElementById('counterEventSearch');
+  const list=document.getElementById('counterEventList');
+  const resultsBox=document.getElementById('counterSearchResults');
+
+  const updateSelectedUI=()=>{
+    const currentIds=new Set((state.counterSelectedIds||[]).map(String));
+    const selected=events.filter(e=>currentIds.has(String(e.id)));
+    const countEl=document.getElementById('counterSelectedCount');
+    const hintEl=document.getElementById('counterSelectedHint');
+    const chipsEl=document.getElementById('counterSelectedChips');
+    const continueBtn=document.getElementById('counterSelectContinueBtn');
+    if(countEl)countEl.textContent=`${selected.length} 個`;
+    if(hintEl)hintEl.textContent=selected.length?`目前已選 ${selected.length} 個`:'搜尋後點選事件加入';
+    if(chipsEl)chipsEl.innerHTML=selected.length?selected.map(evt=>`<button type="button" class="counter-selected-chip inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 text-xs font-semibold" data-id="${escapeHtml(evt.id)}"><span class="truncate max-w-[180px]">${escapeHtml(evt.title)}</span><span class="opacity-60">×</span></button>`).join(''):'<span class="text-xs text-ink-400">尚未選擇事件</span>';
+    if(continueBtn)continueBtn.classList.toggle('opacity-50',selected.length===0);
+    chipsEl?.querySelectorAll('.counter-selected-chip').forEach(btn=>btn.addEventListener('click',()=>toggleEvent(btn.dataset.id)));
+    renderEventList();
+  };
+  const toggleEvent=id=>{
+    const set=new Set((state.counterSelectedIds||[]).map(String));
+    const key=String(id);
+    if(set.has(key))set.delete(key);else set.add(key);
+    state.counterSelectedIds=Array.from(set);saveCounterSettings();updateSelectedUI();
+  };
+  const renderEventList=()=>{
+    const q=(searchInput?.value||'').trim().toLowerCase();
+    if(!q){resultsBox.classList.add('hidden');list.innerHTML='';return;}
+    resultsBox.classList.remove('hidden');
+    const currentIds=new Set((state.counterSelectedIds||[]).map(String));
+    const visible=events.filter(evt=>{
+      const label=counterEventLabel(evt);
+      return String(evt.title||'').toLowerCase().includes(q)||String(label||'').toLowerCase().includes(q);
+    });
+    const visibleCount=document.getElementById('counterVisibleCount');if(visibleCount)visibleCount.textContent=`${visible.length} 個`;
+    if(!visible.length){list.innerHTML='<div class="text-center py-12 text-sm text-ink-400">找不到符合條件的事件</div>';return;}
+    list.innerHTML=visible.map(evt=>{
+      const checked=currentIds.has(String(evt.id));
+      const d=new Date(evt.start);
+      const label=counterEventLabel(evt);
+      const special=evt.eventType==='birthday'||evt.eventType==='anniversary';
+      const icon=special?(evt.eventType==='birthday'?'cake':'heart'):'calendar-days';
+      return `<button type="button" class="counter-event-row w-full flex items-center gap-3 px-4 py-3.5 text-left transition hover:bg-ink-50 dark:hover:bg-ink-800/50 ${checked?'bg-brand-50/60 dark:bg-brand-950/20':''}" data-id="${escapeHtml(evt.id)}"><span class="w-10 h-10 rounded-xl ${checked?'bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-300':'bg-ink-100 dark:bg-ink-800 text-ink-500'} flex items-center justify-center shrink-0"><i data-lucide="${icon}" class="w-5 h-5"></i></span><span class="min-w-0 flex-1"><span class="flex items-center gap-2"><span class="block text-sm font-semibold truncate">${escapeHtml(evt.title)}</span>${checked?'<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-brand-600 text-white font-bold shrink-0">已選</span>':''}</span><span class="block text-[10px] text-ink-400 mt-1">${counterEventDateText(d)} · ${escapeHtml(label)}</span></span><span class="w-6 h-6 rounded-full border-2 ${checked?'border-brand-600 bg-brand-600':'border-ink-300 dark:border-ink-600'} flex items-center justify-center shrink-0">${checked?'<i data-lucide="check" class="w-4 h-4 text-white"></i>':''}</span></button>`;
+    }).join('');
+    lucide.createIcons();
+    list.querySelectorAll('.counter-event-row').forEach(row=>row.addEventListener('click',()=>toggleEvent(row.dataset.id)));
+  };
+
+  document.getElementById('myCounterSelectBackBtn').addEventListener('click',()=>{state.view='my-counter-mode';renderAll();});
+  searchInput?.addEventListener('input',renderEventList);
+  document.getElementById('counterSelectContinueBtn').addEventListener('click',()=>{
+    if(!(state.counterSelectedIds||[]).length){showToast('請至少選擇一個事件');return;}
+    state.view='my-counter-results';renderAll();
+  });
+  updateSelectedUI();
+}
+function renderMyCounterResultsView(){
+  const c=document.getElementById('calendarViewContainer');
+  const mode=state.counterMode==='up'?'up':'down';
+  const items=getCounterSelectedEvents(mode);
+  const displayItems=mode==='down'?items.filter(x=>x.diff>=0):items;
+  const pastItems=mode==='down'?items.filter(x=>x.diff<0).sort((a,b)=>b.diff-a.diff):[];
+  const isDown=mode==='down';
+  let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
+    <div class="flex items-center gap-3 mb-6"><button id="myCounterResultsBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div class="min-w-0"><h2 class="text-2xl font-extrabold tracking-tight">${isDown?'倒數':'正數'}</h2><p class="text-[11px] text-ink-400 mt-0.5">第四級：事件日數</p></div>${isDown?`<button id="counterPastBtn" class="ml-auto shrink-0 px-3 py-2 rounded-xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 text-xs font-bold">過往倒數${pastItems.length?` · ${pastItems.length}`:''}</button>`:''}</div>
+    ${isDown&&pastItems.length===0?'<div class="mb-4 px-4 py-3 rounded-xl bg-ink-50 dark:bg-ink-800/60 text-xs text-ink-500 dark:text-ink-400">目前沒有已過去的倒數事件</div>':''}
+    <div class="space-y-3">${displayItems.length?displayItems.map(info=>{
+      let value='今天',sub='今天就是事件日';
+      if(mode==='up'){
+        if(info.diff<0){value=`${Math.abs(info.diff)} 日`;sub=`已經過了 ${Math.abs(info.diff)} 日 · ${counterEventDateText(info.target)}`;}
+        else if(info.diff>0){value='尚未開始';sub=`距離開始還有 ${info.diff} 日 · ${counterEventDateText(info.target)}`;}
+      }else if(info.diff>0){
+        value=`${info.diff} 日`;sub=`距離事件還有 ${info.diff} 日 · ${counterEventDateText(info.target)}`;
+      }
+      const age=getYearsLabel(info.evt,info.target);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(info.evt.eventType)} font-bold">${age}</span>`:'';
+      return `<div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${getCat(info.evt.category).color}"></span><h3 class="font-bold text-sm truncate">${escapeHtml(info.evt.title)}</h3>${badge}</div><p class="text-[10px] text-ink-400 mt-1.5">${escapeHtml(sub)}</p></div><div class="text-xl font-extrabold tabular-nums text-brand-600 dark:text-brand-300 shrink-0">${value}</div></div></div>`;
+    }).join(''):'<div class="text-center py-16 text-sm text-ink-400">目前沒有需要顯示的事件</div>'}</div>
+  </div>`;
+  c.innerHTML=html;lucide.createIcons();
+  document.getElementById('myCounterResultsBackBtn').addEventListener('click',()=>{state.view='my-counter-select';renderAll();});
+  const pastBtn=document.getElementById('counterPastBtn');if(pastBtn)pastBtn.addEventListener('click',()=>{state.view='my-counter-past';renderAll();});
+}
+function renderMyCounterPastView(){
+  const c=document.getElementById('calendarViewContainer');
+  const items=getCounterSelectedEvents('down').filter(x=>x.diff<0).sort((a,b)=>b.diff-a.diff);
+  let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
+    <div class="flex items-center gap-3 mb-6"><button id="myCounterPastBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div><h2 class="text-2xl font-extrabold tracking-tight">過往倒數</h2><p class="text-[11px] text-ink-400 mt-0.5">第五級：已經過了多少日</p></div></div>
+    <div class="space-y-3">${items.length?items.map(info=>{const days=Math.abs(info.diff);const age=getYearsLabel(info.evt,info.target);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(info.evt.eventType)} font-bold">${age}</span>`:'';return `<div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${getCat(info.evt.category).color}"></span><h3 class="font-bold text-sm truncate">${escapeHtml(info.evt.title)}</h3>${badge}</div><p class="text-[10px] text-ink-400 mt-1.5">事件日期：${counterEventDateText(info.target)}</p></div><div class="text-xl font-extrabold tabular-nums text-rose-500 shrink-0">已過 ${days} 日</div></div></div>`}).join(''):'<div class="text-center py-16 text-sm text-ink-400">目前沒有過往倒數</div>'}</div>
+  </div>`;
+  c.innerHTML=html;lucide.createIcons();
+  document.getElementById('myCounterPastBackBtn').addEventListener('click',()=>{state.view='my-counter-results';renderAll();});
+}
+
+function renderMyView(){
+  const c=document.getElementById('calendarViewContainer');
+  const today=new Date();
+  const ts=new Date(today);ts.setHours(0,0,0,0);
+  const te=new Date(today);te.setHours(23,59,59,999);
+  const todayEvents=getOccurrencesInRange(ts,te);
+  const totalEvents=state.events.length;
+  const dayCounts=[0,0,0,0,0,0,0];
+  state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime()))dayCounts[d.getDay()]++;});
+  const maxCount=Math.max(...dayCounts);
+  const weekdays=['週日','週一','週二','週三','週四','週五','週六'];
+  const busiestDay=maxCount>0?weekdays[dayCounts.indexOf(maxCount)]:'無';
+  const noteCount=(state.notes||[]).filter(n=>n&&n.type==='note').length;
+  const diaryCount=(state.notes||[]).filter(n=>n&&n.type==='diary').length;
+  const categoryChartMap=new Map();
+  state.events.forEach(e=>{
+    const cat=getCat(e.category);
+    const key=cat?.id||e.category||'__uncategorized__';
+    const existing=categoryChartMap.get(key);
+    if(existing) existing.count++;
+    else categoryChartMap.set(key,{name:cat?.name||'未分類',color:cat?.color||'#94a3b8',count:1});
+  });
+  const categoryChartItems=Array.from(categoryChartMap.values()).sort((a,b)=>b.count-a.count);
+  const categoryChartTotal=categoryChartItems.reduce((sum,item)=>sum+item.count,0);
+  let categoryChartAngle=0;
+  const categoryChartGradient=categoryChartTotal>0
+    ? `conic-gradient(${categoryChartItems.map(item=>{const start=categoryChartAngle;categoryChartAngle+=item.count/categoryChartTotal*360;return `${item.color} ${start}deg ${categoryChartAngle}deg`;}).join(', ')})`
+    : 'conic-gradient(#e2e8f0 0deg 360deg)';
+
+  const tm=new Date();tm.setHours(0,0,0,0);
+  const anniversaries=state.events.filter(e=>{
+    if(e.eventType==='birthday'||e.eventType==='anniversary')return true;
+    const cat=getCat(e.category);
+    return e.category===ANNIVERSARY_CAT_ID||(cat&&(cat.name.includes('生日')||cat.name.includes('紀念日')));
+  }).map(e=>{
+    let nextDate=null;
+    if(e.isLunar&&e.eventType==='birthday'&&e.lunarMonth&&e.lunarDay){
+      const solarThisYear=getLunarBirthdaySolarDate(e.lunarMonth,e.lunarDay,tm.getFullYear());
+      const solarNextYear=getLunarBirthdaySolarDate(e.lunarMonth,e.lunarDay,tm.getFullYear()+1);
+      nextDate=solarThisYear&&solarThisYear>=tm?solarThisYear:solarNextYear;
+    }else{
+      const ed=new Date(e.start);ed.setHours(0,0,0,0);
+      if(!isNaN(ed.getTime())){
+        nextDate=new Date(tm.getFullYear(),ed.getMonth(),ed.getDate());
+        if(nextDate<tm)nextDate=new Date(tm.getFullYear()+1,ed.getMonth(),ed.getDate());
+      }
+    }
+    if(!nextDate)return null;
+    const dd=Math.round((nextDate-tm)/86400000);
+    const sourceDate=new Date(e.start);
+    const years=nextDate.getFullYear()-sourceDate.getFullYear();
+    let label='';
+    if(years>0)label=e.eventType==='birthday'?`${years}歲`:`${years}週年`;
+    return {title:e.title,nextDate,diffDays:dd,ageLabel:label,eventType:e.eventType||'anniversary',isLunar:!!e.isLunar};
+  }).filter(Boolean).sort((a,b)=>a.diffDays-b.diffDays).slice(0,3);
+  const formatAnnDate=d=>{const wd=['日','一','二','三','四','五','六'][d.getDay()];return`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 週${wd}`};
+  const isLoggedIn=!!window.currentUser;
+  const displayName=isLoggedIn?(window.currentUser.displayName||window.currentUser.email||'使用者'):'本地使用者';
+  const displayEmail=isLoggedIn?(window.currentUser.email||''):'資料僅存於此裝置';
+  const avatarURL=isLoggedIn?(window.currentUser.photoURL||''):'';
+
+  let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
+    <div class="flex items-center justify-between mb-6"><h2 class="text-2xl font-extrabold tracking-tight">我的</h2></div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 mb-5 shadow-soft flex items-center space-x-3">
+      ${avatarURL?`<img class="w-12 h-12 rounded-full border border-ink-200 dark:border-ink-700 shrink-0" src="${avatarURL}" referrerpolicy="no-referrer">`:`<div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-500 to-fuchsia-500 text-white flex items-center justify-center font-bold shrink-0"><i data-lucide="user" class="w-5 h-5"></i></div>`}
+      <div class="flex-1 overflow-hidden"><p class="font-bold text-sm truncate">${escapeHtml(displayName)}</p><p class="text-[11px] text-ink-400 truncate">${escapeHtml(displayEmail)}</p></div>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">摘要</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center"><i data-lucide="calendar-check" class="w-5 h-5 text-orange-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">今日事件</div><div class="text-xl font-extrabold tabular-nums">${todayEvents.length}</div></div></div>
+        <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center"><i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">所有事件</div><div class="text-xl font-extrabold tabular-nums">${totalEvents}</div></div></div>
+        <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center"><i data-lucide="briefcase" class="w-5 h-5 text-emerald-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">最忙碌的一天</div><div class="text-base font-extrabold">${busiestDay}</div></div></div>
+        <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center"><i data-lucide="file-pen" class="w-5 h-5 text-rose-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">總筆記數</div><div class="text-xl font-extrabold tabular-nums">${noteCount}</div></div></div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">事件&行事曆分類</h3>
+      <div class="flex items-center gap-6">
+        <div class="relative w-36 h-36 shrink-0 rounded-full" style="background:${categoryChartGradient};">
+          <div class="absolute inset-[35%] rounded-full bg-white dark:bg-ink-900 flex flex-col items-center justify-center">
+            <div class="text-xl font-extrabold tabular-nums">${categoryChartTotal}</div>
+            <div class="text-[9px] text-ink-400">總數</div>
+          </div>
+        </div>
+        <div class="flex-1 min-w-0 space-y-2.5">
+          ${categoryChartItems.length ? categoryChartItems.map(item=>`<div class="flex items-center gap-2 text-xs"><span class="w-3 h-3 rounded-sm shrink-0" style="background:${item.color}"></span><span class="truncate text-ink-700 dark:text-ink-300">${escapeHtml(item.name)}</span><span class="ml-auto tabular-nums text-ink-500">${item.count}</span></div>`).join('') : '<div class="text-xs text-ink-400">暫無事件</div>'}
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <div class="flex items-center justify-between mb-4"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200">🎂 近期生日和紀念日</h3><span class="text-[10px] text-ink-400">最多 3 個</span></div>
+      <div class="space-y-4">${anniversaries.length>0?anniversaries.map(a=>{const dd=a.diffDays===0?'今天':`${a.diffDays} D`;const badge=a.ageLabel?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(a.eventType)} font-bold">${a.ageLabel}${a.isLunar?' 🌙':''}</span>`:'';return`<div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="font-bold text-sm text-ink-800 dark:text-ink-100 flex items-center gap-1.5 flex-wrap"><span class="truncate">${escapeHtml(a.title)}</span>${badge}</div><div class="text-[10px] text-ink-400 mt-0.5">${formatAnnDate(a.nextDate)}</div></div><div class="text-base font-extrabold tabular-nums shrink-0 ${a.diffDays===0?'text-rose-500':'text-ink-800 dark:text-ink-100'}">${dd}</div></div>`}).join(''):'<div class="text-xs text-ink-400 text-center py-4">暫無生日或紀念日</div>'}</div>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <button id="myCounterBtn" class="w-full flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="timer-reset" class="w-5 h-5"></i></span><span><span class="block text-sm font-bold text-ink-800 dark:text-ink-100">事件計日</span><span class="block text-[10px] text-ink-400 mt-0.5">正數／倒數</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+    </div>
+
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
+      <button id="mySettingsBtn" class="w-full flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="settings" class="w-5 h-5"></i></span><span><span class="block text-sm font-bold text-ink-800 dark:text-ink-100">設定</span><span class="block text-[10px] text-ink-400 mt-0.5">主題、通知、資料與日曆分類</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+    </div>
+  </div>`;
+  c.innerHTML=html;
+  lucide.createIcons();
+  document.getElementById('myCounterBtn').addEventListener('click',()=>{state.view='my-counter-mode';renderAll();});
+  document.getElementById('mySettingsBtn').addEventListener('click',()=>{state.view='my-settings';renderAll();});
+}
+
+function renderMySettingsView(){
+  const c=document.getElementById('calendarViewContainer');
+  const currentTheme=getTheme();
+  let themeLabel='跟隨系統',themeIcon='monitor-smartphone',themeStatusText='自動';
+  if(currentTheme==='dark'){themeLabel='深色模式';themeIcon='moon';themeStatusText='開';}
+  else if(currentTheme==='light'){themeLabel='淺色模式';themeIcon='sun';themeStatusText='關';}
+  const notifPerm=('Notification'in window)?Notification.permission:'unsupported';
+  const notifLabel=notifPerm==='granted'?'已開啟':(notifPerm==='denied'?'已封鎖':'未開啟');
+  const isLoggedIn=!!window.currentUser;
+  let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
+    <div class="flex items-center gap-3 mb-6"><button id="mySettingsBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div><h2 class="text-2xl font-extrabold tracking-tight">設定</h2><p class="text-[11px] text-ink-400 mt-0.5">管理日曆與應用程式設定</p></div></div>
+    <div class="space-y-3">
+      <button id="myThemeBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300"><i data-lucide="${themeIcon}" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">外觀</span><span class="block text-[10px] text-ink-400 mt-0.5">${themeLabel}</span></span></span><span class="text-xs text-ink-400">${themeStatusText}</span></button>
+      <button id="myNotifBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">通知提醒</span><span class="block text-[10px] text-ink-400 mt-0.5">日程提醒與瀏覽器通知</span></span></span><span class="text-xs text-ink-400">${notifLabel}</span></button>
+      <button id="myDataBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="database" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">資料備份與還原</span><span class="block text-[10px] text-ink-400 mt-0.5">匯出、匯入與資料管理</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+      <button id="myIcsBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-down" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">ICS 匯入匯出</span><span class="block text-[10px] text-ink-400 mt-0.5">與其他日曆交換資料</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+      <button id="myCalendarCategoryBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><i data-lucide="calendar-cog" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">日曆與分類</span><span class="block text-[10px] text-ink-400 mt-0.5">查看目前的日曆與分類</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+      ${isLoggedIn?`<button id="mySignOutBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"><i data-lucide="log-out" class="w-5 h-5"></i></span><span class="text-sm font-semibold text-rose-600 dark:text-rose-400">登出</span></span></button>`:''}
+    </div>
+  </div>`;
+  c.innerHTML=html;lucide.createIcons();
+  document.getElementById('mySettingsBackBtn').addEventListener('click',()=>{state.view='my';renderAll();});
+  document.getElementById('myThemeBtn').addEventListener('click',()=>{const current=getTheme();let next='system';if(current==='system')next='light';else if(current==='light')next='dark';else next='system';setTheme(next);renderMySettingsView();});
+  document.getElementById('myNotifBtn').addEventListener('click',async()=>{if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}if(Notification.permission==='denied'){alert('通知已被封鎖。請到瀏覽器設定允許。');return}const perm=await Notification.requestPermission();if(perm==='granted')showToast('通知已開啟 ✓');else showToast('未開啟通知');renderMySettingsView();});
+  document.getElementById('myDataBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.remove('hidden');});
+  document.getElementById('myIcsBtn').addEventListener('click',()=>openIcsModal());
+  document.getElementById('myCalendarCategoryBtn').addEventListener('click',()=>{state.view='my-categories';renderAll();});
+  const so=document.getElementById('mySignOutBtn');if(so)so.addEventListener('click',()=>{if(confirm('確定要登出嗎？'))signOutUser();});
+}
+
+function renderMyCategoriesView(){
+  const c=document.getElementById('calendarViewContainer');
+  let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
+    <div class="flex items-center gap-3 mb-6"><button id="myCategoriesBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div><h2 class="text-2xl font-extrabold tracking-tight">日曆與分類</h2><p class="text-[11px] text-ink-400 mt-0.5">第三級：新增、修改與刪除分類</p></div></div>
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 shadow-soft overflow-hidden">
+      <div class="flex items-center justify-between p-4 border-b border-ink-100 dark:border-ink-800"><div><h3 class="text-sm font-bold">目前分類</h3><p class="text-[10px] text-ink-400 mt-1">這裡才可以新增或修改分類</p></div><button id="myAddCatBtn" class="px-3 py-2 rounded-xl bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white text-xs font-bold shadow-glow flex items-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i>新增分類</button></div>
+      <div class="divide-y divide-ink-100 dark:divide-ink-800">${state.categories.map(cat=>`<div class="flex items-center justify-between px-4 py-3.5"><div class="flex items-center gap-3 min-w-0"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:${cat.color}"></span><span class="text-sm font-medium truncate">${escapeHtml(cat.name)}</span></div><div class="flex items-center gap-1 shrink-0"><button class="my-cat-edit-btn p-2 rounded-lg text-ink-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 transition" data-cat="${cat.id}"><i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i></button><button class="my-cat-del-btn p-2 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-cat="${cat.id}"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button></div></div>`).join('')}</div>
+    </div>
+  </div>`;
+  c.innerHTML=html;lucide.createIcons();
+  document.getElementById('myCategoriesBackBtn').addEventListener('click',()=>{state.view='my-settings';renderAll();});
+  document.getElementById('myAddCatBtn').addEventListener('click',()=>openCategoryModal(null));
+  document.querySelectorAll('.my-cat-edit-btn').forEach(btn=>btn.addEventListener('click',()=>openCategoryModal(btn.dataset.cat)));
+  document.querySelectorAll('.my-cat-del-btn').forEach(btn=>btn.addEventListener('click',()=>deleteCategory(btn.dataset.cat)));
+}
 
 function renderTasksView(){const c=document.getElementById('calendarViewContainer');const tasks=state.tasks||[];const completedCount=tasks.filter(t=>t.completed).length;const totalCount=tasks.length;const progress=totalCount>0?Math.round((completedCount/totalCount)*100):0;let html=`<div class="h-full flex flex-col anim-in"><div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60"><div class="flex items-center justify-between mb-1"><h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2"><i data-lucide="check-square" class="w-6 h-6 text-brand-500"></i><span>任務清單</span></h2><div class="text-right"><span class="text-xs text-ink-400 font-medium block">${completedCount} / ${totalCount} 已完成</span></div></div><div class="w-full bg-ink-200 dark:bg-ink-700 rounded-full h-2 mt-3"><div class="bg-gradient-to-r from-brand-500 to-fuchsia-500 h-2 rounded-full transition-all duration-500" style="width:${progress}%"></div></div></div><div class="p-4 flex items-center gap-2 bg-white/60 dark:bg-ink-900/60 border-b border-ink-200/70 dark:border-ink-800/70"><input type="text" id="taskInput" placeholder="新增任務..." class="flex-1 px-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"><button id="addTaskBtn" class="p-2.5 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl shadow-glow active:scale-95 transition"><i data-lucide="plus" class="w-5 h-5"></i></button></div><div class="flex-1 overflow-y-auto p-5 space-y-2 bg-white/30 dark:bg-ink-900/30">${tasks.length===0?`<div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in"><i data-lucide="clipboard-list" class="w-16 h-16 mb-4 opacity-30"></i><p class="text-sm font-medium">還沒有任務</p><p class="text-xs mt-1">在上方輸入框新增一個吧！</p></div>`:tasks.sort((a,b)=>a.completed===b.completed?a.createdAt-b.createdAt:b.completed-a.completed).map(task=>`<div class="group flex items-start gap-3 p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm hover:shadow-md transition"><button class="toggle-task-btn shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${task.completed?'bg-brand-500 border-brand-500':'border-ink-300 dark:border-ink-600 hover:border-brand-400'}" data-id="${task.id}">${task.completed?'<i data-lucide="check" class="w-3 h-3 text-white"></i>':''}</button><div class="flex-1 min-w-0"><p class="text-sm font-medium break-words ${task.completed?'line-through text-ink-400 dark:text-ink-500':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p><p class="text-[10px] text-ink-400 mt-1">${new Date(task.createdAt).toLocaleString()}</p></div><button class="delete-task-btn shrink-0 p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-id="${task.id}"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`).join('')}</div></div>`;c.innerHTML=html;lucide.createIcons();const addTask=async()=>{const input=document.getElementById('taskInput');const text=input.value.trim();if(!text)return;const newTask={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now()};state.tasks.push(newTask);saveTasks();input.value='';renderTasksView();};document.getElementById('addTaskBtn').addEventListener('click',addTask);document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask()});document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.id;const task=state.tasks.find(t=>t.id===id);if(!task)return;task.completed=!task.completed;saveTasks();renderTasksView();}));document.querySelectorAll('.delete-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{
   const id=btn.dataset.id;
@@ -1434,12 +2027,18 @@ async function deleteNote(){
   closeNoteModal();showToast('筆記已刪除');renderNotesView();
 }function initNoteEventListeners(){document.getElementById('closeNoteModalBtn').addEventListener('click',closeNoteModal);document.getElementById('cancelNoteBtn').addEventListener('click',closeNoteModal);document.getElementById('saveNoteBtn').addEventListener('click',saveNote);document.getElementById('deleteNoteBtn').addEventListener('click',deleteNote);document.getElementById('noteFolder').addEventListener('focus',()=>{const list=document.getElementById('noteFolderList');const noteFolders=[...new Set(state.notes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();const allFolders=[...new Set([...noteFolders,...(state.folders||[])])].sort();list.innerHTML=allFolders.map(f=>`<option value="${escapeHtml(f)}">`).join('');});}
 
-function updateTopHeaderVisibility(){const hdr = document.getElementById('topHeader');if(!hdr) return;const isMobile = window.innerWidth < 768;const hideOnMobile = (state.view === 'tasks' || state.view === 'notes' || state.view === 'my');if (isMobile && hideOnMobile) { hdr.style.display = 'none'; } else { hdr.style.display = ''; }}
+function updateTopHeaderVisibility(){const hdr = document.getElementById('topHeader');if(!hdr) return;const isMobile = window.innerWidth < 768;const hideOnMobile = (state.view === 'tasks' || state.view === 'notes' || state.view === 'my' || state.view === 'my-settings' || state.view === 'my-categories');if (isMobile && hideOnMobile) { hdr.style.display = 'none'; } else { hdr.style.display = ''; }}
 window.updateTopHeaderVisibility = updateTopHeaderVisibility;
 
 function renderMainView(animationDir){
   updateTopHeaderVisibility();
   if(state.view==='my'){document.getElementById('sidebar').classList.add('hidden');renderMyView();return}
+  if(state.view==='my-counter-mode'){document.getElementById('sidebar').classList.add('hidden');renderMyCounterModeView();return}
+  if(state.view==='my-counter-select'){document.getElementById('sidebar').classList.add('hidden');renderMyCounterSelectView();return}
+  if(state.view==='my-counter-results'){document.getElementById('sidebar').classList.add('hidden');renderMyCounterResultsView();return}
+  if(state.view==='my-counter-past'){document.getElementById('sidebar').classList.add('hidden');renderMyCounterPastView();return}
+  if(state.view==='my-settings'){document.getElementById('sidebar').classList.add('hidden');renderMySettingsView();return}
+  if(state.view==='my-categories'){document.getElementById('sidebar').classList.add('hidden');renderMyCategoriesView();return}
   if(state.view==='tasks'){document.getElementById('sidebar').classList.add('hidden');renderTasksView();return}
   if(state.view==='notes'){document.getElementById('sidebar').classList.add('hidden');renderNotesView();return}
   else{const sb=document.getElementById('sidebar');if(window.innerWidth>=768)sb.classList.remove('hidden');else sb.classList.add('hidden')}
@@ -1455,7 +2054,8 @@ window.renderMainView=renderMainView;
 function updateHeaderInfo(){const d=state.currentDate;const y=d.getFullYear(),m=d.getMonth()+1;document.getElementById('currentDateTitle').textContent=`${y}年 ${m}月`;const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];let subtitle=`${m}月${d.getDate()}日 週${weekday}`;if(lunar.full)subtitle+=` · ${lunar.full}`;subtitle+=` · 第${weekNum}週`;document.getElementById('currentDateSubtitle').textContent=subtitle;}
 function renderAll(){updateHeaderInfo();document.querySelectorAll('.view-btn').forEach(btn=>{if(btn.dataset.view===state.view)btn.className='view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm font-bold';else btn.className='view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition hover:text-ink-900 dark:hover:text-white';});renderMiniCalendar();renderStats();renderMainView();updateBottomNavHighlight();}
 window.renderAll=renderAll;
-function updateBottomNavHighlight(){document.querySelectorAll('.bottom-nav-btn').forEach(btn=>{const nav=btn.dataset.nav;let isActive=false;if(nav==='month'&&state.view!=='my'&&state.view!=='tasks'&&state.view!=='notes')isActive=true;else if(nav==='my'&&state.view==='my')isActive=true;else if((nav==='tasks'||nav==='notes')&&state.view===nav)isActive=true;if(isActive){btn.className='bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-brand-600 transition-colors';}else{btn.className='bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-ink-500 dark:text-ink-400 transition-colors';}});}
+function updateBottomNavHighlight(){document.querySelectorAll('.bottom-nav-btn').forEach(btn=>{const nav=btn.dataset.nav;let isActive=false;if(nav==='month'&&(state.view==='month'||state.view==='week'||state.view==='day'||state.view==='schedule'))isActive=true;else if(nav==='my'&&(state.view==='my'||state.view==='my-settings'||state.view==='my-categories'||state.view==='my-counter-mode'||state.view==='my-counter-select'||state.view==='my-counter-results'||state.view==='my-counter-past'))isActive=true;else if((nav==='tasks'||nav==='notes')&&state.view===nav)isActive=true;if(isActive){btn.className='bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-brand-600 transition-colors';}else{btn.className='bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-ink-500 dark:text-ink-400 transition-colors';}});}
+
 function openEventModal(eventObj=null,defaultDate=null){
   closeDayDetail();
   populateLunarDropdowns();
@@ -1514,6 +2114,11 @@ function openEventModal(eventObj=null,defaultDate=null){
         document.getElementById('eventBirthYear').value=sourceYear;
         document.getElementById('eventLunarMonth').value=eventObj.lunarMonth||1;
         document.getElementById('eventLunarDay').value=eventObj.lunarDay||1;
+      }else if(typeEl.value==='anniversary'){
+        lunar.checked=false;
+        document.getElementById('eventBirthYearGregorian').value=sourceYear;
+        document.getElementById('eventBirthMonthGregorian').value=sourceDate.getMonth()+1;
+        document.getElementById('eventBirthDayGregorian').value=sourceDate.getDate();
       }else{
         lunar.checked=false;
         document.getElementById('eventBirthYearGregorian').value=sourceYear;
@@ -1521,8 +2126,8 @@ function openEventModal(eventObj=null,defaultDate=null){
         document.getElementById('eventBirthDayGregorian').value=sourceDate.getDate();
       }
     }else{
-      document.getElementById('eventStart').value=formatDateForInput(new Date(eventObj.start));
-      document.getElementById('eventEnd').value=formatDateForInput(new Date(eventObj.end||eventObj.start));
+      setSplitDateTime('start',new Date(eventObj.start));
+      setSplitDateTime('end',new Date(eventObj.end||eventObj.start));
     }
     if(delBtn)delBtn.classList.remove('hidden');
   }else{
@@ -1531,8 +2136,8 @@ function openEventModal(eventObj=null,defaultDate=null){
     if(isNaN(s.getTime()))s.setTime(Date.now());
     s.setHours(9,0,0,0);
     const e=new Date(s);e.setHours(10,0,0,0);
-    document.getElementById('eventStart').value=formatDateForInput(s);
-    document.getElementById('eventEnd').value=formatDateForInput(e);
+    setSplitDateTime('start',s);
+    setSplitDateTime('end',e);
     if(category&&state.categories.length)category.value=state.categories[0].id;
     document.getElementById('enableReminder').checked=false;
     fillReminderInputs('10');
@@ -1645,7 +2250,7 @@ function openIcsModal(){const m=document.getElementById('icsModal');document.get
 
 function initEventListeners(){
   document.querySelectorAll('.bottom-nav-btn').forEach(btn=>{btn.addEventListener('click',()=>{const nav=btn.dataset.nav;if(nav==='tasks'){state.view='tasks';}else if(nav==='notes'){state.view='notes';}else if(nav==='my'){state.view='my';}else if(nav==='month'){state.view='month';}renderAll();});});
-  document.getElementById('todayBtn').addEventListener('click',()=>{if(state.view==='my'||state.view==='tasks'||state.view==='notes')state.view='month';state.currentDate=new Date();state.miniDate=new Date();renderAll();});
+  document.getElementById('todayBtn').addEventListener('click',()=>{if(state.view!=='month'&&state.view!=='week'&&state.view!=='day'&&state.view!=='schedule')state.view='month';state.currentDate=new Date();state.miniDate=new Date();closeDateTools();closeSimpleOverlay('dateCalculatorModal');closeSimpleOverlay('dateIntervalModal');closeJumpDateModal();renderAll();});
   document.getElementById('prevBtn').addEventListener('click',()=>{if(state.view==='month')state.currentDate.setMonth(state.currentDate.getMonth()-1);else if(state.view==='week')state.currentDate.setDate(state.currentDate.getDate()-7);else state.currentDate.setDate(state.currentDate.getDate()-1);state.miniDate=new Date(state.currentDate);renderAll();});
   document.getElementById('nextBtn').addEventListener('click',()=>{if(state.view==='month')state.currentDate.setMonth(state.currentDate.getMonth()+1);else if(state.view==='week')state.currentDate.setDate(state.currentDate.getDate()+7);else state.currentDate.setDate(state.currentDate.getDate()+1);state.miniDate=new Date(state.currentDate);renderAll();});
   document.getElementById('miniPrevBtn').addEventListener('click',()=>{state.miniDate.setMonth(state.miniDate.getMonth()-1);renderMiniCalendar()});
@@ -1660,8 +2265,7 @@ function initEventListeners(){
   document.getElementById('cancelCategoryBtn').addEventListener('click',closeCategoryModal);
   document.getElementById('confirmCategoryBtn').addEventListener('click',saveCategory);
   document.getElementById('newCatName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveCategory()}});
-  document.getElementById('jumpDateBtn').addEventListener('click',()=>openJumpDateModal('calendar'));
-  document.getElementById('jumpStartBtn').addEventListener('click',()=>openJumpDateModal('eventStart'));
+  document.getElementById('jumpDateBtn').addEventListener('click',openDateTools);document.getElementById('closeDateToolsBtn').addEventListener('click',closeDateTools);document.getElementById('dateJumpToolBtn').addEventListener('click',()=>{closeDateTools();setTimeout(()=>openJumpDateModal('calendar'),80);});document.getElementById('dateCalcToolBtn').addEventListener('click',openDateCalculator);document.getElementById('dateIntervalToolBtn').addEventListener('click',openDateInterval);document.getElementById('lunarConvertToolBtn').addEventListener('click',openLunarConvert);document.getElementById('closeLunarConvertBtn').addEventListener('click',()=>closeSimpleOverlay('lunarConvertModal'));document.getElementById('lunarConvertSolarTab').addEventListener('click',()=>setLunarConvertType('solar'));document.getElementById('lunarConvertLunarTab').addEventListener('click',()=>setLunarConvertType('lunar'));document.getElementById('runLunarConvertBtn').addEventListener('click',runLunarConvert);document.getElementById('toolSearchInput').addEventListener('input',e=>syncDateToolSearch(e.target.value));document.getElementById('clearToolSearchBtn').addEventListener('click',()=>{const i=document.getElementById('toolSearchInput');if(i)i.value='';syncDateToolSearch('');});document.getElementById('closeDateCalculatorBtn').addEventListener('click',()=>closeSimpleOverlay('dateCalculatorModal'));document.getElementById('dateCalcAfterBtn').addEventListener('click',()=>{state.dateCalcDirection='after';updateDateCalcDirection();});document.getElementById('dateCalcBeforeBtn').addEventListener('click',()=>{state.dateCalcDirection='before';updateDateCalcDirection();});document.getElementById('runDateCalculatorBtn').addEventListener('click',calculateDate);document.getElementById('closeDateIntervalBtn').addEventListener('click',()=>closeSimpleOverlay('dateIntervalModal'));document.getElementById('runDateIntervalBtn').addEventListener('click',calculateDateInterval);
   document.getElementById('closeJumpDateModalBtn').addEventListener('click',closeJumpDateModal);
   document.getElementById('cancelJumpDateBtn').addEventListener('click',closeJumpDateModal);
   document.getElementById('confirmJumpDateBtn').addEventListener('click',confirmJumpDate);
@@ -1669,7 +2273,13 @@ function initEventListeners(){
   document.getElementById('jumpTypeLunar').addEventListener('click',()=>setJumpType('lunar'));
   document.getElementById('modalSearchInput').addEventListener('input',e=>{state.searchQuery=e.target.value;document.getElementById('clearSearchBtn').style.display=e.target.value?'block':'none';renderMainView();});
   document.getElementById('clearSearchBtn').addEventListener('click',()=>{state.searchQuery='';document.getElementById('modalSearchInput').value='';document.getElementById('clearSearchBtn').style.display='none';renderMainView();});
-  document.querySelectorAll('.quick-year-btn').forEach(btn=>{btn.addEventListener('click',()=>{const years=parseInt(btn.dataset.years,10);const type=document.getElementById('eventType').value;const isLunar=type==='birthday'&&document.getElementById('eventIsLunar').checked;if(isLunar){const by=parseInt(document.getElementById('eventBirthYear').value,10)||new Date().getFullYear();document.getElementById('eventBirthYear').value=by+years;updateLunarPreview();showToast(`已回到 ${by+years} 年`);}else{const startInput=document.getElementById('eventStart');const endInput=document.getElementById('eventEnd');if(!startInput.value){showToast('請先設定開始時間');return}const s=new Date(startInput.value);const e=endInput.value?new Date(endInput.value):new Date(s.getTime()+3600000);const dur=Math.max(60000,e-s);s.setFullYear(s.getFullYear()+years);const newEnd=new Date(s.getTime()+dur);startInput.value=formatDateForInput(s);endInput.value=formatDateForInput(newEnd);showToast(`已回到 ${s.getFullYear()} 年`);}});});
+  ['start','end'].forEach(which=>{
+    const dateEl=document.getElementById(which==='start'?'eventStartDate':'eventEndDate');
+    const timeEl=document.getElementById(which==='start'?'eventStartTime':'eventEndTime');
+    bindAutoDateTimeInput(dateEl,'date',which);
+    bindAutoDateTimeInput(timeEl,'time',which);
+  });
+  document.querySelectorAll('.quick-year-btn').forEach(btn=>{btn.addEventListener('click',()=>{const years=parseInt(btn.dataset.years,10);const type=document.getElementById('eventType').value;const isLunar=type==='birthday'&&document.getElementById('eventIsLunar').checked;if(isLunar){const by=parseInt(document.getElementById('eventBirthYear').value,10)||new Date().getFullYear();document.getElementById('eventBirthYear').value=by+years;updateLunarPreview();showToast(`已回到 ${by+years} 年`);}else{const s=getSplitDateTime('start');if(!s){showToast('請完整輸入開始日期和時間');return}const e=getSplitDateTime('end')||new Date(s.getTime()+3600000);const dur=Math.max(60000,e-s);s.setFullYear(s.getFullYear()+years);const newEnd=new Date(s.getTime()+dur);setSplitDateTime('start',s);setSplitDateTime('end',newEnd);showToast(`已回到 ${s.getFullYear()} 年`);}});});
   document.querySelectorAll('.event-type-btn').forEach(btn=>btn.addEventListener('click',()=>{
     const type=btn.dataset.type;
     const typeEl=document.getElementById('eventType');
@@ -1738,6 +2348,8 @@ function initEventListeners(){
     let isAllDay = false;
 
     if (isSpecial) {
+      // 生日／紀念日一律為全天、每年重複。
+      // 公曆紀念日的「開始時間」就是下面的 年／月／日欄位，不使用普通事件的開始／結束時間。
       isAllDay = true;
       let by, m, d;
 
@@ -1752,7 +2364,7 @@ function initEventListeners(){
       }
 
       if (!by || !m || !d) {
-        showToast('請完整填寫年份、月份和日期');
+        showToast(eventType==='anniversary' ? '請完整填寫紀念日開始時間（年月日）' : '請完整填寫年份、月份和日期');
         return;
       }
 
@@ -1770,23 +2382,26 @@ function initEventListeners(){
           return;
         }
       }
-      
+
       solarDate.setHours(0, 0, 0, 0);
-      // 全日事件的結束時間必須仍在同一天，不能延伸到隔天。
-      // 舊版設成「隔天 23:59」，因此生日/紀念日會同時出現在兩天的抽屜。
       const endDate = new Date(solarDate);
       endDate.setHours(23, 59, 0, 0);
-
       startValue = formatDateForInput(solarDate);
       endValue = formatDateForInput(endDate);
       
     } else {
-      startValue = document.getElementById('eventStart').value;
-      endValue = document.getElementById('eventEnd').value;
-      if (!startValue || !endValue) {
-        showToast('請填寫開始與結束時間');
+      const parsedStart = syncSplitDateTime('start');
+      const parsedEnd = syncSplitDateTime('end');
+      if (!parsedStart || !parsedEnd) {
+        showToast('請輸入有效日期時間：YYYY/MM/DD HH:mm');
         return;
       }
+      if (parsedEnd < parsedStart) {
+        showToast('結束時間不能早於開始時間');
+        return;
+      }
+      startValue = formatDateForInput(parsedStart);
+      endValue = formatDateForInput(parsedEnd);
       isAllDay = document.getElementById('eventAllDay').checked;
     }
 
