@@ -391,12 +391,33 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{opacity:.55;curs
 <input type="hidden" id="eventId">
 <div>
 <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">事件類型</label>
-<div id="eventTypeGroup" class="grid grid-cols-3 gap-2">
+<div id="eventTypeGroup" class="grid grid-cols-2 md:grid-cols-4 gap-2">
 <button type="button" data-type="normal" class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition">普通事件</button>
 <button type="button" data-type="birthday" class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition">🎂 生日</button>
 <button type="button" data-type="anniversary" class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition">💝 紀念日</button>
+<button type="button" id="eventCounterBtn" class="event-counter-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800">⏱ 事件計日</button>
 </div>
 <input type="hidden" id="eventType" value="normal">
+</div>
+
+<div id="eventCounterOptions" class="rounded-2xl border border-sky-200/80 dark:border-sky-900/50 bg-sky-50/50 dark:bg-sky-950/20 p-3.5 space-y-3" style="display:none">
+  <div class="flex items-center justify-between gap-3">
+    <div>
+      <div class="text-sm font-bold text-ink-800 dark:text-ink-100">事件計日</div>
+      <div class="text-[10px] text-ink-400 mt-0.5">可同時開啟正數與倒數，之後可在「我的 → 事件計日」查看。</div>
+    </div>
+    <span class="text-[10px] font-semibold text-sky-600 dark:text-sky-300 shrink-0">可多選</span>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+    <label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 cursor-pointer select-none hover:bg-ink-50 dark:hover:bg-ink-900">
+      <input type="checkbox" id="eventCounterUp" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
+      <span><span class="block text-sm font-semibold">↗ 正數</span><span class="block text-[10px] text-ink-400 mt-0.5">從事件日期開始計算已經過多少日</span></span>
+    </label>
+    <label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 cursor-pointer select-none hover:bg-ink-50 dark:hover:bg-ink-900">
+      <input type="checkbox" id="eventCounterDown" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
+      <span><span class="block text-sm font-semibold">↘ 倒數</span><span class="block text-[10px] text-ink-400 mt-0.5">計算距離下一次事件還有多少日</span></span>
+    </label>
+  </div>
 </div>
 <div id="lunarToggleArea" class="flex items-center justify-between p-3 rounded-2xl border border-brand-200/70 dark:border-brand-900/50 bg-gradient-to-r from-brand-50/60 to-fuchsia-50/40 dark:from-brand-950/20 dark:to-fuchsia-950/10" style="display:none">
 <label class="text-sm font-semibold flex items-center space-x-2 cursor-pointer select-none flex-1">
@@ -928,6 +949,45 @@ function openJumpDateModal(target){jumpTarget=target||'calendar';let d;if(jumpTa
 function closeJumpDateModal(){const m=document.getElementById('jumpDateModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200);}
 function setJumpType(type){jumpType=type;const solarBtn=document.getElementById('jumpTypeSolar');const lunarBtn=document.getElementById('jumpTypeLunar');const solarInputs=document.getElementById('jumpSolarInputs');const lunarInputs=document.getElementById('jumpLunarInputs');const lunarHint=document.getElementById('jumpLunarHint');if(type==='solar'){solarBtn.classList.add('active');lunarBtn.classList.remove('active');solarInputs.style.display='grid';lunarInputs.style.display='none';lunarHint.style.display='none';}else{solarBtn.classList.remove('active');lunarBtn.classList.add('active');solarInputs.style.display='none';lunarInputs.style.display='grid';lunarHint.style.display='block';}}
 function confirmJumpDate(){if(jumpTarget==='birthYear'){const y=parseInt(document.getElementById('jumpYear').value);if(isNaN(y)){showToast('請輸入有效年份');return}document.getElementById('eventBirthYear').value=y;updateLunarPreview();const yearWord=(document.getElementById('eventType')?.value==='anniversary')?'紀念日起始年份':'出生年份';showToast(`已設定${yearWord}：${y}`);closeJumpDateModal();return;}let y,m,d;if(jumpType==='solar'){y=parseInt(document.getElementById('jumpYear').value);m=parseInt(document.getElementById('jumpMonth').value);d=parseInt(document.getElementById('jumpDay').value);}else{y=parseInt(document.getElementById('jumpLunarYear').value);m=parseInt(document.getElementById('jumpLunarMonth').value);d=parseInt(document.getElementById('jumpLunarDay').value);}if(isNaN(y)||isNaN(m)||isNaN(d)){showToast('請輸入有效日期');return}let dt;if(jumpType==='solar'){dt=new Date(y,m-1,d);if(isNaN(dt.getTime())){showToast('日期無效');return}}else{if(typeof Lunar==='undefined'){showToast('農曆庫未載入');return}try{const lunar=Lunar.fromYmd(y,m,d);const solar=lunar.getSolar();dt=new Date(solar.getYear(),solar.getMonth()-1,solar.getDay());}catch(e){showToast('農曆日期無效');return;}}if(jumpTarget==='eventStart'){const oldStart=getSplitDateTime('start')||new Date();const oldEnd=getSplitDateTime('end')||new Date(oldStart.getTime()+3600000);const dur=Math.max(60000,oldEnd-oldStart);const newStart=new Date(dt);newStart.setHours(oldStart.getHours(),oldStart.getMinutes(),0,0);const newEnd=new Date(newStart.getTime()+dur);setSplitDateTime('start',newStart);setSplitDateTime('end',newEnd);showToast(`已設為 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`);}else{state.currentDate=dt;state.miniDate=new Date(dt);renderAll();const wd=['日','一','二','三','四','五','六'][dt.getDay()];showToast(`已跳轉到 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日 週${wd}`);}closeJumpDateModal();}
+
+function getEventCounterModes(){
+  const modes=[];
+  if(document.getElementById('eventCounterUp')?.checked)modes.push('up');
+  if(document.getElementById('eventCounterDown')?.checked)modes.push('down');
+  return modes;
+}
+function updateEventCounterButton(){
+  const btn=document.getElementById('eventCounterBtn');
+  if(!btn)return;
+  const active=getEventCounterModes().length>0;
+  btn.className=active
+    ? 'event-counter-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition border-transparent bg-gradient-to-tr from-sky-500 to-brand-500 text-white shadow-glow'
+    : 'event-counter-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800';
+}
+function setEventCounterModes(modes,showPanel){
+  const arr=Array.isArray(modes)?modes:[];
+  const up=document.getElementById('eventCounterUp');
+  const down=document.getElementById('eventCounterDown');
+  if(up)up.checked=arr.includes('up');
+  if(down)down.checked=arr.includes('down');
+  const panel=document.getElementById('eventCounterOptions');
+  if(panel && typeof showPanel==='boolean')panel.style.display=showPanel?'block':'none';
+  updateEventCounterButton();
+}
+function toggleEventCounterPanel(){
+  const panel=document.getElementById('eventCounterOptions');
+  if(!panel)return;
+  const willShow=panel.style.display==='none'||!panel.style.display;
+  panel.style.display=willShow?'block':'none';
+  // 「事件計日」按鈕本身只負責展開／收起設定；是否啟用由正數／倒數勾選狀態決定。
+  // 因此關閉面板不會錯誤地保留「啟用」狀態，兩個選項都取消時按鈕一定回到白色。
+  updateEventCounterButton();
+  if(willShow && getEventCounterModes().length===0){
+    const up=document.getElementById('eventCounterUp');
+    if(up)up.focus();
+  }
+}
+
 
 function renderEventTypeButtons(){
   const curEl = document.getElementById('eventType');
@@ -1718,8 +1778,8 @@ function renderMyCounterModeView(){
   </div>`;
   c.innerHTML=html;lucide.createIcons();
   document.getElementById('myCounterBackBtn').addEventListener('click',()=>{state.view='my';renderAll();});
-  document.getElementById('counterUpBtn').addEventListener('click',()=>{state.counterMode='up';saveCounterSettings();state.view='my-counter-select';renderAll();});
-  document.getElementById('counterDownBtn').addEventListener('click',()=>{state.counterMode='down';saveCounterSettings();state.view='my-counter-select';renderAll();});
+  document.getElementById('counterUpBtn').addEventListener('click',()=>{state.counterMode='up';saveCounterSettings();state.view='my-counter-results';renderAll();});
+  document.getElementById('counterDownBtn').addEventListener('click',()=>{state.counterMode='down';saveCounterSettings();state.view='my-counter-results';renderAll();});
 }
 function renderMyCounterSelectView(){
   const c=document.getElementById('calendarViewContainer');
@@ -1731,7 +1791,7 @@ function renderMyCounterSelectView(){
   const selectedEvents=events.filter(e=>state.counterSelectedIds.includes(String(e.id)));
   const selectedCount=selectedEvents.length;
   let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
-    <div class="flex items-center gap-3 mb-5"><button id="myCounterSelectBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div class="min-w-0"><h2 class="text-2xl font-extrabold tracking-tight">選擇事件</h2><p class="text-[11px] text-ink-400 mt-0.5">第三級：搜尋並選擇要${modeLabel}的事件</p></div></div>
+    <div class="flex items-center gap-3 mb-5"><button id="myCounterSelectBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div class="min-w-0"><h2 class="text-2xl font-extrabold tracking-tight">選擇事件</h2><p class="text-[11px] text-ink-400 mt-0.5">第四級：搜尋並選擇要${modeLabel}的事件</p></div></div>
 
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 mb-4 shadow-soft">
       <div class="relative"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i><input id="counterEventSearch" type="search" class="w-full pl-9 pr-3 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/50 text-sm outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900" placeholder="搜尋事件名稱，例如：生日、開會、旅行…" autocomplete="off"></div>
@@ -1815,7 +1875,7 @@ function renderMyCounterResultsView(){
   const pastItems=mode==='down'?items.filter(x=>x.diff<0).sort((a,b)=>b.diff-a.diff):[];
   const isDown=mode==='down';
   let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
-    <div class="flex items-center gap-3 mb-6"><button id="myCounterResultsBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div class="min-w-0"><h2 class="text-2xl font-extrabold tracking-tight">${isDown?'倒數':'正數'}</h2><p class="text-[11px] text-ink-400 mt-0.5">第四級：事件日數</p></div>${isDown?`<button id="counterPastBtn" class="ml-auto shrink-0 px-3 py-2 rounded-xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 text-xs font-bold">過往倒數${pastItems.length?` · ${pastItems.length}`:''}</button>`:''}</div>
+    <div class="flex items-center gap-3 mb-6"><button id="myCounterResultsBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div class="min-w-0"><h2 class="text-2xl font-extrabold tracking-tight">${isDown?'倒數':'正數'}</h2><p class="text-[11px] text-ink-400 mt-0.5">第三級：事件日數</p></div>${isDown?`<button id="counterPastBtn" class="ml-auto shrink-0 px-3 py-2 rounded-xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 text-xs font-bold">過往倒數${pastItems.length?` · ${pastItems.length}`:''}</button>`:''}</div>
     ${isDown&&pastItems.length===0?'<div class="mb-4 px-4 py-3 rounded-xl bg-ink-50 dark:bg-ink-800/60 text-xs text-ink-500 dark:text-ink-400">目前沒有已過去的倒數事件</div>':''}
     <div class="space-y-3">${displayItems.length?displayItems.map(info=>{
       let value='今天',sub='今天就是事件日';
@@ -1829,8 +1889,10 @@ function renderMyCounterResultsView(){
       return `<div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${getCat(info.evt.category).color}"></span><h3 class="font-bold text-sm truncate">${escapeHtml(info.evt.title)}</h3>${badge}</div><p class="text-[10px] text-ink-400 mt-1.5">${escapeHtml(sub)}</p></div><div class="text-xl font-extrabold tabular-nums text-brand-600 dark:text-brand-300 shrink-0">${value}</div></div></div>`;
     }).join(''):'<div class="text-center py-16 text-sm text-ink-400">目前沒有需要顯示的事件</div>'}</div>
   </div>`;
+  html+=`<button id="myCounterOpenSelectBtn" class="fixed bottom-24 right-6 md:right-8 z-40 px-5 py-3 rounded-2xl bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white text-sm font-bold shadow-glow active:scale-95 transition flex items-center gap-2"><i data-lucide="list-plus" class="w-4 h-4"></i><span>選擇事件</span></button>`;
   c.innerHTML=html;lucide.createIcons();
-  document.getElementById('myCounterResultsBackBtn').addEventListener('click',()=>{state.view='my-counter-select';renderAll();});
+  document.getElementById('myCounterResultsBackBtn').addEventListener('click',()=>{state.view='my-counter-mode';renderAll();});
+  document.getElementById('myCounterOpenSelectBtn').addEventListener('click',()=>{state.view='my-counter-select';renderAll();});
   const pastBtn=document.getElementById('counterPastBtn');if(pastBtn)pastBtn.addEventListener('click',()=>{state.view='my-counter-past';renderAll();});
 }
 function renderMyCounterPastView(){
@@ -2083,6 +2145,7 @@ function openEventModal(eventObj=null,defaultDate=null){
   if(lunar)lunar.checked=false;
   document.getElementById('eventBirthYear').value='';
   document.getElementById('eventBirthYearGregorian').value='';
+  setEventCounterModes([],false);
   if(delBtn)delBtn.classList.add('hidden');
 
   if(eventObj){
@@ -2099,6 +2162,8 @@ function openEventModal(eventObj=null,defaultDate=null){
     if(allDay)allDay.checked=!!eventObj.allDay;
     document.getElementById('eventLocation').value=eventObj.location||'';
     document.getElementById('eventDescription').value=eventObj.description||'';
+    const savedCounterModes=Array.isArray(eventObj.counterModes)?eventObj.counterModes:[];
+    setEventCounterModes(savedCounterModes,savedCounterModes.length>0);
     document.getElementById('enableReminder').checked=!!eventObj.reminder&&eventObj.reminder!=='none';
     fillReminderInputs(eventObj.reminder||'10');
     fillRecurrenceForm(eventObj.recurrence);
@@ -2316,6 +2381,10 @@ function initEventListeners(){
       if(allDayEl) allDayEl.checked=true;
     }
   }));
+  const eventCounterBtn=document.getElementById('eventCounterBtn');
+  if(eventCounterBtn)eventCounterBtn.addEventListener('click',toggleEventCounterPanel);
+  document.getElementById('eventCounterUp')?.addEventListener('change',()=>setEventCounterModes(getEventCounterModes()));
+  document.getElementById('eventCounterDown')?.addEventListener('change',()=>setEventCounterModes(getEventCounterModes()));
   const eventCategory=document.getElementById('eventCategory');
   if(eventCategory)eventCategory.addEventListener('change',e=>ensureCategoryActive(e.target.value));
   document.getElementById('eventIsLunar').addEventListener('change',()=>{updateLunarVisibility();if(document.getElementById('eventIsLunar').checked){if(!document.getElementById('eventBirthYear').value){document.getElementById('eventBirthYear').value=1990;}updateLunarPreview();}});
@@ -2424,7 +2493,8 @@ function initEventListeners(){
       description:isSpecial ? '' : document.getElementById('eventDescription').value,
       reminder: document.getElementById('enableReminder').checked ? parseReminderValue() : 'none',
       recurrence: null,
-      eventType: eventType
+      eventType: eventType,
+      counterModes: getEventCounterModes()
     };
 
     if (isSpecial) {
@@ -2441,7 +2511,12 @@ function initEventListeners(){
 
     const idx=state.events.findIndex(x=>x.id===id);
     if(idx>=0){state.events[idx]=evt;showToast('日程已更新')}else{state.events.push(evt);showToast(isSpecial?'已新增生日/紀念日':'已新增日程')}
-    
+    // 事件計日與「我的 → 事件計日」的已選事件保持同步。
+    const counterSet=new Set((state.counterSelectedIds||[]).map(String));
+    if(evt.counterModes.length) counterSet.add(String(evt.id));
+    else counterSet.delete(String(evt.id));
+    state.counterSelectedIds=Array.from(counterSet);
+    saveCounterSettings();
     saveEvents(false);
     if(window.currentUser&&typeof window.saveEventToCloud==='function'){
       try{await window.saveEventToCloud(evt);}catch(err){console.error('雲端同步事件失敗',err);showToast('已儲存本機，雲端同步失敗');}
