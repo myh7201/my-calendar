@@ -753,7 +753,7 @@
 
   let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],folders:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],pendingIcsFileName:'',drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60,dateToolLevel:'menu',dateCalcDirection:'after',dateCalcResult:null,dateIntervalResult:null};
   window.state=state;
-  const _counterSettings=loadCounterSettings();state.counterMode=_counterSettings.mode;state.counterSelectedIds=_counterSettings.selectedIds;
+  const _counterSettings=loadCounterSettings();state.counterMode=_counterSettings.mode;state.counterSelectedIdsByMode=_counterSettings.selectedIdsByMode;state.counterSelectedIds=_counterSettings.selectedIds;
   let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
 
   function loadCategories(){try{const s=localStorage.getItem(CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a}}catch(e){}return DEFAULT_CATEGORIES.map(c=>({...c}))}
@@ -1704,10 +1704,35 @@
   let counterSettingsRetryTimer=null;
   let counterSettingsLastError='';
 
-  function getCounterSettingsSnapshot(){
+  function normalizeCounterSelectedIdsByMode(value){
+    const src=value&&typeof value==='object'?value:{};
     return {
-      mode:state.counterMode==='up'||state.counterMode==='down'?state.counterMode:null,
-      selectedIds:Array.from(new Set((state.counterSelectedIds||[]).map(String)))
+      up:Array.from(new Set(Array.isArray(src.up)?src.up.map(String):[])),
+      down:Array.from(new Set(Array.isArray(src.down)?src.down.map(String):[]))
+    };
+  }
+  function getCounterSelectedIds(mode){
+    const m=mode==='up'?'up':'down';
+    if(state.counterSelectedIdsByMode&&typeof state.counterSelectedIdsByMode==='object'){
+      return Array.from(new Set((state.counterSelectedIdsByMode[m]||[]).map(String)));
+    }
+    return Array.from(new Set((state.counterSelectedIds||[]).map(String)));
+  }
+  function setCounterSelectedIds(mode,ids){
+    const m=mode==='up'?'up':'down';
+    const next=Array.from(new Set((Array.isArray(ids)?ids:[]).map(String)));
+    if(!state.counterSelectedIdsByMode||typeof state.counterSelectedIdsByMode!=='object')state.counterSelectedIdsByMode={up:[],down:[]};
+    state.counterSelectedIdsByMode[m]=next;
+    // 保留舊欄位作為相容快取：它只代表目前模式。
+    state.counterSelectedIds=next.slice();
+  }
+  function getCounterSettingsSnapshot(){
+    const selectedIdsByMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);
+    const currentMode=state.counterMode==='up'||state.counterMode==='down'?state.counterMode:null;
+    return {
+      mode:currentMode,
+      selectedIds:Array.from(new Set((selectedIdsByMode[currentMode]||[]).map(String))),
+      selectedIdsByMode
     };
   }
 
@@ -1718,13 +1743,16 @@
   function loadCounterSettings(){
     try{
       const raw=localStorage.getItem(COUNTER_KEY);
-      if(!raw)return {mode:null,selectedIds:[]};
+      if(!raw)return {mode:null,selectedIds:[],selectedIdsByMode:{up:[],down:[]}};
       const data=JSON.parse(raw)||{};
-      return {
-        mode:data.mode==='up'||data.mode==='down'?data.mode:null,
-        selectedIds:Array.isArray(data.selectedIds)?Array.from(new Set(data.selectedIds.map(String))):[]
-      };
-    }catch(e){return {mode:null,selectedIds:[]};}
+      const mode=data.mode==='up'||data.mode==='down'?data.mode:null;
+      const byMode=normalizeCounterSelectedIdsByMode(data.selectedIdsByMode);
+      // 舊版本只有 selectedIds：把它遷移到當時的模式，避免資料遺失。
+      if(!byMode.up.length&&!byMode.down.length&&Array.isArray(data.selectedIds)&&mode){
+        byMode[mode]=Array.from(new Set(data.selectedIds.map(String)));
+      }
+      return {mode,selectedIds:Array.from(new Set((byMode[mode]||[]).map(String))),selectedIdsByMode:byMode};
+    }catch(e){return {mode:null,selectedIds:[],selectedIdsByMode:{up:[],down:[]}};}
   }
 
   function setCounterSyncStatus(status,error){
@@ -1779,23 +1807,37 @@
       let data=result.data||{};
       const local=loadCounterSettings();
       const hasMode=data.counterMode==='up'||data.counterMode==='down';
+      const hasSelectedByMode=data&&data.selectedIdsByMode&&typeof data.selectedIdsByMode==='object';
       const hasSelected=Array.isArray(data.counterSelectedIds);
+      let selectedIdsByMode=hasSelectedByMode?normalizeCounterSelectedIdsByMode(data.selectedIdsByMode):normalizeCounterSelectedIdsByMode(local.selectedIdsByMode);
 
       if(hasMode)state.counterMode=data.counterMode;
-      if(hasSelected)state.counterSelectedIds=Array.from(new Set(data.counterSelectedIds.map(String)));
+      if(hasSelectedByMode){
+        state.counterSelectedIdsByMode=selectedIdsByMode;
+      }else if(hasSelected){
+        const legacyMode=hasMode?data.counterMode:(state.counterMode==='up'||state.counterMode==='down'?state.counterMode:null);
+        if(legacyMode)selectedIdsByMode[legacyMode]=Array.from(new Set(data.counterSelectedIds.map(String)));
+        state.counterSelectedIdsByMode=selectedIdsByMode;
+      }else{
+        state.counterSelectedIdsByMode=selectedIdsByMode;
+      }
+      state.counterSelectedIds=getCounterSelectedIds(state.counterMode);
 
       // 新文件沒有資料時，兼容上一版寫在 userSettings/{uid} 的資料。
-      if(!hasMode&&!hasSelected){
+      if(!hasMode&&!hasSelectedByMode&&!hasSelected){
         const old=await window.__counterCloud.readLegacyUserSettings(user.uid);
         const oldData=old.data||{};
         const legacyMode=oldData.counterMode==='up'||oldData.counterMode==='down';
         const legacyIds=Array.isArray(oldData.counterSelectedIds)?Array.from(new Set(oldData.counterSelectedIds.map(String))):[];
         const initialMode=legacyMode?oldData.counterMode:local.mode;
-        const initialIds=Array.isArray(oldData.counterSelectedIds)?legacyIds:local.selectedIds;
-        if(initialMode||initialIds.length){
-          await window.__counterCloud.write(user.uid,{counterMode:initialMode||null,counterSelectedIds:initialIds,counterSettingsUpdatedAt:true});
+        const initialByMode=normalizeCounterSelectedIdsByMode(local.selectedIdsByMode);
+        if(legacyMode)initialByMode[legacyMode]=legacyIds;
+        else if(local.mode)initialByMode[local.mode]=local.selectedIds;
+        if(initialMode||initialByMode.up.length||initialByMode.down.length){
+          await window.__counterCloud.write(user.uid,{counterMode:initialMode||null,counterSelectedIds:Array.from(new Set((initialByMode[initialMode]||[]).map(String))),selectedIdsByMode:initialByMode,counterSettingsUpdatedAt:true});
           state.counterMode=initialMode||null;
-          state.counterSelectedIds=initialIds;
+          state.counterSelectedIdsByMode=initialByMode;
+          state.counterSelectedIds=getCounterSelectedIds(state.counterMode);
         }
       }
 
@@ -1818,16 +1860,23 @@
     if(counterSettingsSyncUnsubscribe){counterSettingsSyncUnsubscribe();counterSettingsSyncUnsubscribe=null;}
     counterSettingsSyncUnsubscribe=window.__counterCloud.listen(user.uid,(data)=>{
       const hasMode=data&& (data.counterMode==='up'||data.counterMode==='down');
+      const hasSelectedByMode=!!(data&&data.selectedIdsByMode&&typeof data.selectedIdsByMode==='object');
       const hasSelected=!!(data&&Array.isArray(data.counterSelectedIds));
-      if(!hasMode&&!hasSelected){setCounterSyncStatus('synced');return;}
+      if(!hasMode&&!hasSelectedByMode&&!hasSelected){setCounterSyncStatus('synced');return;}
       const nextMode=hasMode?data.counterMode:state.counterMode;
-      const nextIds=hasSelected?Array.from(new Set(data.counterSelectedIds.map(String))):Array.from(new Set((state.counterSelectedIds||[]).map(String)));
-      const changed=nextMode!==state.counterMode||JSON.stringify(nextIds)!==JSON.stringify((state.counterSelectedIds||[]).map(String));
+      const nextByMode=hasSelectedByMode?normalizeCounterSelectedIdsByMode(data.selectedIdsByMode):normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);
+      if(!hasSelectedByMode&&hasSelected){
+        const legacyMode=hasMode?nextMode:state.counterMode;
+        if(legacyMode)nextByMode[legacyMode]=Array.from(new Set(data.counterSelectedIds.map(String)));
+      }
+      const nextIds=Array.from(new Set((nextByMode[nextMode]||[]).map(String)));
+      const changed=nextMode!==state.counterMode||JSON.stringify(nextByMode)!==JSON.stringify(normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode));
       if(changed){
         counterSettingsApplyingCloud=true;
         try{
           if(hasMode)state.counterMode=nextMode;
-          if(hasSelected)state.counterSelectedIds=nextIds;
+          state.counterSelectedIdsByMode=nextByMode;
+          state.counterSelectedIds=nextIds;
           writeCounterSettingsLocal();
           if(typeof window.renderAll==='function')window.renderAll();
         }finally{counterSettingsApplyingCloud=false;}
@@ -1848,9 +1897,11 @@
     if(!targetUid)throw new Error('未登入');
     if(!window.__counterCloud)throw new Error('Firebase 計日同步橋接尚未準備完成');
     const p=payload||getCounterSettingsSnapshot();
-    const cleanIds=Array.from(new Set((p.selectedIds||[]).map(String)));
-    await window.__counterCloud.write(targetUid,{counterMode:p.mode||null,counterSelectedIds:cleanIds,counterSettingsUpdatedAt:true});
-    console.log('☁️ 事件計日設定已同步',targetUid,{mode:p.mode,selectedIds:cleanIds});
+    const byMode=normalizeCounterSelectedIdsByMode(p.selectedIdsByMode);
+    const mode=p.mode==='up'||p.mode==='down'?p.mode:null;
+    const cleanIds=Array.from(new Set((byMode[mode]||p.selectedIds||[]).map(String)));
+    await window.__counterCloud.write(targetUid,{counterMode:mode,counterSelectedIds:cleanIds,selectedIdsByMode:byMode,counterSettingsUpdatedAt:true});
+    console.log('☁️ 事件計日設定已同步',targetUid,{mode,selectedIds:cleanIds,selectedIdsByMode:byMode});
   };
 
   window.stopCounterSettingsSync=function(){
@@ -1871,9 +1922,13 @@
 
   function removeCounterSelectionForIds(ids){
     const removeSet=new Set((Array.isArray(ids)?ids:[ids]).map(String));
-    const current=Array.isArray(state.counterSelectedIds)?state.counterSelectedIds.map(String):[];
-    const next=current.filter(id=>!removeSet.has(id));
-    if(next.length!==current.length){state.counterSelectedIds=next;saveCounterSettings();}
+    const byMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);
+    let changed=false;
+    ['up','down'].forEach(mode=>{
+      const next=byMode[mode].filter(id=>!removeSet.has(id));
+      if(next.length!==byMode[mode].length){byMode[mode]=next;changed=true;}
+    });
+    if(changed){state.counterSelectedIdsByMode=byMode;state.counterSelectedIds=getCounterSelectedIds(state.counterMode);saveCounterSettings();}
   }
   function counterDayStamp(d){const x=new Date(d);return Date.UTC(x.getFullYear(),x.getMonth(),x.getDate());}
   function counterDiffDays(from,to){return Math.round((counterDayStamp(to)-counterDayStamp(from))/86400000);}
@@ -1927,16 +1982,24 @@
     return age?`${evt.title} · ${age}`:evt.title;
   }
   function getCounterSelectedEvents(mode){
-    const ids=new Set((state.counterSelectedIds||[]).map(String));
-    return state.events.filter(e=>e&&ids.has(String(e.id))).map(e=>getCounterEventInfo(e,mode)).filter(Boolean);
+    const ids=new Set(getCounterSelectedIds(mode));
+    return state.events
+      .filter(e=>{
+        if(!e || !ids.has(String(e.id))) return false;
+        const modes=Array.isArray(e.counterModes)?e.counterModes:[];
+        // 只顯示目前模式已啟用的事件，避免正數／倒數互相串到同一頁。
+        return modes.includes(mode);
+      })
+      .map(e=>getCounterEventInfo(e,mode))
+      .filter(Boolean);
   }
   function renderMyCounterModeView(){
     const c=document.getElementById('calendarViewContainer');
     let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
       <div class="flex items-center gap-3 mb-6"><button id="myCounterBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div><h2 class="text-2xl font-extrabold tracking-tight">事件計日</h2><p class="text-[11px] text-ink-400 mt-0.5">第二級：選擇正數或倒數</p></div></div>
-      <div class="space-y-3">
-        <button id="counterUpBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border ${state.counterMode==='up'?'border-brand-500 ring-2 ring-brand-100 dark:ring-brand-950/40':''} border-ink-200/70 dark:border-ink-800/70 p-5 shadow-soft flex items-center justify-between text-left"><span class="flex items-center gap-3"><span class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><i data-lucide="arrow-up-right" class="w-5 h-5"></i></span><span><span class="block text-base font-bold">正數</span><span class="block text-xs text-ink-400 mt-1">從事件發生日起，計算已經過了多少日</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
-        <button id="counterDownBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border ${state.counterMode==='down'?'border-brand-500 ring-2 ring-brand-100 dark:ring-brand-950/40':''} border-ink-200/70 dark:border-ink-800/70 p-5 shadow-soft flex items-center justify-between text-left"><span class="flex items-center gap-3"><span class="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="arrow-down-right" class="w-5 h-5"></i></span><span><span class="block text-base font-bold">倒數</span><span class="block text-xs text-ink-400 mt-1">計算距離事件還有多少日</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+      <div class="mb-3 px-4 py-3 rounded-xl bg-ink-50 dark:bg-ink-800/60 text-xs text-ink-500 dark:text-ink-400">正數與倒數的選擇會分開記住。切換模式不會清掉另一邊已選的事件。</div><div class="space-y-3">
+        <button id="counterUpBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border ${state.counterMode==='up'?'border-brand-500 ring-2 ring-brand-100 dark:ring-brand-950/40':''} border-ink-200/70 dark:border-ink-800/70 p-5 shadow-soft flex items-center justify-between text-left"><span class="flex items-center gap-3"><span class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><i data-lucide="arrow-up-right" class="w-5 h-5"></i></span><span><span class="block text-base font-bold">正數 <span class="text-xs font-semibold text-brand-600 dark:text-brand-300">${getCounterSelectedIds('up').length} 個</span></span><span class="block text-xs text-ink-400 mt-1">從事件發生日起，計算已經過了多少日</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
+        <button id="counterDownBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border ${state.counterMode==='down'?'border-brand-500 ring-2 ring-brand-100 dark:ring-brand-950/40':''} border-ink-200/70 dark:border-ink-800/70 p-5 shadow-soft flex items-center justify-between text-left"><span class="flex items-center gap-3"><span class="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="arrow-down-right" class="w-5 h-5"></i></span><span><span class="block text-base font-bold">倒數 <span class="text-xs font-semibold text-brand-600 dark:text-brand-300">${getCounterSelectedEvents('down').filter(x=>x.diff>=0).length} 個</span></span><span class="block text-xs text-ink-400 mt-1">計算距離事件還有多少日</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
       </div>
     </div>`;
     c.innerHTML=html;lucide.createIcons();
@@ -1946,20 +2009,25 @@
   }
   function renderMyCounterSelectView(){
     const c=document.getElementById('calendarViewContainer');
-    const ids=new Set((state.counterSelectedIds||[]).map(String));
+    const mode=state.counterMode==='up'?'up':'down';
+    const ids=new Set(getCounterSelectedIds(mode));
     const events=state.events.filter(e=>e&&e.start&&!isNaN(new Date(e.start).getTime())).slice().sort((a,b)=>new Date(a.start)-new Date(b.start));
     // 不在這裡清除已選 ID：登入初期事件清單可能尚未收到 Firestore snapshot，
     // 若此時過濾會把雲端選取項目誤刪掉。真正刪除事件時由 removeCounterSelectionForIds() 清理。
-    const modeLabel=state.counterMode==='up'?'正數':'倒數';
+    const modeLabel=mode==='up'?'正數':'倒數';
     const syncStatus=window.counterSettingsSyncStatus||'offline';
-    const selectedEvents=events.filter(e=>state.counterSelectedIds.includes(String(e.id)));
+    // 選擇事件時也依目前模式篩選，避免在「倒數」頁選到只設定為「正數」的事件。
+    const selectedEvents=events.filter(e=>{
+      const modes=Array.isArray(e.counterModes)?e.counterModes:[];
+      return modes.includes(mode);
+    }).filter(e=>ids.has(String(e.id)));
     const selectedCount=selectedEvents.length;
     let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
       <div class="flex items-center gap-3 mb-5"><button id="myCounterSelectBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div class="min-w-0"><h2 class="text-2xl font-extrabold tracking-tight">選擇事件</h2><p class="text-[11px] text-ink-400 mt-0.5">第四級：搜尋並選擇要${modeLabel}的事件</p></div></div>
 
       <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 mb-4 shadow-soft">
         <div class="relative"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i><input id="counterEventSearch" type="search" class="w-full pl-9 pr-3 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/50 text-sm outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900" placeholder="搜尋事件名稱，例如：生日、開會、旅行…" autocomplete="off"></div>
-        <p class="text-[10px] text-ink-400 mt-2">請輸入事件名稱後再選擇；不會一次列出全部事件。</p>
+        <p class="text-[10px] text-ink-400 mt-2">只會搜尋已啟用「${modeLabel}」的事件；正數與倒數各自記住選取清單。</p>
       </div>
 
       <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 mb-4 shadow-soft">
@@ -1981,8 +2049,8 @@
     const resultsBox=document.getElementById('counterSearchResults');
 
     const updateSelectedUI=()=>{
-      const currentIds=new Set((state.counterSelectedIds||[]).map(String));
-      const selected=events.filter(e=>currentIds.has(String(e.id)));
+      const currentIds=new Set(getCounterSelectedIds(mode));
+      const selected=events.filter(e=>currentIds.has(String(e.id)) && (Array.isArray(e.counterModes)?e.counterModes:[]).includes(mode));
       const countEl=document.getElementById('counterSelectedCount');
       const hintEl=document.getElementById('counterSelectedHint');
       const chipsEl=document.getElementById('counterSelectedChips');
@@ -1995,17 +2063,19 @@
       renderEventList();
     };
     const toggleEvent=id=>{
-      const set=new Set((state.counterSelectedIds||[]).map(String));
+      const set=new Set(getCounterSelectedIds(mode));
       const key=String(id);
       if(set.has(key))set.delete(key);else set.add(key);
-      state.counterSelectedIds=Array.from(set);saveCounterSettings();updateSelectedUI();
+      setCounterSelectedIds(mode,Array.from(set));saveCounterSettings();updateSelectedUI();
     };
     const renderEventList=()=>{
       const q=(searchInput?.value||'').trim().toLowerCase();
       if(!q){resultsBox.classList.add('hidden');list.innerHTML='';return;}
       resultsBox.classList.remove('hidden');
-      const currentIds=new Set((state.counterSelectedIds||[]).map(String));
+      const currentIds=new Set(getCounterSelectedIds(mode));
       const visible=events.filter(evt=>{
+        const modes=Array.isArray(evt.counterModes)?evt.counterModes:[];
+        if(!modes.includes(mode))return false;
         const label=counterEventLabel(evt);
         return String(evt.title||'').toLowerCase().includes(q)||String(label||'').toLowerCase().includes(q);
       });
@@ -2026,7 +2096,7 @@
     document.getElementById('myCounterSelectBackBtn').addEventListener('click',()=>{state.view='my-counter-mode';renderAll();});
     searchInput?.addEventListener('input',renderEventList);
     document.getElementById('counterSelectContinueBtn').addEventListener('click',()=>{
-      if(!(state.counterSelectedIds||[]).length){showToast('請至少選擇一個事件');return;}
+      if(!getCounterSelectedIds(mode).length){showToast('請至少選擇一個事件');return;}
       state.view='my-counter-results';renderAll();
     });
     updateSelectedUI();
@@ -2044,8 +2114,10 @@
     const c=document.getElementById('calendarViewContainer');
     const mode=state.counterMode==='up'?'up':'down';
     const items=getCounterSelectedEvents(mode);
+    // 倒數的主頁只統計「尚未到期」的事件；已過期事件完全移到「過往倒數」，不佔用倒數中的數量。
     const displayItems=mode==='down'?items.filter(x=>x.diff>=0):items;
     const pastItems=mode==='down'?items.filter(x=>x.diff<0).sort((a,b)=>b.diff-a.diff):[];
+    const activeItems=mode==='down'?displayItems:items;
     const isDown=mode==='down';
     let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
       <div class="flex items-center gap-3 mb-6"><button id="myCounterResultsBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div class="min-w-0"><h2 class="text-2xl font-extrabold tracking-tight">${isDown?'倒數':'正數'}</h2><p class="text-[11px] text-ink-400 mt-0.5">第三級：事件日數 <span id="counterSyncIndicator" class="ml-1" title="事件計日雲端同步狀態">☁️</span></p></div>${isDown?`<button id="counterPastBtn" class="ml-auto shrink-0 px-3 py-2 rounded-xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 text-xs font-bold">過往倒數${pastItems.length?` · ${pastItems.length}`:''}</button>`:''}</div>
@@ -2680,12 +2752,23 @@
       }
 
       const idx=state.events.findIndex(x=>x.id===id);
+      const previousEvt=idx>=0?state.events[idx]:null;
       if(idx>=0){state.events[idx]=evt;showToast('日程已更新')}else{state.events.push(evt);showToast(isSpecial?'已新增生日/紀念日':'已新增日程')}
-      // 事件計日與「我的 → 事件計日」的已選事件保持同步。
-      const counterSet=new Set((state.counterSelectedIds||[]).map(String));
-      if(evt.counterModes.length) counterSet.add(String(evt.id));
-      else counterSet.delete(String(evt.id));
-      state.counterSelectedIds=Array.from(counterSet);
+      // 事件計日設定分成「事件可用模式」與「各模式已選事件」兩層。
+      // 編輯事件時：停用某模式就從該模式移除；新啟用的模式沿用原本行為自動加入。
+      const previousModes=Array.isArray(previousEvt?.counterModes)?previousEvt.counterModes:[];
+      const byMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);
+      ['up','down'].forEach(mode=>{
+        const set=new Set(byMode[mode]);
+        if(evt.counterModes.includes(mode)){
+          if(!previousEvt || !previousModes.includes(mode))set.add(String(evt.id));
+        }else{
+          set.delete(String(evt.id));
+        }
+        byMode[mode]=Array.from(set);
+      });
+      state.counterSelectedIdsByMode=byMode;
+      state.counterSelectedIds=getCounterSelectedIds(state.counterMode);
       saveCounterSettings();
       saveEvents(false);
       if(window.currentUser&&typeof window.saveEventToCloud==='function'){
@@ -2711,8 +2794,8 @@
     showToast('日程已刪除');closeEventModal();renderAll();
   });
     document.getElementById('closeDataModalBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.add('hidden')});
-    document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:2,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events,tasks:state.tasks,notes:state.notes,folders:state.folders,counterMode:state.counterMode,counterSelectedIds:state.counterSelectedIds||[]};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔');});
-    document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);if(data&&Array.isArray(data.events)){state.events=data.events;}if(data&&Array.isArray(data.tasks)){state.tasks=data.tasks;}if(data&&Array.isArray(data.notes)){state.notes=data.notes;}if(data&&Array.isArray(data.categories)){state.categories=data.categories;}if(data&&Array.isArray(data.activeCategories)){state.activeCategories=data.activeCategories;}if(data&&Array.isArray(data.folders)){state.folders=data.folders;}if(data&&(data.counterMode==='up'||data.counterMode==='down'))state.counterMode=data.counterMode;if(data&&Array.isArray(data.counterSelectedIds))state.counterSelectedIds=Array.from(new Set(data.counterSelectedIds.map(String)));saveCounterSettings();saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value='';});
+    document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:3,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events,tasks:state.tasks,notes:state.notes,folders:state.folders,counterMode:state.counterMode,counterSelectedIds:getCounterSelectedIds(state.counterMode),selectedIdsByMode:normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode)};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔');});
+    document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);if(data&&Array.isArray(data.events)){state.events=data.events;}if(data&&Array.isArray(data.tasks)){state.tasks=data.tasks;}if(data&&Array.isArray(data.notes)){state.notes=data.notes;}if(data&&Array.isArray(data.categories)){state.categories=data.categories;}if(data&&Array.isArray(data.activeCategories)){state.activeCategories=data.activeCategories;}if(data&&Array.isArray(data.folders)){state.folders=data.folders;}if(data&&(data.counterMode==='up'||data.counterMode==='down'))state.counterMode=data.counterMode;if(data&&data.selectedIdsByMode&&typeof data.selectedIdsByMode==='object')state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(data.selectedIdsByMode);else if(data&&Array.isArray(data.counterSelectedIds)){state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);if(state.counterMode)state.counterSelectedIdsByMode[state.counterMode]=Array.from(new Set(data.counterSelectedIds.map(String)));}state.counterSelectedIds=getCounterSelectedIds(state.counterMode);saveCounterSettings();saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value='';});
     document.getElementById('resetDemoBtn').addEventListener('click',async()=>{
     if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。'))return;
     if(window.currentUser && typeof window.deleteEventFromCloud === 'function'){
@@ -2720,7 +2803,7 @@
         try{ await window.deleteEventFromCloud(e.id); }catch(err){ console.error(err); }
       }
     }
-    state.events=[];removeCounterSelectionForIds(Array.from(state.counterSelectedIds||[]));saveEvents();renderAll();showToast('已清空所有日程');
+    state.events=[];state.counterSelectedIdsByMode={up:[],down:[]};state.counterSelectedIds=[];saveCounterSettings();saveEvents();renderAll();showToast('已清空所有日程');
     document.getElementById('dataModal').classList.add('hidden');
   });
     document.getElementById('closeIcsModalBtn').addEventListener('click',closeIcsModal);
@@ -2874,7 +2957,7 @@
         const sc=localStorage.getItem('calendar_categories_v1');try{window.state.categories=sc?JSON.parse(sc):[]}catch(e){}
         const st=localStorage.getItem('calendar_tasks_v1');try{window.state.tasks=st?JSON.parse(st):[]}catch(e){window.state.tasks=[]}
         const sn=localStorage.getItem('calendar_notes_v1');try{window.state.notes=sn?JSON.parse(sn):[]}catch(e){window.state.notes=[]}
-        const cs=loadCounterSettings();window.state.counterMode=cs.mode;window.state.counterSelectedIds=cs.selectedIds;
+        const cs=loadCounterSettings();window.state.counterMode=cs.mode;window.state.counterSelectedIdsByMode=cs.selectedIdsByMode;window.state.counterSelectedIds=cs.selectedIds;
         if(typeof window.renderCategories==='function')window.renderCategories();
         if(typeof window.renderAll==='function')window.renderAll();
       }
