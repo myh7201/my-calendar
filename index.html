@@ -1694,11 +1694,11 @@
   function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3 h-3 opacity-50"></i>':'';const timeStr=evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;return `<div class="schedule-card" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap">${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();setTimeout(()=>{const el=document.getElementById('todayScheduleItem');if(el)el.scrollIntoView({behavior:'auto',block:'start'})},100);}
 
 
-  // 事件計日設定：localStorage 作為快取，登入後以 Firestore userSettings/{uid} 為跨裝置真實來源。
+  // 事件計日設定：Firestore userSettings/{uid} 為唯一雲端來源；localStorage 僅作快取。
   let counterSettingsSyncUnsubscribe=null;
-  let counterSettingsSaveTimer=null;
-  let counterSettingsSyncReady=false;
+  let counterSettingsSaveChain=Promise.resolve();
   let counterSettingsApplyingCloud=false;
+  let counterSettingsSyncReady=false;
 
   function getCounterSettingsSnapshot(){
     return {
@@ -1720,40 +1720,43 @@
     }catch(e){return {mode:null,selectedIds:[]};}
   }
 
+  // 使用序列化寫入，避免快速切換正數/倒數或快速勾選時，較舊的非同步寫入覆蓋新值。
   function saveCounterSettings(){
     writeCounterSettingsLocal();
-    // 避免每一次勾選都產生大量 Firestore 寫入；短暫 debounce 後寫入即可。
-    if(window.currentUser && typeof window.saveCounterSettingsToCloud==='function' && !counterSettingsApplyingCloud){
-      clearTimeout(counterSettingsSaveTimer);
-      counterSettingsSaveTimer=setTimeout(()=>{
-        window.saveCounterSettingsToCloud().catch(e=>console.error('事件計日設定雲端同步失敗:',e));
-      },250);
-    }
+    if(!window.currentUser || typeof window.saveCounterSettingsToCloud!=='function' || counterSettingsApplyingCloud)return;
+    const uid=window.currentUser.uid;
+    const payload=getCounterSettingsSnapshot();
+    counterSettingsSaveChain=counterSettingsSaveChain.then(()=>window.saveCounterSettingsToCloud(payload,uid)).catch(e=>{
+      console.error('事件計日設定雲端同步失敗:',e);
+      if(typeof window.showToast==='function')window.showToast('⚠️ 事件計日尚未同步，將在網路恢復後重試');
+      throw e;
+    });
   }
 
   async function loadCounterSettingsFromCloud(){
-    if(!window.currentUser)return;
+    const user=window.currentUser;
+    if(!user)return;
     try{
-      const ref=doc(db,'userSettings',window.currentUser.uid);
+      const ref=doc(db,'userSettings',user.uid);
       const snap=await getDoc(ref);
-      const data=snap.exists()?snap.data():{};
+      const data=snap.exists()?snap.data()||{}:{};
       const hasCloudMode=data.counterMode==='up'||data.counterMode==='down';
       const hasCloudSelected=Array.isArray(data.counterSelectedIds);
-      const local=getCounterSettingsSnapshot();
+      const local=loadCounterSettings();
 
-      // 第一次升級時只在雲端尚未有欄位的情況下搬移本機設定，
-      // 絕不讓另一台裝置的舊 localStorage 蓋掉已存在的雲端設定。
+      // 只有雲端欄位不存在時才把舊裝置 localStorage 搬上雲端。
+      // 一旦雲端已有值，絕不讓另一台裝置的舊快取覆蓋雲端。
       const patch={};
-      if(hasCloudMode) state.counterMode=data.counterMode;
-      else if(local.mode) patch.counterMode=local.mode;
+      if(hasCloudMode)state.counterMode=data.counterMode;
+      else if(local.mode)patch.counterMode=local.mode;
 
-      if(hasCloudSelected) state.counterSelectedIds=Array.from(new Set(data.counterSelectedIds.map(String)));
-      else if(local.selectedIds.length) patch.counterSelectedIds=local.selectedIds;
+      if(hasCloudSelected)state.counterSelectedIds=Array.from(new Set(data.counterSelectedIds.map(String)));
+      else if(local.selectedIds.length)patch.counterSelectedIds=local.selectedIds;
 
       if(Object.keys(patch).length){
-        await setDoc(ref,patch,{merge:true});
-        if(!hasCloudMode && patch.counterMode) state.counterMode=patch.counterMode;
-        if(!hasCloudSelected && patch.counterSelectedIds) state.counterSelectedIds=patch.counterSelectedIds;
+        await setDoc(ref,{...patch,counterSettingsUpdatedAt:serverTimestamp()},{merge:true});
+        if(!hasCloudMode && patch.counterMode)state.counterMode=patch.counterMode;
+        if(!hasCloudSelected && patch.counterSelectedIds)state.counterSelectedIds=patch.counterSelectedIds;
       }
 
       writeCounterSettingsLocal();
@@ -1761,27 +1764,26 @@
       if(typeof window.renderAll==='function')window.renderAll();
     }catch(e){
       console.error('載入事件計日設定失敗:',e);
-      // 雲端暫時不可用時保留本機快取，不阻塞整個日曆。
-      counterSettingsSyncReady=true;
+      counterSettingsSyncReady=false;
+      if(typeof window.showToast==='function')window.showToast('⚠️ 無法讀取事件計日雲端設定，請檢查登入與網路');
     }
   }
 
   function startListeningCounterSettings(){
-    if(!window.currentUser)return;
+    const user=window.currentUser;
+    if(!user)return;
     if(counterSettingsSyncUnsubscribe){counterSettingsSyncUnsubscribe();counterSettingsSyncUnsubscribe=null;}
-    const ref=doc(db,'userSettings',window.currentUser.uid);
+    const ref=doc(db,'userSettings',user.uid);
     counterSettingsSyncUnsubscribe=onSnapshot(ref,snap=>{
       if(!snap.exists())return;
       const data=snap.data()||{};
       const hasMode=data.counterMode==='up'||data.counterMode==='down';
       const hasSelected=Array.isArray(data.counterSelectedIds);
-      if(!hasMode && !hasSelected)return;
-
+      if(!hasMode&&!hasSelected)return;
       const nextMode=hasMode?data.counterMode:state.counterMode;
-      const nextIds=hasSelected?Array.from(new Set(data.counterSelectedIds.map(String))):state.counterSelectedIds||[];
-      const changed=nextMode!==state.counterMode || JSON.stringify(nextIds)!==JSON.stringify((state.counterSelectedIds||[]).map(String));
+      const nextIds=hasSelected?Array.from(new Set(data.counterSelectedIds.map(String))):Array.from(new Set((state.counterSelectedIds||[]).map(String)));
+      const changed=nextMode!==state.counterMode||JSON.stringify(nextIds)!==JSON.stringify((state.counterSelectedIds||[]).map(String));
       if(!changed)return;
-
       counterSettingsApplyingCloud=true;
       try{
         if(hasMode)state.counterMode=nextMode;
@@ -1789,22 +1791,35 @@
         writeCounterSettingsLocal();
         if(typeof window.renderAll==='function')window.renderAll();
       }finally{counterSettingsApplyingCloud=false;}
-    },err=>console.error('監聽事件計日設定失敗:',err));
+    },err=>{
+      console.error('監聽事件計日設定失敗:',err);
+      if(typeof window.showToast==='function')window.showToast('⚠️ 事件計日雲端監聽失敗');
+    });
   }
 
-  window.saveCounterSettingsToCloud=async function(){
-    if(!window.currentUser)return;
-    const payload=getCounterSettingsSnapshot();
-    await setDoc(doc(db,'userSettings',window.currentUser.uid),{
-      counterMode:payload.mode,
-      counterSelectedIds:payload.selectedIds
+  window.saveCounterSettingsToCloud=async function(payload,uid){
+    const targetUid=uid||(window.currentUser&&window.currentUser.uid);
+    if(!targetUid)throw new Error('未登入');
+    const p=payload||getCounterSettingsSnapshot();
+    await setDoc(doc(db,'userSettings',targetUid),{
+      counterMode:p.mode,
+      counterSelectedIds:Array.from(new Set((p.selectedIds||[]).map(String))),
+      counterSettingsUpdatedAt:serverTimestamp()
     },{merge:true});
+    console.log('☁️ 事件計日設定已同步',targetUid,p);
   };
 
   window.stopCounterSettingsSync=function(){
-    if(counterSettingsSaveTimer){clearTimeout(counterSettingsSaveTimer);counterSettingsSaveTimer=null;}
     if(counterSettingsSyncUnsubscribe){counterSettingsSyncUnsubscribe();counterSettingsSyncUnsubscribe=null;}
     counterSettingsSyncReady=false;
+  };
+
+  window.flushCounterSettingsToCloud=async function(){
+    if(!window.currentUser)return;
+    const payload=getCounterSettingsSnapshot();
+    const uid=window.currentUser.uid;
+    counterSettingsSaveChain=counterSettingsSaveChain.then(()=>window.saveCounterSettingsToCloud(payload,uid));
+    await counterSettingsSaveChain;
   };
 
   function removeCounterSelectionForIds(ids){
@@ -1886,8 +1901,8 @@
     const c=document.getElementById('calendarViewContainer');
     const ids=new Set((state.counterSelectedIds||[]).map(String));
     const events=state.events.filter(e=>e&&e.start&&!isNaN(new Date(e.start).getTime())).slice().sort((a,b)=>new Date(a.start)-new Date(b.start));
-    // 清理已被刪除的事件，避免計日頁面保留失效選項。
-    state.counterSelectedIds=Array.from(ids).filter(id=>events.some(e=>String(e.id)===id));
+    // 不在這裡清除已選 ID：登入初期事件清單可能尚未收到 Firestore snapshot，
+    // 若此時過濾會把雲端選取項目誤刪掉。真正刪除事件時由 removeCounterSelectionForIds() 清理。
     const modeLabel=state.counterMode==='up'?'正數':'倒數';
     const selectedEvents=events.filter(e=>state.counterSelectedIds.includes(String(e.id)));
     const selectedCount=selectedEvents.length;
@@ -2639,8 +2654,8 @@
     showToast('日程已刪除');closeEventModal();renderAll();
   });
     document.getElementById('closeDataModalBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.add('hidden')});
-    document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:1,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events,tasks:state.tasks,notes:state.notes,folders:state.folders};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔');});
-    document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);if(data&&Array.isArray(data.events)){state.events=data.events;}if(data&&Array.isArray(data.tasks)){state.tasks=data.tasks;}if(data&&Array.isArray(data.notes)){state.notes=data.notes;}if(data&&Array.isArray(data.categories)){state.categories=data.categories;}if(data&&Array.isArray(data.activeCategories)){state.activeCategories=data.activeCategories;}if(data&&Array.isArray(data.folders)){state.folders=data.folders;}saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value='';});
+    document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:2,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events,tasks:state.tasks,notes:state.notes,folders:state.folders,counterMode:state.counterMode,counterSelectedIds:state.counterSelectedIds||[]};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔');});
+    document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);if(data&&Array.isArray(data.events)){state.events=data.events;}if(data&&Array.isArray(data.tasks)){state.tasks=data.tasks;}if(data&&Array.isArray(data.notes)){state.notes=data.notes;}if(data&&Array.isArray(data.categories)){state.categories=data.categories;}if(data&&Array.isArray(data.activeCategories)){state.activeCategories=data.activeCategories;}if(data&&Array.isArray(data.folders)){state.folders=data.folders;}if(data&&(data.counterMode==='up'||data.counterMode==='down'))state.counterMode=data.counterMode;if(data&&Array.isArray(data.counterSelectedIds))state.counterSelectedIds=Array.from(new Set(data.counterSelectedIds.map(String)));saveCounterSettings();saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value='';});
     document.getElementById('resetDemoBtn').addEventListener('click',async()=>{
     if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。'))return;
     if(window.currentUser && typeof window.deleteEventFromCloud === 'function'){
@@ -2703,7 +2718,7 @@
 <script type="module">
   import{initializeApp}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
   import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-  import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+  import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
   const fc=window.FIREBASE_CONFIG;
   const app=initializeApp(fc);
@@ -2842,15 +2857,13 @@
           await setDoc(doc(db, "notes", n.id), { ...n, userId: window.currentUser.uid });
         }
       }
-      const counterPayload=typeof getCounterSettingsSnapshot==='function'?getCounterSettingsSnapshot():{mode:window.state.counterMode||null,selectedIds:window.state.counterSelectedIds||[]};
+      // 事件計日不再由通用 online handler 用本機快取覆蓋雲端。
+      // 使用者修改時會直接寫入 Firestore；Firestore 本身負責離線佇列與重新連線同步。
       await setDoc(doc(db, "userSettings", window.currentUser.uid), {
         categories: window.state.categories,
         activeCategories: window.state.activeCategories,
-        folders: window.state.folders || [],
-        counterMode: counterPayload.mode,
-        counterSelectedIds: counterPayload.selectedIds
+        folders: window.state.folders || []
       }, { merge: true });
-      writeCounterSettingsLocal();
 
       console.log('離線資料已成功同步到雲端');
       if (typeof window.showToast === 'function') {
@@ -2862,6 +2875,13 @@
         window.showToast('⚠️ 離線資料同步失敗，將在下次聯網時重試');
       }
     }
+  });
+</script>
+
+<script>
+  // 離開頁面前盡量把最後一次事件計日變更送出；一般修改已是即時寫入。
+  window.addEventListener('pagehide',()=>{
+    try{ if(window.currentUser && typeof window.flushCounterSettingsToCloud==='function') window.flushCounterSettingsToCloud().catch(()=>{}); }catch(e){}
   });
 </script>
 
