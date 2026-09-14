@@ -333,14 +333,6 @@
       <h3 id="jumpDateTitle" class="text-base font-bold tracking-tight flex items-center space-x-2"><i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span></h3>
       <button id="closeJumpDateModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
-    <div>
-      <label class="block text-[10px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">搜尋日程</label>
-      <div class="relative">
-        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
-        <input type="text" id="modalSearchInput" placeholder="輸入關鍵字..." class="w-full pl-9 pr-9 py-2 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-        <button id="clearSearchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-ink-400 hover:text-ink-600 hidden"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
-      </div>
-    </div>
     <div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1">
       <button id="jumpTypeSolar" class="jump-tab-btn active" data-type="solar">公曆</button>
       <button id="jumpTypeLunar" class="jump-tab-btn" data-type="lunar">農曆</button>
@@ -945,7 +937,7 @@
   function setLunarConvertType(type){lunarConvertType=type;const st=document.getElementById('lunarConvertSolarTab'),lt=document.getElementById('lunarConvertLunarTab'),sp=document.getElementById('lunarConvertSolarPanel'),lp=document.getElementById('lunarConvertLunarPanel');if(type==='solar'){st.classList.add('active');lt.classList.remove('active');sp.classList.remove('hidden');lp.classList.add('hidden');}else{st.classList.remove('active');lt.classList.add('active');sp.classList.add('hidden');lp.classList.remove('hidden');}}
   function openLunarConvert(){closeDateTools();populateLunarConvertDropdowns();const d=new Date(state.currentDate);document.getElementById('lunarConvertSolarDate').value=localDateKey(d);document.getElementById('lunarConvertYear').value=d.getFullYear();try{const l=Solar.fromDate(d).getLunar();document.getElementById('lunarConvertMonth').value=Math.abs(l.getMonth());document.getElementById('lunarConvertDay').value=l.getDay();}catch(e){}document.getElementById('lunarConvertResultBox').classList.add('hidden');setLunarConvertType('solar');setTimeout(()=>openSimpleOverlay('lunarConvertModal'),80);}
   function runLunarConvert(){const box=document.getElementById('lunarConvertResultBox'),text=document.getElementById('lunarConvertResultText'),sub=document.getElementById('lunarConvertResultSub');if(typeof Lunar==='undefined'||typeof Solar==='undefined'){showToast('農曆庫未載入');return;}try{if(lunarConvertType==='solar'){const raw=document.getElementById('lunarConvertSolarDate').value;if(!raw){showToast('請選擇公曆日期');return;}const [y,m,d]=raw.split('-').map(Number);const dt=new Date(y,m-1,d);if(isNaN(dt.getTime())){showToast('日期無效');return;}const l=Solar.fromDate(dt).getLunar();const lm=Math.abs(l.getMonth());const leap=l.getMonth()<0?'閏':'';text.textContent=`農曆 ${l.getYear()}年 ${leap}${LUNAR_MONTHS[lm-1]||lm+'月'} ${LUNAR_DAYS[l.getDay()-1]||l.getDay()+'日'}`;sub.textContent=`公曆 ${y}年${m}月${d}日`; }else{const y=parseInt(document.getElementById('lunarConvertYear').value,10),m=parseInt(document.getElementById('lunarConvertMonth').value,10),d=parseInt(document.getElementById('lunarConvertDay').value,10);if(!y||!m||!d){showToast('請完整選擇農曆日期');return;}const l=Lunar.fromYmd(y,m,d),s=l.getSolar();const sm=s.getMonth(),sd=s.getDay(),sy=s.getYear();text.textContent=`公曆 ${sy}年${sm}月${sd}日`;sub.textContent=`農曆 ${y}年${LUNAR_MONTHS[m-1]||m+'月'}${LUNAR_DAYS[d-1]||d+'日'}`;}box.classList.remove('hidden');}catch(e){showToast('農曆日期無效，請確認日期');}}
-  function openJumpDateModal(target){jumpTarget=target||'calendar';let d;if(jumpTarget==='eventStart'){const v=getSplitDateTime('start');d=v?new Date(v):new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到開始日期</span>';}else if(jumpTarget==='birthYear'){const by=parseInt(document.getElementById('eventBirthYear').value,10);d=!isNaN(by)?new Date(by,0,1):new Date(state.currentDate);const specialType=document.getElementById('eventType')?.value||'birthday';const yearWord=specialType==='anniversary'?'紀念日起始年份':'出生年份';document.getElementById('jumpDateTitle').innerHTML=`<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到${yearWord}</span>`;}else{d=new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span>';}document.getElementById('jumpYear').value=d.getFullYear();document.getElementById('jumpMonth').value=d.getMonth()+1;document.getElementById('jumpDay').value=d.getDate();document.getElementById('jumpLunarYear').value=d.getFullYear();try{const lunar=Solar.fromDate(d).getLunar();const lm=lunar.getMonth();const ld=lunar.getDay();document.getElementById('jumpLunarMonth').value=lm>0?lm:-lm;document.getElementById('jumpLunarDay').value=ld;}catch(e){}document.getElementById('modalSearchInput').value=state.searchQuery||'';document.getElementById('clearSearchBtn').style.display=state.searchQuery?'block':'none';setJumpType('solar');const m=document.getElementById('jumpDateModal');m.classList.remove('hidden');setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95');document.getElementById('modalSearchInput').focus()},10);if(typeof lucide!=='undefined')lucide.createIcons();}
+  function openJumpDateModal(target){jumpTarget=target||'calendar';let d;if(jumpTarget==='eventStart'){const v=getSplitDateTime('start');d=v?new Date(v):new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到開始日期</span>';}else if(jumpTarget==='birthYear'){const by=parseInt(document.getElementById('eventBirthYear').value,10);d=!isNaN(by)?new Date(by,0,1):new Date(state.currentDate);const specialType=document.getElementById('eventType')?.value||'birthday';const yearWord=specialType==='anniversary'?'紀念日起始年份':'出生年份';document.getElementById('jumpDateTitle').innerHTML=`<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到${yearWord}</span>`;}else{d=new Date(state.currentDate);document.getElementById('jumpDateTitle').innerHTML='<i data-lucide="calendar-search" class="w-4 h-4 text-brand-500"></i><span>跳轉到日期</span>';}document.getElementById('jumpYear').value=d.getFullYear();document.getElementById('jumpMonth').value=d.getMonth()+1;document.getElementById('jumpDay').value=d.getDate();document.getElementById('jumpLunarYear').value=d.getFullYear();try{const lunar=Solar.fromDate(d).getLunar();const lm=lunar.getMonth();const ld=lunar.getDay();document.getElementById('jumpLunarMonth').value=lm>0?lm:-lm;document.getElementById('jumpLunarDay').value=ld;}catch(e){}setJumpType('solar');const m=document.getElementById('jumpDateModal');m.classList.remove('hidden');setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95');document.getElementById('jumpYear').focus()},10);if(typeof lucide!=='undefined')lucide.createIcons();}
   function closeJumpDateModal(){const m=document.getElementById('jumpDateModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200);}
   function setJumpType(type){jumpType=type;const solarBtn=document.getElementById('jumpTypeSolar');const lunarBtn=document.getElementById('jumpTypeLunar');const solarInputs=document.getElementById('jumpSolarInputs');const lunarInputs=document.getElementById('jumpLunarInputs');const lunarHint=document.getElementById('jumpLunarHint');if(type==='solar'){solarBtn.classList.add('active');lunarBtn.classList.remove('active');solarInputs.style.display='grid';lunarInputs.style.display='none';lunarHint.style.display='none';}else{solarBtn.classList.remove('active');lunarBtn.classList.add('active');solarInputs.style.display='none';lunarInputs.style.display='grid';lunarHint.style.display='block';}}
   function confirmJumpDate(){if(jumpTarget==='birthYear'){const y=parseInt(document.getElementById('jumpYear').value);if(isNaN(y)){showToast('請輸入有效年份');return}document.getElementById('eventBirthYear').value=y;updateLunarPreview();const yearWord=(document.getElementById('eventType')?.value==='anniversary')?'紀念日起始年份':'出生年份';showToast(`已設定${yearWord}：${y}`);closeJumpDateModal();return;}let y,m,d;if(jumpType==='solar'){y=parseInt(document.getElementById('jumpYear').value);m=parseInt(document.getElementById('jumpMonth').value);d=parseInt(document.getElementById('jumpDay').value);}else{y=parseInt(document.getElementById('jumpLunarYear').value);m=parseInt(document.getElementById('jumpLunarMonth').value);d=parseInt(document.getElementById('jumpLunarDay').value);}if(isNaN(y)||isNaN(m)||isNaN(d)){showToast('請輸入有效日期');return}let dt;if(jumpType==='solar'){dt=new Date(y,m-1,d);if(isNaN(dt.getTime())){showToast('日期無效');return}}else{if(typeof Lunar==='undefined'){showToast('農曆庫未載入');return}try{const lunar=Lunar.fromYmd(y,m,d);const solar=lunar.getSolar();dt=new Date(solar.getYear(),solar.getMonth()-1,solar.getDay());}catch(e){showToast('農曆日期無效');return;}}if(jumpTarget==='eventStart'){const oldStart=getSplitDateTime('start')||new Date();const oldEnd=getSplitDateTime('end')||new Date(oldStart.getTime()+3600000);const dur=Math.max(60000,oldEnd-oldStart);const newStart=new Date(dt);newStart.setHours(oldStart.getHours(),oldStart.getMinutes(),0,0);const newEnd=new Date(newStart.getTime()+dur);setSplitDateTime('start',newStart);setSplitDateTime('end',newEnd);showToast(`已設為 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`);}else{state.currentDate=dt;state.miniDate=new Date(dt);renderAll();const wd=['日','一','二','三','四','五','六'][dt.getDay()];showToast(`已跳轉到 ${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日 週${wd}`);}closeJumpDateModal();}
@@ -1486,6 +1478,7 @@
         try { await window.deleteEventFromCloud(evt.id); } catch (e) { console.error(e); }
       }
       state.events = state.events.filter(x => x.id !== evt.id);
+      removeCounterSelectionForIds(evt.id);
       saveEvents();
       closeEventDetailModal();
       showToast('日程已刪除');
@@ -1701,16 +1694,124 @@
   function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3 h-3 opacity-50"></i>':'';const timeStr=evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;return `<div class="schedule-card" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap">${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();setTimeout(()=>{const el=document.getElementById('todayScheduleItem');if(el)el.scrollIntoView({behavior:'auto',block:'start'})},100);}
 
 
+  // 事件計日設定：localStorage 作為快取，登入後以 Firestore userSettings/{uid} 為跨裝置真實來源。
+  let counterSettingsSyncUnsubscribe=null;
+  let counterSettingsSaveTimer=null;
+  let counterSettingsSyncReady=false;
+  let counterSettingsApplyingCloud=false;
+
+  function getCounterSettingsSnapshot(){
+    return {
+      mode:state.counterMode==='up'||state.counterMode==='down'?state.counterMode:null,
+      selectedIds:Array.from(new Set((state.counterSelectedIds||[]).map(String)))
+    };
+  }
+
+  function writeCounterSettingsLocal(){
+    try{localStorage.setItem(COUNTER_KEY,JSON.stringify(getCounterSettingsSnapshot()));}catch(e){}
+  }
+
   function loadCounterSettings(){
     try{
       const raw=localStorage.getItem(COUNTER_KEY);
       if(!raw)return {mode:null,selectedIds:[]};
       const data=JSON.parse(raw)||{};
-      return {mode:data.mode==='up'||data.mode==='down'?data.mode:null,selectedIds:Array.isArray(data.selectedIds)?data.selectedIds.map(String):[]};
+      return {mode:data.mode==='up'||data.mode==='down'?data.mode:null,selectedIds:Array.isArray(data.selectedIds)?Array.from(new Set(data.selectedIds.map(String))):[]};
     }catch(e){return {mode:null,selectedIds:[]};}
   }
+
   function saveCounterSettings(){
-    try{localStorage.setItem(COUNTER_KEY,JSON.stringify({mode:state.counterMode,selectedIds:state.counterSelectedIds||[]}));}catch(e){}
+    writeCounterSettingsLocal();
+    // 避免每一次勾選都產生大量 Firestore 寫入；短暫 debounce 後寫入即可。
+    if(window.currentUser && typeof window.saveCounterSettingsToCloud==='function' && !counterSettingsApplyingCloud){
+      clearTimeout(counterSettingsSaveTimer);
+      counterSettingsSaveTimer=setTimeout(()=>{
+        window.saveCounterSettingsToCloud().catch(e=>console.error('事件計日設定雲端同步失敗:',e));
+      },250);
+    }
+  }
+
+  async function loadCounterSettingsFromCloud(){
+    if(!window.currentUser)return;
+    try{
+      const ref=doc(db,'userSettings',window.currentUser.uid);
+      const snap=await getDoc(ref);
+      const data=snap.exists()?snap.data():{};
+      const hasCloudMode=data.counterMode==='up'||data.counterMode==='down';
+      const hasCloudSelected=Array.isArray(data.counterSelectedIds);
+      const local=getCounterSettingsSnapshot();
+
+      // 第一次升級時只在雲端尚未有欄位的情況下搬移本機設定，
+      // 絕不讓另一台裝置的舊 localStorage 蓋掉已存在的雲端設定。
+      const patch={};
+      if(hasCloudMode) state.counterMode=data.counterMode;
+      else if(local.mode) patch.counterMode=local.mode;
+
+      if(hasCloudSelected) state.counterSelectedIds=Array.from(new Set(data.counterSelectedIds.map(String)));
+      else if(local.selectedIds.length) patch.counterSelectedIds=local.selectedIds;
+
+      if(Object.keys(patch).length){
+        await setDoc(ref,patch,{merge:true});
+        if(!hasCloudMode && patch.counterMode) state.counterMode=patch.counterMode;
+        if(!hasCloudSelected && patch.counterSelectedIds) state.counterSelectedIds=patch.counterSelectedIds;
+      }
+
+      writeCounterSettingsLocal();
+      counterSettingsSyncReady=true;
+      if(typeof window.renderAll==='function')window.renderAll();
+    }catch(e){
+      console.error('載入事件計日設定失敗:',e);
+      // 雲端暫時不可用時保留本機快取，不阻塞整個日曆。
+      counterSettingsSyncReady=true;
+    }
+  }
+
+  function startListeningCounterSettings(){
+    if(!window.currentUser)return;
+    if(counterSettingsSyncUnsubscribe){counterSettingsSyncUnsubscribe();counterSettingsSyncUnsubscribe=null;}
+    const ref=doc(db,'userSettings',window.currentUser.uid);
+    counterSettingsSyncUnsubscribe=onSnapshot(ref,snap=>{
+      if(!snap.exists())return;
+      const data=snap.data()||{};
+      const hasMode=data.counterMode==='up'||data.counterMode==='down';
+      const hasSelected=Array.isArray(data.counterSelectedIds);
+      if(!hasMode && !hasSelected)return;
+
+      const nextMode=hasMode?data.counterMode:state.counterMode;
+      const nextIds=hasSelected?Array.from(new Set(data.counterSelectedIds.map(String))):state.counterSelectedIds||[];
+      const changed=nextMode!==state.counterMode || JSON.stringify(nextIds)!==JSON.stringify((state.counterSelectedIds||[]).map(String));
+      if(!changed)return;
+
+      counterSettingsApplyingCloud=true;
+      try{
+        if(hasMode)state.counterMode=nextMode;
+        if(hasSelected)state.counterSelectedIds=nextIds;
+        writeCounterSettingsLocal();
+        if(typeof window.renderAll==='function')window.renderAll();
+      }finally{counterSettingsApplyingCloud=false;}
+    },err=>console.error('監聽事件計日設定失敗:',err));
+  }
+
+  window.saveCounterSettingsToCloud=async function(){
+    if(!window.currentUser)return;
+    const payload=getCounterSettingsSnapshot();
+    await setDoc(doc(db,'userSettings',window.currentUser.uid),{
+      counterMode:payload.mode,
+      counterSelectedIds:payload.selectedIds
+    },{merge:true});
+  };
+
+  window.stopCounterSettingsSync=function(){
+    if(counterSettingsSaveTimer){clearTimeout(counterSettingsSaveTimer);counterSettingsSaveTimer=null;}
+    if(counterSettingsSyncUnsubscribe){counterSettingsSyncUnsubscribe();counterSettingsSyncUnsubscribe=null;}
+    counterSettingsSyncReady=false;
+  };
+
+  function removeCounterSelectionForIds(ids){
+    const removeSet=new Set((Array.isArray(ids)?ids:[ids]).map(String));
+    const current=Array.isArray(state.counterSelectedIds)?state.counterSelectedIds.map(String):[];
+    const next=current.filter(id=>!removeSet.has(id));
+    if(next.length!==current.length){state.counterSelectedIds=next;saveCounterSettings();}
   }
   function counterDayStamp(d){const x=new Date(d);return Date.UTC(x.getFullYear(),x.getMonth(),x.getDate());}
   function counterDiffDays(from,to){return Math.round((counterDayStamp(to)-counterDayStamp(from))/86400000);}
@@ -2305,6 +2406,7 @@
     }
     const ids=new Set(targets.map(t=>t.id));
     state.events=state.events.filter(e=>!ids.has(e.id));
+    removeCounterSelectionForIds(Array.from(ids));
     saveEvents(); renderAll();
     showToast(`已刪除 ${targets.length} 個日程`);
     renderIcsFileList();
@@ -2334,8 +2436,6 @@
     document.getElementById('confirmJumpDateBtn').addEventListener('click',confirmJumpDate);
     document.getElementById('jumpTypeSolar').addEventListener('click',()=>setJumpType('solar'));
     document.getElementById('jumpTypeLunar').addEventListener('click',()=>setJumpType('lunar'));
-    document.getElementById('modalSearchInput').addEventListener('input',e=>{state.searchQuery=e.target.value;document.getElementById('clearSearchBtn').style.display=e.target.value?'block':'none';renderMainView();});
-    document.getElementById('clearSearchBtn').addEventListener('click',()=>{state.searchQuery='';document.getElementById('modalSearchInput').value='';document.getElementById('clearSearchBtn').style.display='none';renderMainView();});
     ['start','end'].forEach(which=>{
       const dateEl=document.getElementById(which==='start'?'eventStartDate':'eventEndDate');
       const timeEl=document.getElementById(which==='start'?'eventStartTime':'eventEndTime');
@@ -2534,6 +2634,7 @@
       try{ await window.deleteEventFromCloud(id); }catch(e){ console.error('云端删除失败:', e); }
     }
     state.events=state.events.filter(x=>x.id!==id);
+    removeCounterSelectionForIds(id);
     saveEvents();
     showToast('日程已刪除');closeEventModal();renderAll();
   });
@@ -2547,7 +2648,7 @@
         try{ await window.deleteEventFromCloud(e.id); }catch(err){ console.error(err); }
       }
     }
-    state.events=[];saveEvents();renderAll();showToast('已清空所有日程');
+    state.events=[];removeCounterSelectionForIds(Array.from(state.counterSelectedIds||[]));saveEvents();renderAll();showToast('已清空所有日程');
     document.getElementById('dataModal').classList.add('hidden');
   });
     document.getElementById('closeIcsModalBtn').addEventListener('click',closeIcsModal);
@@ -2661,20 +2762,24 @@
         } catch(e) { console.error("迁移本地数据到云端失败:", e); }
       }
       await loadCategoriesFromCloud();
+      await loadCounterSettingsFromCloud();
       startListening();
       startListeningCategories();
+      startListeningCounterSettings();
       startListeningTasks();
       startListeningNotes();
       updateStorageHint(true);
     }else{
       updateLoginUI(null);
       if(ue){ue();ue=null}
-      if(cue){cue=null}
+      if(cue){cue();cue=null}
+      if(typeof window.stopCounterSettingsSync==='function')window.stopCounterSettingsSync();
       if(window.state){
         const s=localStorage.getItem('calendar_events_v1');try{window.state.events=s?JSON.parse(s):[];if(typeof window.normalizeSpecialEvents==='function')window.normalizeSpecialEvents();}catch(e){window.state.events=[]}
         const sc=localStorage.getItem('calendar_categories_v1');try{window.state.categories=sc?JSON.parse(sc):[]}catch(e){}
         const st=localStorage.getItem('calendar_tasks_v1');try{window.state.tasks=st?JSON.parse(st):[]}catch(e){window.state.tasks=[]}
         const sn=localStorage.getItem('calendar_notes_v1');try{window.state.notes=sn?JSON.parse(sn):[]}catch(e){window.state.notes=[]}
+        const cs=loadCounterSettings();window.state.counterMode=cs.mode;window.state.counterSelectedIds=cs.selectedIds;
         if(typeof window.renderCategories==='function')window.renderCategories();
         if(typeof window.renderAll==='function')window.renderAll();
       }
@@ -2737,11 +2842,15 @@
           await setDoc(doc(db, "notes", n.id), { ...n, userId: window.currentUser.uid });
         }
       }
+      const counterPayload=typeof getCounterSettingsSnapshot==='function'?getCounterSettingsSnapshot():{mode:window.state.counterMode||null,selectedIds:window.state.counterSelectedIds||[]};
       await setDoc(doc(db, "userSettings", window.currentUser.uid), {
         categories: window.state.categories,
         activeCategories: window.state.activeCategories,
-        folders: window.state.folders || []
+        folders: window.state.folders || [],
+        counterMode: counterPayload.mode,
+        counterSelectedIds: counterPayload.selectedIds
       }, { merge: true });
+      writeCounterSettingsLocal();
 
       console.log('離線資料已成功同步到雲端');
       if (typeof window.showToast === 'function') {
