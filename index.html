@@ -1774,43 +1774,32 @@
     const user=window.currentUser;
     if(!user)return;
     try{
-      const ref=doc(db,COUNTER_SETTINGS_COLLECTION,user.uid);
-      setCounterSyncStatus('loading');
-      const snap=await getDoc(ref);
+      if(!window.__counterCloud)throw new Error('Firebase 計日同步橋接尚未準備完成');
+      const result=await window.__counterCloud.read(user.uid);
+      let data=result.data||{};
       const local=loadCounterSettings();
+      const hasMode=data.counterMode==='up'||data.counterMode==='down';
+      const hasSelected=Array.isArray(data.counterSelectedIds);
 
-      if(snap.exists()){
-        const data=snap.data()||{};
-        const hasMode=data.counterMode==='up'||data.counterMode==='down';
-        const hasSelected=Array.isArray(data.counterSelectedIds);
-        if(hasMode)state.counterMode=data.counterMode;
-        if(hasSelected)state.counterSelectedIds=Array.from(new Set(data.counterSelectedIds.map(String)));
-        writeCounterSettingsLocal();
-      }else{
-        // 從 v4 升級時，先嘗試把舊 userSettings/{uid} 裡的計日設定搬到新文件。
-        let initialMode=local.mode;
-        let initialIds=local.selectedIds;
-        try{
-          const oldSnap=await getDoc(doc(db,'userSettings',user.uid));
-          if(oldSnap.exists()){
-            const old=oldSnap.data()||{};
-            if(old.counterMode==='up'||old.counterMode==='down')initialMode=old.counterMode;
-            if(Array.isArray(old.counterSelectedIds))initialIds=Array.from(new Set(old.counterSelectedIds.map(String)));
-          }
-        }catch(oldReadError){
-          console.warn('讀取舊版事件計日設定失敗，改用本機快取:',oldReadError);
+      if(hasMode)state.counterMode=data.counterMode;
+      if(hasSelected)state.counterSelectedIds=Array.from(new Set(data.counterSelectedIds.map(String)));
+
+      // 新文件沒有資料時，兼容上一版寫在 userSettings/{uid} 的資料。
+      if(!hasMode&&!hasSelected){
+        const old=await window.__counterCloud.readLegacyUserSettings(user.uid);
+        const oldData=old.data||{};
+        const legacyMode=oldData.counterMode==='up'||oldData.counterMode==='down';
+        const legacyIds=Array.isArray(oldData.counterSelectedIds)?Array.from(new Set(oldData.counterSelectedIds.map(String))):[];
+        const initialMode=legacyMode?oldData.counterMode:local.mode;
+        const initialIds=Array.isArray(oldData.counterSelectedIds)?legacyIds:local.selectedIds;
+        if(initialMode||initialIds.length){
+          await window.__counterCloud.write(user.uid,{counterMode:initialMode||null,counterSelectedIds:initialIds,counterSettingsUpdatedAt:true});
+          state.counterMode=initialMode||null;
+          state.counterSelectedIds=initialIds;
         }
-        const initial={
-          counterMode:initialMode,
-          counterSelectedIds:initialIds,
-          counterSettingsUpdatedAt:serverTimestamp()
-        };
-        await setDoc(ref,initial,{merge:true});
-        state.counterMode=initialMode;
-        state.counterSelectedIds=initialIds;
-        writeCounterSettingsLocal();
       }
 
+      writeCounterSettingsLocal();
       counterSettingsSyncReady=true;
       setCounterSyncStatus('synced');
       if(typeof window.renderAll==='function')window.renderAll();
@@ -1825,15 +1814,12 @@
 
   function startListeningCounterSettings(){
     const user=window.currentUser;
-    if(!user)return;
+    if(!user||!window.__counterCloud)return;
     if(counterSettingsSyncUnsubscribe){counterSettingsSyncUnsubscribe();counterSettingsSyncUnsubscribe=null;}
-    const ref=doc(db,COUNTER_SETTINGS_COLLECTION,user.uid);
-    counterSettingsSyncUnsubscribe=onSnapshot(ref,snap=>{
-      if(!snap.exists())return;
-      const data=snap.data()||{};
-      const hasMode=data.counterMode==='up'||data.counterMode==='down';
-      const hasSelected=Array.isArray(data.counterSelectedIds);
-      if(!hasMode&&!hasSelected)return;
+    counterSettingsSyncUnsubscribe=window.__counterCloud.listen(user.uid,(data)=>{
+      const hasMode=data&& (data.counterMode==='up'||data.counterMode==='down');
+      const hasSelected=!!(data&&Array.isArray(data.counterSelectedIds));
+      if(!hasMode&&!hasSelected){setCounterSyncStatus('synced');return;}
       const nextMode=hasMode?data.counterMode:state.counterMode;
       const nextIds=hasSelected?Array.from(new Set(data.counterSelectedIds.map(String))):Array.from(new Set((state.counterSelectedIds||[]).map(String)));
       const changed=nextMode!==state.counterMode||JSON.stringify(nextIds)!==JSON.stringify((state.counterSelectedIds||[]).map(String));
@@ -1848,7 +1834,7 @@
       }
       counterSettingsSyncReady=true;
       setCounterSyncStatus('synced');
-    },err=>{
+    },(err)=>{
       counterSettingsSyncReady=false;
       counterSettingsLastError=err&&((err.code||'')+' '+(err.message||''))||String(err);
       console.error('監聽事件計日設定失敗:',err);
@@ -1860,14 +1846,10 @@
   window.saveCounterSettingsToCloud=async function(payload,uid){
     const targetUid=uid||(window.currentUser&&window.currentUser.uid);
     if(!targetUid)throw new Error('未登入');
+    if(!window.__counterCloud)throw new Error('Firebase 計日同步橋接尚未準備完成');
     const p=payload||getCounterSettingsSnapshot();
     const cleanIds=Array.from(new Set((p.selectedIds||[]).map(String)));
-    const ref=doc(db,COUNTER_SETTINGS_COLLECTION,targetUid);
-    await setDoc(ref,{
-      counterMode:p.mode,
-      counterSelectedIds:cleanIds,
-      counterSettingsUpdatedAt:serverTimestamp()
-    },{merge:true});
+    await window.__counterCloud.write(targetUid,{counterMode:p.mode||null,counterSelectedIds:cleanIds,counterSettingsUpdatedAt:true});
     console.log('☁️ 事件計日設定已同步',targetUid,{mode:p.mode,selectedIds:cleanIds});
   };
 
@@ -2799,6 +2781,28 @@
   const app=initializeApp(fc);
   const auth=getAuth(app);
   const db=getFirestore(app);
+
+  // 提供給前面的非-module 腳本使用；ES module 的 import 不會自動成為 window 全域變數。
+  // 這是事件計日同步能在 Web / Android WebView 都正常工作的關鍵橋接。
+  window.__counterCloud={
+    read:async(uid)=>{
+      const snap=await getDoc(doc(db,'counterSettings',uid));
+      return {exists:snap.exists(),data:snap.exists()?(snap.data()||{}):{}};
+    },
+    readLegacyUserSettings:async(uid)=>{
+      const snap=await getDoc(doc(db,'userSettings',uid));
+      return {exists:snap.exists(),data:snap.exists()?(snap.data()||{}):{}};
+    },
+    write:async(uid,data)=>{
+      const payload={...data};
+      if(payload.counterSettingsUpdatedAt===true)payload.counterSettingsUpdatedAt=serverTimestamp();
+      await setDoc(doc(db,'counterSettings',uid),payload,{merge:true});
+    },
+    listen:(uid,onData,onError)=>{
+      const ref=doc(db,'counterSettings',uid);
+      return onSnapshot(ref,snap=>onData(snap.exists()?(snap.data()||{}):{}),onError);
+    }
+  };
   const gp=new GoogleAuthProvider();
   gp.setCustomParameters({prompt:'select_account'});
 
@@ -2940,8 +2944,6 @@
         activeCategories: window.state.activeCategories,
         folders: window.state.folders || []
       }, { merge: true });
-
-      await window.flushCounterSettingsToCloud();
       console.log('離線資料已成功同步到雲端');
       if (typeof window.showToast === 'function') {
         window.showToast('☁️ 離線資料已自動同步到雲端');
