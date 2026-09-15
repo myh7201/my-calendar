@@ -634,6 +634,21 @@
   </div>
 </div>
 
+<div id="noteReaderModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85] hidden opacity-0 transition-opacity duration-200">
+  <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-200 max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-gradient-to-r from-ink-50 to-white dark:from-ink-800/60 dark:to-ink-900/60 shrink-0">
+      <div class="min-w-0"><div id="noteReaderType" class="text-[10px] font-bold text-brand-500 mb-0.5"></div><h3 id="noteReaderTitle" class="text-lg font-bold tracking-tight truncate">文章</h3></div>
+      <button id="closeNoteReaderBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="px-6 py-3 border-b border-ink-100 dark:border-ink-800 text-[11px] text-ink-400 flex items-center gap-2"><span id="noteReaderDate"></span><span id="noteReaderFolder"></span></div>
+    <div id="noteReaderContent" class="p-6 flex-1 overflow-y-auto whitespace-pre-wrap break-words text-sm leading-7 text-ink-700 dark:text-ink-200"></div>
+    <div class="flex items-center justify-between px-6 py-4 border-t border-ink-200/70 dark:border-ink-800 bg-white dark:bg-ink-900 shrink-0">
+      <button type="button" id="noteReaderEditBtn" class="px-4 py-2 text-sm font-semibold text-brand-600 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950/30 rounded-xl transition"><i data-lucide="pencil" class="w-4 h-4 inline -mt-0.5 mr-1"></i>編輯</button>
+      <button type="button" id="noteReaderCloseBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">關閉</button>
+    </div>
+  </div>
+</div>
+
 <div id="noteModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[80] hidden opacity-0 transition-opacity duration-200">
   <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-200 max-h-[90vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-gradient-to-r from-ink-50 to-white dark:from-ink-800/60 dark:to-ink-900/60 shrink-0">
@@ -751,15 +766,15 @@
   function applyTheme(){const theme=getTheme();const isDark=theme==='dark'||(theme==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(isDark)document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');}
   window.getTheme=getTheme;window.setTheme=setTheme;window.applyTheme=applyTheme;
 
-  let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],folders:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],pendingIcsFileName:'',drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60,dateToolLevel:'menu',dateCalcDirection:'after',dateCalcResult:null,dateIntervalResult:null};
+  let state={currentDate:new Date(),miniDate:new Date(),view:'month',categories:[],activeCategories:[],searchQuery:'',events:[],tasks:[],notes:[],folders:[],noteFolders:[],diaryFolders:[],noteViewType:'note',noteFolder:'all',pendingIcsEvents:[],pendingIcsFileName:'',drawerDate:null,swipeStartX:0,swipeStartY:0,swipeCurrentX:0,swipeCurrentY:0,swiping:false,swipeThreshold:60,dateToolLevel:'menu',dateCalcDirection:'after',dateCalcResult:null,dateIntervalResult:null};
   window.state=state;
   const _counterSettings=loadCounterSettings();state.counterMode=_counterSettings.mode;state.counterSelectedIdsByMode=_counterSettings.selectedIdsByMode;state.counterSelectedIds=_counterSettings.selectedIds;
   let editingCategoryId=null,newCatColor=COLOR_PALETTE[0];
 
   function loadCategories(){try{const s=localStorage.getItem(CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a}}catch(e){}return DEFAULT_CATEGORIES.map(c=>({...c}))}
-  function saveCategories(){localStorage.setItem(CAT_KEY,JSON.stringify(state.categories));if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e))}}
+  function saveCategories(){localStorage.setItem(CAT_KEY,JSON.stringify(state.categories));if(window.syncAndroidWidget)window.syncAndroidWidget();if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e))}}
   function loadActiveCats(){try{const s=localStorage.getItem(ACTIVE_CAT_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a))return a}}catch(e){}return null}
-  function saveActiveCats(){localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories));if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e))}}
+  function saveActiveCats(){localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories));if(window.syncAndroidWidget)window.syncAndroidWidget();if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e))}}
   function getCat(id){return state.categories.find(c=>c.id===id)||{id:'_unknown',name:'未分類',color:'#94a3b8'}}
   const EVT_KEY='calendar_events_v1';
   const COUNTER_KEY='calendar_event_counter_v1';
@@ -794,7 +809,7 @@
   }
   window.normalizeSpecialEvents=normalizeSpecialEvents;
   function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p)){const events=p.filter(e=>e&&typeof e==='object');events.forEach(normalizeSpecialEvent);return events}}catch(e){}}return[]}
-  function saveEvents(syncCloud=true){localStorage.setItem(EVT_KEY,JSON.stringify(state.events));if(syncCloud&&window.currentUser&&typeof window.saveEventToCloud==='function'){state.events.forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('雲端同步事件失敗',err)))}}
+  function saveEvents(syncCloud=true){localStorage.setItem(EVT_KEY,JSON.stringify(state.events));if(window.syncAndroidWidget)window.syncAndroidWidget();if(syncCloud&&window.currentUser&&typeof window.saveEventToCloud==='function'){state.events.forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('雲端同步事件失敗',err)))}}
   const TASK_KEY='calendar_tasks_v1';
   function loadSavedTasks(){const s=localStorage.getItem(TASK_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p))return p.filter(t=>t&&typeof t==='object')}catch(e){}}return[]}
   function saveTasks(){localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks));if(window.currentUser&&typeof window.saveTaskToCloud==='function'){state.tasks.forEach(t=>window.saveTaskToCloud(t).catch(err=>{}))}}
@@ -802,8 +817,46 @@
   const FOLDER_KEY='calendar_folders_v1';
   function loadSavedNotes(){const s=localStorage.getItem(NOTE_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p))return p.filter(n=>n&&typeof n==='object')}catch(e){}}return[]}
   function saveNotes(){localStorage.setItem(NOTE_KEY,JSON.stringify(state.notes));if(window.currentUser&&typeof window.saveNoteToCloud==='function'){state.notes.forEach(n=>window.saveNoteToCloud(n).catch(err=>{}))}}
-  function loadSavedFolders(){const s=localStorage.getItem(FOLDER_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p))return p.filter(f=>typeof f==='string')}catch(e){}}return[]}
-  function saveFolders(){localStorage.setItem(FOLDER_KEY,JSON.stringify(state.folders||[]));if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){window.saveCategoriesToCloud().catch(e=>console.error(e));}}
+  function loadSavedFolders(){
+    const s=localStorage.getItem(FOLDER_KEY);
+    if(!s)return {note:[],diary:[]};
+    try{
+      const p=JSON.parse(s);
+      if(Array.isArray(p)){
+        // 舊版只有一套資料夾：依照實際文章類型分流，避免遺失既有資料。
+        const noteSet=new Set(),diarySet=new Set();
+        (state&&state.notes||[]).forEach(n=>{
+          if(!n||!n.folder)return;
+          if(n.type==='diary')diarySet.add(n.folder);else noteSet.add(n.folder);
+        });
+        // 舊版只有一套資料夾：不要再把每個舊資料夾複製到兩邊。
+        // 先依現有文章的 type 歸屬；沒有被文章使用的舊資料夾不自動跨類別建立。
+        return {note:[...noteSet],diary:[...diarySet]};
+      }
+      if(p&&typeof p==='object'){
+        return {
+          note:Array.isArray(p.note)?p.note.filter(f=>typeof f==='string'):[],
+          diary:Array.isArray(p.diary)?p.diary.filter(f=>typeof f==='string'):[]
+        };
+      }
+    }catch(e){}
+    return {note:[],diary:[]};
+  }
+  function currentFolderList(type=state.noteViewType){
+    return type==='diary'?(state.diaryFolders||[]):(state.noteFolders||[]);
+  }
+  function setFolderList(type,list){
+    if(type==='diary')state.diaryFolders=Array.from(new Set((list||[]).filter(Boolean)));
+    else state.noteFolders=Array.from(new Set((list||[]).filter(Boolean)));
+  }
+  function saveFolders(){
+    state.folders=Array.from(new Set([...(state.noteFolders||[]),...(state.diaryFolders||[])]));
+    const payload={note:state.noteFolders||[],diary:state.diaryFolders||[]};
+    localStorage.setItem(FOLDER_KEY,JSON.stringify(payload));
+    if(window.currentUser&&typeof window.saveCategoriesToCloud==='function'){
+      window.saveCategoriesToCloud().catch(e=>console.error(e));
+    }
+  }
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
   /* 日期鍵只保存「本地年月日」，避免 toISOString() 的 UTC 轉換造成跨日。 */
@@ -2317,11 +2370,69 @@
     renderTasksView();
   }));}
 
-  function renderNotesView(){const c=document.getElementById('calendarViewContainer');const notes=state.notes||[];const searchQuery=state.searchQuery.trim().toLowerCase();let currentTypeNotes=notes.filter(n=>n.type===state.noteViewType);const noteFolders=[...new Set(currentTypeNotes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();const allFolders=[...new Set([...noteFolders,...(state.folders||[])])].sort();let filteredNotes=currentTypeNotes;if(state.noteFolder==='uncategorized'){filteredNotes=currentTypeNotes.filter(n=>!n.folder||n.folder.trim()==='');}else if(state.noteFolder!=='all'){filteredNotes=currentTypeNotes.filter(n=>n.folder===state.noteFolder);}if(searchQuery){filteredNotes=filteredNotes.filter(n=>{return (n.title||'').toLowerCase().includes(searchQuery)||(n.content||'').toLowerCase().includes(searchQuery);});}filteredNotes.sort((a,b)=>b.updatedAt-a.updatedAt);let html=`<div class="h-full flex flex-col anim-in bg-white/50 dark:bg-ink-900/50"><div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60"><div class="flex items-center justify-between mb-3"><h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2"><i data-lucide="file-text" class="w-6 h-6 text-brand-500"></i><span>筆記本</span>${state.noteViewType==='diary'?`<span class="text-xs font-semibold text-ink-400 dark:text-ink-500 ml-1">共記 ${notes.filter(n=>n&&n.type==='diary').length} 日日記</span>`:''}</h2></div><div class="relative mb-3"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i><input type="text" id="noteSearchInput" value="${escapeHtml(state.searchQuery)}" placeholder="搜尋筆記或日記..." class="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"><button id="clearNoteSearchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-400 hover:text-ink-600 ${state.searchQuery?'':'hidden'}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div><div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1 mb-3"><button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${state.noteViewType==='note'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="note">📝 筆記</button><button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${state.noteViewType==='diary'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="diary">📔 日記</button></div><div class="flex overflow-x-auto gap-1.5 pb-1 scrollbar-none items-center"><button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='all'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="all">全部</button><button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='uncategorized'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="uncategorized">未分類</button>${allFolders.map(f=>{const isActive=state.noteFolder===f;const activeClass=isActive?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700';const deleteBtnColor=isActive?'text-white/70 hover:text-white':'text-ink-400 hover:text-rose-500';return `<div class="relative group shrink-0"><button class="note-folder-btn pl-3 pr-6 py-1.5 rounded-lg text-xs font-semibold transition ${activeClass}" data-folder="${escapeHtml(f)}">${escapeHtml(f)}</button><button class="delete-folder-btn absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover:block ${deleteBtnColor} transition" data-folder="${escapeHtml(f)}"><i data-lucide="x" class="w-3 h-3 pointer-events-none"></i></button></div>`;}).join('')}<button id="addNoteFolderBtn" class="shrink-0 px-2 py-1.5 rounded-lg text-xs font-semibold bg-ink-100 dark:bg-ink-800 text-ink-500 hover:bg-ink-200 dark:hover:bg-ink-700 transition flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3"></i>新增</button></div></div><div class="flex-1 overflow-y-auto p-5 space-y-3">${filteredNotes.length===0?`<div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in"><i data-lucide="notebook-pen" class="w-16 h-16 mb-4 opacity-30"></i><p class="text-sm font-medium">這裡還沒有內容</p><p class="text-xs mt-1">點擊右下角「+」開始撰寫</p></div>`:filteredNotes.map(n=>`<div class="note-card group flex flex-col p-4 rounded-2xl bg-white dark:bg-ink-800 border border-ink-100 dark:border-ink-700 shadow-sm hover:shadow-md transition cursor-pointer" data-id="${n.id}"><div class="flex items-start justify-between gap-2"><h3 class="font-bold text-base text-ink-800 dark:text-ink-100 line-clamp-2">${escapeHtml(n.title||'無標題')}</h3><span class="text-[10px] text-ink-400 shrink-0 mt-1">${new Date(n.updatedAt).toLocaleDateString()}</span></div><p class="text-xs text-ink-500 dark:text-ink-400 mt-2 line-clamp-3">${escapeHtml(n.content||'')}</p>${n.folder?`<div class="mt-2 text-[10px] text-brand-500 font-semibold flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i>${escapeHtml(n.folder)}</div>`:''}</div>`).join('')}</div><button id="fabAddNoteBtn" class="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg active:scale-95 transition z-40"><i data-lucide="plus" class="w-6 h-6"></i></button></div>`;c.innerHTML=html;lucide.createIcons();document.querySelectorAll('.note-tab-btn').forEach(btn=>btn.addEventListener('click',()=>{state.noteViewType=btn.dataset.type;state.noteFolder='all';renderNotesView();}));document.querySelectorAll('.note-folder-btn').forEach(btn=>btn.addEventListener('click',()=>{state.noteFolder=btn.dataset.folder;renderNotesView();}));document.getElementById('addNoteFolderBtn').addEventListener('click',()=>{const name=prompt('請輸入新資料夾名稱：');if(!name||!name.trim())return;const trimName=name.trim();if(state.folders.includes(trimName)||trimName==='全部'||trimName==='未分類'){showToast('該資料夾已存在或名稱無效');return;}state.folders.push(trimName);saveFolders();state.noteFolder=trimName;renderNotesView();showToast('已新增資料夾');});document.querySelectorAll('.delete-folder-btn').forEach(btn=>btn.addEventListener('click',(e)=>{e.stopPropagation();const folder=btn.dataset.folder;if(confirm(`確定要刪除「${folder}」資料夾嗎？該資料夾內的筆記將移至「未分類」。`)){state.folders=state.folders.filter(f=>f!==folder);saveFolders();let moved=0;state.notes.forEach(n=>{if(n.folder===folder){n.folder='';moved++;}});if(moved>0)saveNotes();if(state.noteFolder===folder)state.noteFolder='all';renderNotesView();showToast(moved>0?`資料夾已刪除，${moved} 則筆記已移至未分類`:'資料夾已刪除');}}));const searchInput=document.getElementById('noteSearchInput');searchInput.addEventListener('input',(e)=>{state.searchQuery=e.target.value;renderNotesView();const newInput=document.getElementById('noteSearchInput');if(newInput){newInput.focus();newInput.setSelectionRange(newInput.value.length,newInput.value.length)}});document.getElementById('clearNoteSearchBtn').addEventListener('click',()=>{state.searchQuery='';renderNotesView();});document.getElementById('fabAddNoteBtn').addEventListener('click',()=>{openNoteModal(null,state.noteViewType);});document.querySelectorAll('.note-card').forEach(card=>card.addEventListener('click',()=>{const note=state.notes.find(n=>n.id===card.dataset.id);if(note)openNoteModal(note);}));}
-  function formatDiaryTitleDate(dt=new Date()){const digits=['零','一','二','三','四','五','六','七','八','九'];const year=String(dt.getFullYear()).split('').map(d=>digits[Number(d)]).join('');const toChineseNumber=n=>{if(n<10)return digits[n];if(n===10)return '十';if(n<20)return '十'+digits[n-10];if(n%10===0)return digits[Math.floor(n/10)]+'十';return digits[Math.floor(n/10)]+'十'+digits[n%10];};return `${year}年${toChineseNumber(dt.getMonth()+1)}月${toChineseNumber(dt.getDate())}日`;}
+  function renderNotesView(){
+    const c=document.getElementById('calendarViewContainer');
+    const notes=state.notes||[];
+    const searchQuery=state.searchQuery.trim().toLowerCase();
+    const type=state.noteViewType;
+    const currentTypeNotes=notes.filter(n=>n.type===type);
+    const noteFolders=[...new Set(currentTypeNotes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();
+    const managedFolders=currentFolderList(type);
+    const allFolders=[...new Set([...noteFolders,...managedFolders])].sort();
+    if(state.noteFolder!=='all'&&state.noteFolder!=='uncategorized'&&!allFolders.includes(state.noteFolder))state.noteFolder='all';
+    let filteredNotes=currentTypeNotes;
+    if(state.noteFolder==='uncategorized')filteredNotes=currentTypeNotes.filter(n=>!n.folder||n.folder.trim()==='');
+    else if(state.noteFolder!=='all')filteredNotes=currentTypeNotes.filter(n=>n.folder===state.noteFolder);
+    if(searchQuery)filteredNotes=filteredNotes.filter(n=>(n.title||'').toLowerCase().includes(searchQuery)||(n.content||'').toLowerCase().includes(searchQuery));
+    filteredNotes.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    const typeLabel=type==='diary'?'日記':'筆記';
+    let html=`<div class="h-full flex flex-col anim-in bg-white/50 dark:bg-ink-900/50">
+      <div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60">
+        <div class="flex items-center justify-between mb-3"><h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2"><i data-lucide="file-text" class="w-6 h-6 text-brand-500"></i><span>${typeLabel}</span>${type==='diary'?`<span class="text-xs font-semibold text-ink-400 dark:text-ink-500 ml-1">共記 ${notes.filter(n=>n&&n.type==='diary').length} 日日記</span>`:''}</h2></div>
+        <div class="relative mb-3"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i><input type="text" id="noteSearchInput" value="${escapeHtml(state.searchQuery)}" placeholder="搜尋${typeLabel}..." class="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"><button id="clearNoteSearchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-400 hover:text-ink-600 ${state.searchQuery?'':'hidden'}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>
+        <div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1 mb-3"><button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${type==='note'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="note">📝 筆記</button><button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${type==='diary'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="diary">📔 日記</button></div>
+        <div class="flex overflow-x-auto gap-1.5 pb-1 scrollbar-none items-center">
+          <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='all'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="all">全部</button>
+          <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='uncategorized'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="uncategorized">未分類</button>
+          ${allFolders.map(f=>{const isActive=state.noteFolder===f;const activeClass=isActive?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700';const deleteBtnColor=isActive?'text-white/70 hover:text-white':'text-ink-400 hover:text-rose-500';return `<div class="relative group shrink-0"><button class="note-folder-btn pl-3 pr-6 py-1.5 rounded-lg text-xs font-semibold transition ${activeClass}" data-folder="${escapeHtml(f)}">${escapeHtml(f)}</button><button class="delete-folder-btn absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover:block ${deleteBtnColor} transition" data-folder="${escapeHtml(f)}"><i data-lucide="x" class="w-3 h-3 pointer-events-none"></i></button></div>`;}).join('')}
+          <button id="addNoteFolderBtn" class="shrink-0 px-2 py-1.5 rounded-lg text-xs font-semibold bg-ink-100 dark:bg-ink-800 text-ink-500 hover:bg-ink-200 dark:hover:bg-ink-700 transition flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3"></i>新增</button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto p-5 space-y-3">${filteredNotes.length===0?`<div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in"><i data-lucide="notebook-pen" class="w-16 h-16 mb-4 opacity-30"></i><p class="text-sm font-medium">這裡還沒有內容</p><p class="text-xs mt-1">點擊右下角「+」開始撰寫</p></div>`:filteredNotes.map(n=>`<div class="note-card group flex flex-col p-4 rounded-2xl bg-white dark:bg-ink-800 border border-ink-100 dark:border-ink-700 shadow-sm hover:shadow-md transition cursor-pointer" data-id="${n.id}"><div class="flex items-start justify-between gap-2"><h3 class="font-bold text-base text-ink-800 dark:text-ink-100 line-clamp-2">${escapeHtml(n.title||'無標題')}</h3><span class="text-[10px] text-ink-400 shrink-0 mt-1">${new Date(n.updatedAt||Date.now()).toLocaleDateString()}</span></div><p class="text-xs text-ink-500 dark:text-ink-400 mt-2 line-clamp-3">${escapeHtml(n.content||'')}</p>${n.folder?`<div class="mt-2 text-[10px] text-brand-500 font-semibold flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i>${escapeHtml(n.folder)}</div>`:''}</div>`).join('')}</div>
+      <button id="${type==='diary'?'fabAddDiaryBtn':'fabAddNoteBtn'}" class="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg active:scale-95 transition z-40" aria-label="${type==='diary'?'新增日記':'新增筆記'}"><i data-lucide="plus" class="w-6 h-6"></i></button>
+    </div>`;
+    c.innerHTML=html;lucide.createIcons();
+    document.querySelectorAll('.note-tab-btn').forEach(btn=>btn.addEventListener('click',()=>{state.noteViewType=btn.dataset.type;state.noteFolder='all';renderNotesView();}));
+    document.querySelectorAll('.note-folder-btn').forEach(btn=>btn.addEventListener('click',()=>{state.noteFolder=btn.dataset.folder;renderNotesView();}));
+    document.getElementById('addNoteFolderBtn').addEventListener('click',()=>{
+      const name=prompt(`請輸入新的${typeLabel}資料夾名稱：`);
+      if(!name||!name.trim())return;
+      const trimName=name.trim();
+      const list=currentFolderList(type);
+      if(list.includes(trimName)||trimName==='全部'||trimName==='未分類'){showToast('該資料夾已存在或名稱無效');return;}
+      setFolderList(type,[...list,trimName]);saveFolders();state.noteFolder=trimName;renderNotesView();showToast(`已新增${typeLabel}資料夾`);
+    });
+    document.querySelectorAll('.delete-folder-btn').forEach(btn=>btn.addEventListener('click',(e)=>{
+      e.stopPropagation();const folder=btn.dataset.folder;
+      if(confirm(`確定要刪除「${folder}」資料夾嗎？該資料夾內的${typeLabel}將移至「未分類」。`)){
+        setFolderList(type,currentFolderList(type).filter(f=>f!==folder));saveFolders();
+        let moved=0;state.notes.forEach(n=>{if(n.type===type&&n.folder===folder){n.folder='';moved++;}});
+        if(moved>0)saveNotes();if(state.noteFolder===folder)state.noteFolder='all';renderNotesView();
+        showToast(moved>0?`資料夾已刪除，${moved} 則${typeLabel}已移至未分類`:'資料夾已刪除');
+      }
+    }));
+    const searchInput=document.getElementById('noteSearchInput');
+    searchInput.addEventListener('input',(e)=>{state.searchQuery=e.target.value;renderNotesView();const newInput=document.getElementById('noteSearchInput');if(newInput){newInput.focus();newInput.setSelectionRange(newInput.value.length,newInput.value.length)}});
+    document.getElementById('clearNoteSearchBtn').addEventListener('click',()=>{state.searchQuery='';renderNotesView();});
+    const addBtn=document.getElementById(type==='diary'?'fabAddDiaryBtn':'fabAddNoteBtn'); if(addBtn) addBtn.addEventListener('click',()=>openNoteModal(null,type));
+    document.querySelectorAll('.note-card').forEach(card=>card.addEventListener('click',()=>{const note=state.notes.find(n=>n.id===card.dataset.id);if(note)openNoteReader(note);}));
+  }
+  function closeNoteReader(){const m=document.getElementById('noteReaderModal');if(!m)return;m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200);currentNoteReaderId='';}
+  function openNoteReader(note){if(!note)return;currentNoteReaderId=note.id;const m=document.getElementById('noteReaderModal');document.getElementById('noteReaderType').textContent=note.type==='diary'?'日記':'筆記';document.getElementById('noteReaderTitle').textContent=note.title||'無標題';document.getElementById('noteReaderDate').textContent=new Date(note.updatedAt||note.createdAt||Date.now()).toLocaleDateString();document.getElementById('noteReaderFolder').textContent=note.folder?` · ${note.folder}`:'';document.getElementById('noteReaderContent').textContent=note.content||'（這篇文章目前沒有內容。）';m.classList.remove('hidden');setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95')},10);if(typeof lucide!=='undefined')lucide.createIcons();}
+  function formatDiaryTitleDate(dt=new Date()){const digits=['零','一','二','三','四','五','六','七','八','九'];const toChineseNumber=n=>{if(n<10)return digits[n];if(n===10)return '十';if(n<20)return '十'+digits[n-10];if(n%10===0)return digits[Math.floor(n/10)]+'十';return digits[Math.floor(n/10)]+'十'+digits[n%10];};return `${String(dt.getFullYear()).split('').map(d=>digits[Number(d)]).join('')}年${toChineseNumber(dt.getMonth()+1)}月${toChineseNumber(dt.getDate())}日`;}
   function openNoteModal(note=null,type='note'){const folderInput=document.getElementById('noteFolder');const modal=document.getElementById('noteModal');const title=document.getElementById('noteModalTitle');const idInput=document.getElementById('noteId');const typeInput=document.getElementById('noteType');const titleInput=document.getElementById('noteTitle');const contentInput=document.getElementById('noteContent');const delBtn=document.getElementById('deleteNoteBtn');if(note){title.textContent=note.type==='diary'?'編輯日記':'編輯筆記';idInput.value=note.id;typeInput.value=note.type;titleInput.value=note.title;contentInput.value=note.content;delBtn.classList.remove('hidden');folderInput.value=note.folder||'';}else{title.textContent=type==='diary'?'新增日記':'新增筆記';idInput.value='';typeInput.value=type;titleInput.value=type==='diary'?formatDiaryTitleDate(new Date()):'';contentInput.value='';delBtn.classList.add('hidden');folderInput.value=state.noteFolder==='all'||state.noteFolder==='uncategorized'?'':state.noteFolder;}modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0');modal.querySelector('div').classList.remove('scale-95');titleInput.focus();if(type==='diary'&&!note)titleInput.setSelectionRange(titleInput.value.length,titleInput.value.length)},10);}
   function closeNoteModal(){const m=document.getElementById('noteModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200);}
-  async function saveNote(){const id=document.getElementById('noteId').value||`note_${Date.now()}`;const type=document.getElementById('noteType').value;const title=document.getElementById('noteTitle').value.trim();const content=document.getElementById('noteContent').value.trim();const folder=document.getElementById('noteFolder').value.trim();if(folder&&!state.folders.includes(folder)){state.folders.push(folder);saveFolders();}if(!title&&!content){showToast('請至少填寫標題或內容');return;}const existingIndex=state.notes.findIndex(n=>n.id===id);const newNote={id,type,title,content,folder,createdAt:existingIndex>=0?state.notes[existingIndex].createdAt:Date.now(),updatedAt:Date.now()};if(existingIndex>=0){state.notes[existingIndex]=newNote}else{state.notes.push(newNote)}saveNotes();closeNoteModal();showToast('筆記已儲存');renderNotesView();}
+  async function saveNote(){const id=document.getElementById('noteId').value||`note_${Date.now()}`;const type=document.getElementById('noteType').value;const title=document.getElementById('noteTitle').value.trim();const content=document.getElementById('noteContent').value.trim();const folder=document.getElementById('noteFolder').value.trim();if(folder&&!currentFolderList(type).includes(folder)){setFolderList(type,[...currentFolderList(type),folder]);saveFolders();}if(!title&&!content){showToast('請至少填寫標題或內容');return;}const existingIndex=state.notes.findIndex(n=>n.id===id);const newNote={id,type,title,content,folder,createdAt:existingIndex>=0?state.notes[existingIndex].createdAt:Date.now(),updatedAt:Date.now()};if(existingIndex>=0){state.notes[existingIndex]=newNote}else{state.notes.push(newNote)}saveNotes();closeNoteModal();showToast(type==='diary'?'日記已儲存':'筆記已儲存');renderNotesView();}
   async function deleteNote(){
     const id=document.getElementById('noteId').value;if(!id)return;
     if(!confirm('確定要刪除這則筆記嗎？'))return;
@@ -2330,7 +2441,7 @@
     }
     state.notes=state.notes.filter(n=>n.id!==id);saveNotes();
     closeNoteModal();showToast('筆記已刪除');renderNotesView();
-  }function initNoteEventListeners(){document.getElementById('closeNoteModalBtn').addEventListener('click',closeNoteModal);document.getElementById('cancelNoteBtn').addEventListener('click',closeNoteModal);document.getElementById('saveNoteBtn').addEventListener('click',saveNote);document.getElementById('deleteNoteBtn').addEventListener('click',deleteNote);document.getElementById('noteFolder').addEventListener('focus',()=>{const list=document.getElementById('noteFolderList');const noteFolders=[...new Set(state.notes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();const allFolders=[...new Set([...noteFolders,...(state.folders||[])])].sort();list.innerHTML=allFolders.map(f=>`<option value="${escapeHtml(f)}">`).join('');});}
+  }function initNoteEventListeners(){document.getElementById('closeNoteReaderBtn').addEventListener('click',closeNoteReader);document.getElementById('noteReaderCloseBtn').addEventListener('click',closeNoteReader);document.getElementById('noteReaderEditBtn').addEventListener('click',()=>{const note=state.notes.find(n=>n.id===currentNoteReaderId);if(!note)return;closeNoteReader();setTimeout(()=>openNoteModal(note),220);});document.getElementById('closeNoteModalBtn').addEventListener('click',closeNoteModal);document.getElementById('cancelNoteBtn').addEventListener('click',closeNoteModal);document.getElementById('saveNoteBtn').addEventListener('click',saveNote);document.getElementById('deleteNoteBtn').addEventListener('click',deleteNote);document.getElementById('noteFolder').addEventListener('focus',()=>{const list=document.getElementById('noteFolderList');const type=document.getElementById('noteType').value||state.noteViewType;const noteFolders=[...new Set(state.notes.filter(n=>n.type===type).map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();const allFolders=[...new Set([...noteFolders,...currentFolderList(type)])].sort();list.innerHTML=allFolders.map(f=>`<option value="${escapeHtml(f)}">`).join('');});}
 
   function updateTopHeaderVisibility(){const hdr = document.getElementById('topHeader');if(!hdr) return;const isMobile = window.innerWidth < 768;const hideOnMobile = (state.view === 'tasks' || state.view === 'notes' || state.view === 'my' || state.view === 'my-settings' || state.view === 'my-categories' || state.view === 'my-counter-mode' || state.view === 'my-counter-select' || state.view === 'my-counter-results' || state.view === 'my-counter-past');if (isMobile && hideOnMobile) { hdr.style.display = 'none'; } else { hdr.style.display = ''; }}
   window.updateTopHeaderVisibility = updateTopHeaderVisibility;
@@ -2794,8 +2905,13 @@
     showToast('日程已刪除');closeEventModal();renderAll();
   });
     document.getElementById('closeDataModalBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.add('hidden')});
-    document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:3,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events,tasks:state.tasks,notes:state.notes,folders:state.folders,counterMode:state.counterMode,counterSelectedIds:getCounterSelectedIds(state.counterMode),selectedIdsByMode:normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode)};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔');});
-    document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);if(data&&Array.isArray(data.events)){state.events=data.events;}if(data&&Array.isArray(data.tasks)){state.tasks=data.tasks;}if(data&&Array.isArray(data.notes)){state.notes=data.notes;}if(data&&Array.isArray(data.categories)){state.categories=data.categories;}if(data&&Array.isArray(data.activeCategories)){state.activeCategories=data.activeCategories;}if(data&&Array.isArray(data.folders)){state.folders=data.folders;}if(data&&(data.counterMode==='up'||data.counterMode==='down'))state.counterMode=data.counterMode;if(data&&data.selectedIdsByMode&&typeof data.selectedIdsByMode==='object')state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(data.selectedIdsByMode);else if(data&&Array.isArray(data.counterSelectedIds)){state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);if(state.counterMode)state.counterSelectedIdsByMode[state.counterMode]=Array.from(new Set(data.counterSelectedIds.map(String)));}state.counterSelectedIds=getCounterSelectedIds(state.counterMode);saveCounterSettings();saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value='';});
+    document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:3,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events,tasks:state.tasks,notes:state.notes,folders:{note:state.noteFolders||[],diary:state.diaryFolders||[]},counterMode:state.counterMode,counterSelectedIds:getCounterSelectedIds(state.counterMode),selectedIdsByMode:normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode)};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔');});
+    document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);if(data&&Array.isArray(data.events)){state.events=data.events;}if(data&&Array.isArray(data.tasks)){state.tasks=data.tasks;}if(data&&Array.isArray(data.notes)){state.notes=data.notes;}if(data&&Array.isArray(data.categories)){state.categories=data.categories;}if(data&&Array.isArray(data.activeCategories)){state.activeCategories=data.activeCategories;}if(data&&data.folders&&typeof data.folders==='object'&&!Array.isArray(data.folders)){state.noteFolders=Array.isArray(data.folders.note)?data.folders.note:[];state.diaryFolders=Array.isArray(data.folders.diary)?data.folders.diary:[];state.folders=[...new Set([...state.noteFolders,...state.diaryFolders])];}else if(data&&Array.isArray(data.folders)){
+          const nf=new Set(), df=new Set();
+          (state.notes||[]).forEach(n=>{if(!n.folder)return;if(n.type==='diary')df.add(n.folder);else nf.add(n.folder);});
+          state.noteFolders=[...nf]; state.diaryFolders=[...df];
+          state.folders=[...new Set([...state.noteFolders,...state.diaryFolders])];
+        }if(data&&(data.counterMode==='up'||data.counterMode==='down'))state.counterMode=data.counterMode;if(data&&data.selectedIdsByMode&&typeof data.selectedIdsByMode==='object')state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(data.selectedIdsByMode);else if(data&&Array.isArray(data.counterSelectedIds)){state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);if(state.counterMode)state.counterSelectedIdsByMode[state.counterMode]=Array.from(new Set(data.counterSelectedIds.map(String)));}state.counterSelectedIds=getCounterSelectedIds(state.counterMode);saveCounterSettings();saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value='';});
     document.getElementById('resetDemoBtn').addEventListener('click',async()=>{
     if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。'))return;
     if(window.currentUser && typeof window.deleteEventFromCloud === 'function'){
@@ -2840,7 +2956,7 @@
     if(normalizeSpecialEvents()) saveEvents(false);
     state.tasks=loadSavedTasks();
     state.notes=loadSavedNotes();
-    state.folders=loadSavedFolders()||[];
+    const savedFolders=loadSavedFolders();state.noteFolders=savedFolders.note||[];state.diaryFolders=savedFolders.diary||[];state.folders=[...new Set([...(state.noteFolders||[]),...(state.diaryFolders||[])])];
     state.events.forEach(e=>{if(e.category&&state.categories.some(c=>c.id===e.category)&&!state.activeCategories.includes(e.category)){state.activeCategories.push(e.category);}});
     try{localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories))}catch(e){}
     populateLunarDropdowns();
@@ -2851,6 +2967,7 @@
     renderAll();
     updateTopHeaderVisibility();
     lucide.createIcons();
+    if(window.syncAndroidWidget)setTimeout(()=>window.syncAndroidWidget(),200);
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(getTheme()==='system'){applyTheme();if(window.state&&window.state.view==='my'&&typeof window.renderMyView==='function'){window.renderMyView();}}});
   };
 </script>
@@ -2946,6 +3063,11 @@
       startListeningTasks();
       startListeningNotes();
       updateStorageHint(true);
+      // 登入模式：分類/事件資料載入與 Firestore listener 啟動後，再補同步幾次，
+      // 確保 Widget 不會停留在 App 尚未載入事件時產生的空 payload。
+      if(window.syncAndroidWidget){
+        [0,300,1000,2500,5000].forEach(d=>setTimeout(()=>{try{window.syncAndroidWidget();}catch(e){console.warn('Widget 登入後同步失敗',e)}},d));
+      }
       if(typeof window.updateCounterSyncIndicator==='function')window.updateCounterSyncIndicator(window.counterSettingsSyncStatus||'synced',window.counterSettingsLastError||'');
     }else{
       updateLoginUI(null);
@@ -2962,13 +3084,43 @@
         if(typeof window.renderAll==='function')window.renderAll();
       }
       updateStorageHint(false);
+      // 未登入模式：localStorage 事件載入完成後，強制再同步一次 Widget。
+      // 初始 DOMContentLoaded/load 同步可能早於 localStorage/auth 初始化，因此這裡補做多次重試。
+      if(window.syncAndroidWidget){
+        [0,300,1000,2500,5000].forEach(d=>setTimeout(()=>{try{window.syncAndroidWidget();}catch(e){console.warn('Widget 重試同步失敗',e)}},d));
+      }
     }
   });
 
-  async function loadCategoriesFromCloud(){if(!cu)return;try{const ref=doc(db,"userSettings",cu.uid);const snap=await getDoc(ref);if(snap.exists()){const data=snap.data();if(Array.isArray(data.categories)&&data.categories.length>0){window.state.categories=data.categories;try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}}if(Array.isArray(data.activeCategories)){window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(Array.isArray(data.folders)){window.state.folders = data.folders;try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}} else if (window.state.folders && window.state.folders.length > 0) {await window.saveCategoriesToCloud();}}else{await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories,folders: window.state.folders || []});}if(window.state.events){window.state.events.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(typeof window.renderCategories==='function')window.renderCategories();if(typeof window.renderAll==='function')window.renderAll();}catch(e){console.error("載入分類失敗:",e)}}
-  function startListeningCategories(){if(!cu)return;if(cue)cue();const ref=doc(db,"userSettings",cu.uid);cue=onSnapshot(ref,snap=>{if(!snap.exists())return;const data=snap.data();if(Array.isArray(data.categories)&&data.categories.length>0){const same=JSON.stringify(data.categories)===JSON.stringify(window.state.categories);if(!same){window.state.categories=data.categories;try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}if(Array.isArray(data.activeCategories)){window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(typeof window.renderCategories==='function')window.renderCategories();if(typeof window.renderAll==='function')window.renderAll();}}if(Array.isArray(data.folders)){const sameFolders = JSON.stringify(data.folders)===JSON.stringify(window.state.folders || []);if(!sameFolders){window.state.folders = data.folders;try{localStorage.setItem('calendar_folders_v1', JSON.stringify(data.folders))}catch(e){}if(typeof window.renderNotesView==='function' && window.state.view==='notes'){window.renderNotesView();}}}},err=>console.error(err));}
-  window.saveCategoriesToCloud=async function(){if(!cu)return;const ref=doc(db,"userSettings",cu.uid);await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories,folders: window.state.folders || []},{merge:true});};
-  function startListening(){if(!cu)return;if(ue)ue();const q=query(collection(db,"events"),where("userId","==",cu.uid));ue=onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...evt}=data;arr.push({id:d.id,...evt})});if(window.state){window.state.events=arr;const repaired=typeof window.normalizeSpecialEvents==='function'&&window.normalizeSpecialEvents();arr.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_events_v1',JSON.stringify(window.state.events))}catch(e){}if(repaired&&typeof window.saveEventToCloud==='function'){window.state.events.filter(e=>e.eventType==='birthday'||e.eventType==='anniversary').forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('修復生日/紀念日失敗',err)));}if(typeof window.renderAll==='function')window.renderAll();}},err=>console.error(err));}
+  async function loadCategoriesFromCloud(){if(!cu)return;try{const ref=doc(db,"userSettings",cu.uid);const snap=await getDoc(ref);if(snap.exists()){const data=snap.data();if(Array.isArray(data.categories)&&data.categories.length>0){window.state.categories=data.categories;try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}}if(Array.isArray(data.activeCategories)){window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(data.folders && typeof data.folders==='object' && !Array.isArray(data.folders)){
+          window.state.noteFolders=Array.isArray(data.folders.note)?data.folders.note:[];
+          window.state.diaryFolders=Array.isArray(data.folders.diary)?data.folders.diary:[];
+          window.state.folders=[...new Set([...(window.state.noteFolders||[]),...(window.state.diaryFolders||[])])];
+          try{localStorage.setItem('calendar_folders_v1', JSON.stringify({note:window.state.noteFolders,diary:window.state.diaryFolders}))}catch(e){}
+        } else if(Array.isArray(data.folders)){
+          const noteSet=new Set(),diarySet=new Set();
+          (window.state.notes||[]).forEach(n=>{if(n.folder)(n.type==='diary'?diarySet:noteSet).add(n.folder);});
+          data.folders.forEach(f=>{if(typeof f!=='string')return; const usedByNote=(window.state.notes||[]).some(n=>n&&n.type!=='diary'&&n.folder===f); const usedByDiary=(window.state.notes||[]).some(n=>n&&n.type==='diary'&&n.folder===f); if(usedByNote)noteSet.add(f); if(usedByDiary)diarySet.add(f);});
+          window.state.noteFolders=[...noteSet];window.state.diaryFolders=[...diarySet];
+          window.state.folders=[...new Set([...window.state.noteFolders,...window.state.diaryFolders])];
+          try{localStorage.setItem('calendar_folders_v1', JSON.stringify({note:window.state.noteFolders,diary:window.state.diaryFolders}))}catch(e){}
+        } else if ((window.state.noteFolders&&window.state.noteFolders.length)||(window.state.diaryFolders&&window.state.diaryFolders.length)) {await window.saveCategoriesToCloud();}}else{await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories,folders: {note:window.state.noteFolders||[],diary:window.state.diaryFolders||[]}});}if(window.state.events){window.state.events.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(typeof window.renderCategories==='function')window.renderCategories();if(typeof window.renderAll==='function')window.renderAll();}catch(e){console.error("載入分類失敗:",e)}}
+  function startListeningCategories(){if(!cu)return;if(cue)cue();const ref=doc(db,"userSettings",cu.uid);cue=onSnapshot(ref,snap=>{if(!snap.exists())return;const data=snap.data();if(Array.isArray(data.categories)&&data.categories.length>0){const same=JSON.stringify(data.categories)===JSON.stringify(window.state.categories);if(!same){window.state.categories=data.categories;try{localStorage.setItem('calendar_categories_v1',JSON.stringify(data.categories))}catch(e){}if(Array.isArray(data.activeCategories)){window.state.activeCategories=data.activeCategories.filter(id=>window.state.categories.some(c=>c.id===id));try{localStorage.setItem('calendar_active_cats_v1',JSON.stringify(window.state.activeCategories))}catch(e){}}if(typeof window.renderCategories==='function')window.renderCategories();if(typeof window.renderAll==='function')window.renderAll();}}if(data.folders && typeof data.folders==='object' && !Array.isArray(data.folders)){
+          const nf=Array.isArray(data.folders.note)?data.folders.note:[], df=Array.isArray(data.folders.diary)?data.folders.diary:[];
+          const sameFolders=JSON.stringify(nf)===JSON.stringify(window.state.noteFolders||[])&&JSON.stringify(df)===JSON.stringify(window.state.diaryFolders||[]);
+          if(!sameFolders){window.state.noteFolders=nf;window.state.diaryFolders=df;window.state.folders=[...new Set([...nf,...df])];try{localStorage.setItem('calendar_folders_v1',JSON.stringify({note:nf,diary:df}))}catch(e){}if(typeof window.renderNotesView==='function'&&window.state.view==='notes')window.renderNotesView();}
+        } else if(Array.isArray(data.folders)){
+          const nf=new Set(), df=new Set();
+          (window.state.notes||[]).forEach(n=>{if(!n.folder)return;if(n.type==='diary')df.add(n.folder);else nf.add(n.folder);});
+          const split={note:[...nf],diary:[...df]};
+          window.state.noteFolders=split.note; window.state.diaryFolders=split.diary;
+          window.state.folders=[...new Set([...split.note,...split.diary])];
+          try{localStorage.setItem('calendar_folders_v1',JSON.stringify(split))}catch(e){}
+          window.saveCategoriesToCloud&&window.saveCategoriesToCloud().catch(()=>{});
+          if(typeof window.renderNotesView==='function'&&window.state.view==='notes')window.renderNotesView();
+        }},err=>console.error(err));}
+  window.saveCategoriesToCloud=async function(){if(!cu)return;const ref=doc(db,"userSettings",cu.uid);await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories,folders: {note:window.state.noteFolders||[],diary:window.state.diaryFolders||[]}},{merge:true});};
+  function startListening(){if(!cu)return;if(ue)ue();const q=query(collection(db,"events"),where("userId","==",cu.uid));ue=onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...evt}=data;arr.push({id:d.id,...evt})});if(window.state){window.state.events=arr;const repaired=typeof window.normalizeSpecialEvents==='function'&&window.normalizeSpecialEvents();arr.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_events_v1',JSON.stringify(window.state.events))}catch(e){}if(repaired&&typeof window.saveEventToCloud==='function'){window.state.events.filter(e=>e.eventType==='birthday'||e.eventType==='anniversary').forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('修復生日/紀念日失敗',err)));}if(typeof window.renderAll==='function')window.renderAll();if(window.syncAndroidWidget)window.syncAndroidWidget();}},err=>console.error(err));}
   window.saveEventToCloud=async function(event){if(!cu)throw new Error("未登入");const ref=doc(db,"events",event.id);await setDoc(ref,{...event,userId:cu.uid})};
   window.deleteEventFromCloud=async function(id){if(!cu)throw new Error("未登入");await deleteDoc(doc(db,"events",id))};
   function startListeningTasks(){if(!cu)return;const q=query(collection(db,"tasks"),where("userId","==",cu.uid));onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});if(window.state){window.state.tasks=arr;try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();}},err=>console.error("監聽任務失敗:",err));}
@@ -3025,7 +3177,7 @@
       await setDoc(doc(db, "userSettings", window.currentUser.uid), {
         categories: window.state.categories,
         activeCategories: window.state.activeCategories,
-        folders: window.state.folders || []
+        folders: {note:window.state.noteFolders||[],diary:window.state.diaryFolders||[]}
       }, { merge: true });
       console.log('離線資料已成功同步到雲端');
       if (typeof window.showToast === 'function') {
@@ -3079,6 +3231,7 @@
       if(visible('dateIntervalModal')){ closeSimpleOverlay('dateIntervalModal'); return true; }
       if(visible('dateCalculatorModal')){ closeSimpleOverlay('dateCalculatorModal'); return true; }
       if(visible('jumpDateModal')){ closeJumpDateModal(); return true; }
+      if(visible('noteReaderModal')){ closeNoteReader(); return true; }
       if(visible('noteModal')){ closeNoteModal(); return true; }
       if(visible('icsModal')){ closeIcsModal(); return true; }
       if(visible('viewEventModal')){ closeEventDetailModal(); return true; }
@@ -3151,6 +3304,152 @@
     window.handleAndroidBack=handleAndroidBack;
   })();
 </script>
+
+
+<script>
+/* Android Widget bridge: HTML remains the single source of calendar data. */
+(function(){
+  function post(payload){
+    try{
+      if(window.AndroidCalendarBridge && typeof window.AndroidCalendarBridge.saveWidgetPayload==='function'){
+        window.AndroidCalendarBridge.saveWidgetPayload(JSON.stringify(payload));
+        return true;
+      }
+      console.warn('Widget 同步：AndroidCalendarBridge 尚未就緒');
+    }catch(e){ console.warn('Widget 同步失敗',e); }
+    return false;
+  }
+
+  function safeOccurrences(rangeStart, rangeEnd){
+    const out=[];
+    try{
+      const source=typeof getFilteredEvents==='function' ? getFilteredEvents() : (state.events||[]);
+      source.forEach(evt=>{
+        try{
+          if(typeof expandEvent==='function') expandEvent(evt,rangeStart,rangeEnd,out);
+        }catch(err){
+          // 單一壞資料不應讓整個 Widget 同步失敗；普通事件則退回直接判斷日期。
+          try{
+            const st=new Date(evt.start), et=new Date(evt.end||evt.start);
+            if(!isNaN(st.getTime()) && st<=rangeEnd && (isNaN(et.getTime()) || et>=rangeStart)){
+              out.push({...evt,_occStart:evt.start,_occEnd:evt.end||evt.start});
+            }
+          }catch(ignore){}
+        }
+      });
+    }catch(err){ console.warn('Widget occurrences 失敗',err); }
+    return out;
+  }
+
+  function buildMonthData(y,m){
+    const fullDays=getMonthGridDays(y,m);
+    const firstDay=new Date(y,m,1).getDay();
+    const daysInMonth=new Date(y,m+1,0).getDate();
+    const rowCount=Math.ceil((firstDay+daysInMonth)/7);
+    const days=fullDays.slice(0,rowCount*7);
+    const rs=new Date(days[0].date); rs.setHours(0,0,0,0);
+    const re=new Date(days[days.length-1].date); re.setHours(23,59,59,999);
+    const occurrences=safeOccurrences(rs,re);
+    const todayKey=dateKey(new Date());
+    const grid=days.map(item=>{
+      const dk=dateKey(item.date), ds=new Date(item.date), de=new Date(item.date);
+      ds.setHours(0,0,0,0); de.setHours(23,59,59,999);
+      const dayEvents=occurrences.filter(e=>{
+        const st=new Date(e._occStart||e.start), et=new Date(e._occEnd||e.end||e._occStart||e.start);
+        return !isNaN(st.getTime()) && st<=de && (isNaN(et.getTime()) || et>=ds);
+      });
+      const colors=[];
+      dayEvents.forEach(e=>{
+        const c=getCat(e.category);
+        if(c&&c.color&&!colors.includes(c.color)) colors.push(c.color);
+      });
+      const events=dayEvents.map(e=>{
+        const c=getCat(e.category), st=new Date(e._occStart||e.start), et=new Date(e._occEnd||e.end||e._occStart||e.start);
+        let time='全天';
+        if(!e.allDay&&!isNaN(st.getTime())){
+          const pad=n=>String(n).padStart(2,'0');
+          time=pad(st.getHours())+':'+pad(st.getMinutes());
+          if(!isNaN(et.getTime())) time+=' - '+pad(et.getHours())+':'+pad(et.getMinutes());
+        }
+        return {id:String(e.id||''),title:String(e.title||'未命名事件'),time,location:String(e.location||''),color:c&&c.color?c.color:'#6366f1'};
+      });
+      let lunar='', sub='', subType='none';
+      try{ lunar=(getLunarInfo(item.date)||{}).day||''; }catch(e){}
+      try{ const st=getDaySubText(item.date)||{}; sub=st.text||''; subType=st.type||'none'; }catch(e){}
+      return {
+        date:dk,day:item.date.getDate(),currentMonth:!!item.isCurrentMonth,
+        isToday:dk===todayKey,lunar:lunar,sub:sub,subType:subType,
+        colors:colors.slice(0,3),events:events
+      };
+    });
+    return {monthTitle:y+'年 '+(m+1)+'月',grid:grid};
+  }
+
+  function buildPayload(){
+    try{
+      if(!window.state || typeof getMonthGridDays!=='function') return null;
+      const now=new Date(), cy=now.getFullYear(), cm=now.getMonth();
+      let selected=dateKey(now);
+      try{selected=localStorage.getItem('calendar_widget_selected_date')||selected;}catch(e){}
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(selected)) selected=dateKey(now);
+
+      // Widget 預先帶入前後 12 個月，讓左右箭頭不必等待 App 再計算。
+      const months={};
+      for(let offset=-12;offset<=12;offset++){
+        const d=new Date(cy,cm+offset,1);
+        const y=d.getFullYear(), m=d.getMonth();
+        months[`${y}-${String(m+1).padStart(2,'0')}`]=buildMonthData(y,m);
+      }
+      return {
+        version:5,
+        monthTitle:cy+'年 '+(cm+1)+'月',
+        today:dateKey(now),
+        selectedDate:selected,
+        categories:state.categories||[],
+        months:months,
+        generatedAt:Date.now()
+      };
+    }catch(e){
+      console.warn('Widget buildPayload 失敗',e);
+      return null;
+    }
+  }
+
+  window.syncAndroidWidget=function(){
+    const p=buildPayload();
+    if(p) post(p);
+  };
+
+  window.setAndroidWidgetSelectedDate=function(date){
+    date=String(date||''); if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
+    try{localStorage.setItem('calendar_widget_selected_date',date);}catch(e){}
+    if(window.state){
+      state.currentDate=parseDateKey(date); state.miniDate=new Date(state.currentDate);
+      if(typeof renderAll==='function')renderAll();
+    }
+    window.syncAndroidWidget();
+  };
+
+  window.openAndroidEvent=function(eventId,dateStr){
+    try{
+      const d=parseDateKey(dateStr); if(isNaN(d.getTime()))return;
+      state.currentDate=new Date(d); state.miniDate=new Date(d);
+      try{localStorage.setItem('calendar_widget_selected_date',dateStr);}catch(e){}
+      if(typeof renderAll==='function')renderAll();
+      const ds=new Date(d);ds.setHours(0,0,0,0);
+      const de=new Date(d);de.setHours(23,59,59,999);
+      const list=safeOccurrences(ds,de), evt=list.find(e=>String(e.id||'')===String(eventId));
+      if(evt&&typeof openEventDetailModal==='function')setTimeout(()=>openEventDetailModal(evt),180);
+    }catch(e){console.warn('Widget 開啟事件失敗',e);}
+  };
+
+  function retrySync(delay){setTimeout(()=>{if(window.syncAndroidWidget)window.syncAndroidWidget();},delay);}
+  document.addEventListener('DOMContentLoaded',()=>{retrySync(400);retrySync(1500);retrySync(3500);retrySync(7000);});
+  window.addEventListener('load',()=>{retrySync(400);retrySync(1500);retrySync(3500);retrySync(7000);});
+})();
+</script>
+
+
 
 </body>
 </html>
