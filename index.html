@@ -22,7 +22,7 @@
       } catch(e){}
     })();
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./tailwind.js"></script>
   <script>
     tailwind.config={darkMode:'class',theme:{extend:{
     fontFamily:{sans:['Inter','-apple-system','BlinkMacSystemFont','"Segoe UI"','"Noto Sans TC"','"PingFang TC"','sans-serif']},
@@ -30,8 +30,8 @@
     boxShadow:{soft:'0 1px 2px rgba(15,23,42,.04),0 4px 16px rgba(15,23,42,.06)',pop:'0 8px 24px rgba(15,23,42,.1)',glow:'0 8px 24px -8px rgba(99,102,241,.5)'},
     borderRadius:{'2xl':'1.15rem','3xl':'1.5rem'}}}};
   </script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.js"></script>
+  <script src="./lucide.js"></script>
+  <script src="./lunar.js"></script>
   <style>
     ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:9999px;border:2px solid transparent;background-clip:content-box}
     html,body{-webkit-font-smoothing:antialiased;overscroll-behavior:none}
@@ -125,7 +125,18 @@
     .desktop-only{display:none!important}
     .mobile-only-wk{display:block}
     }
-  </style>
+  
+
+    /* 任務勾選框：未完成只有空框，完成才顯示 ✓ */
+    .toggle-task-btn,.day-task-toggle{transition:background-color .15s,border-color .15s,color .15s}
+    .task-calendar-item .task-calendar-title{display:inline}
+
+    /* 任務在日曆上的完成狀態 */
+    .task-calendar-item.completed{opacity:.58;filter:grayscale(.65)}
+    .task-calendar-item.completed .task-calendar-title{text-decoration:line-through;text-decoration-thickness:1.5px}
+    .task-form-grid{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px}
+    @media(max-width:640px){.task-form-grid{grid-template-columns:1fr 1fr}.task-form-grid .task-cat-wrap{grid-column:1/-1}}
+<style>.day-task-card{border-left-color:var(--c)}</style></style>
 
   <style>
     .lunar-convert-tab{color:rgb(107 114 128)}
@@ -1270,7 +1281,28 @@
     }
   }
   function getFilteredEvents(){return state.events.filter(evt=>{if(!evt)return false;const catExists=state.categories.some(c=>c.id===evt.category);if(catExists){if(!state.activeCategories.includes(evt.category))return false;}if(state.searchQuery&&state.searchQuery.trim()!==''){const q=state.searchQuery.toLowerCase();if(!evt.title.toLowerCase().includes(q)&&!(evt.description||'').toLowerCase().includes(q)&&!(evt.location||'').toLowerCase().includes(q))return false;}return true;});}
-  function getOccurrencesInRange(rangeStart,rangeEnd){const out=[];getFilteredEvents().forEach(evt=>expandEvent(evt,rangeStart,rangeEnd,out));return out;}
+  function getOccurrencesInRange(rangeStart,rangeEnd){
+    const out=[];getFilteredEvents().forEach(evt=>expandEvent(evt,rangeStart,rangeEnd,out));
+    (state.tasks||[]).forEach(task=>{
+      if(!task||!task.dueAt)return;
+      const due=new Date(task.dueAt);if(isNaN(due.getTime())||due<rangeStart||due>rangeEnd)return;
+      const catId=task.category||state.categories[0]?.id||'personal';
+      if(state.categories.some(c=>c.id===catId)&&!state.activeCategories.includes(catId))return;
+      // 任務的「截止日」不是一段跨日事件：全天任務只佔該日，
+      // 有時間的任務則顯示一小段時間，但不能延伸到隔天。
+      let taskEnd=new Date(due);
+      if(task.dueHasTime){
+        taskEnd=new Date(due.getTime()+30*60000);
+        const endOfDueDay=new Date(due);
+        endOfDueDay.setHours(23,59,59,999);
+        if(taskEnd>endOfDueDay)taskEnd=endOfDueDay;
+      }else{
+        taskEnd.setHours(23,59,59,999);
+      }
+      out.push({id:`taskcal_${task.id}`,title:task.text||'未命名任務',category:catId,_taskId:task.id,_isTask:true,_taskCompleted:!!task.completed,_occStart:due.toISOString(),_occEnd:taskEnd.toISOString(),allDay:!task.dueHasTime,description:'任務截止時間',location:'',eventType:'task'});
+    });
+    return out;
+  }
   function hasHolidayEvent(date){const ds=new Date(date);ds.setHours(0,0,0,0);const de=new Date(date);de.setHours(23,59,59,999);for(const e of state.events){if(!e||e.category!==HOLIDAY_CAT_ID)continue;const out=[];expandEvent(e,ds,de,out);if(out.length)return true;}return false;}
   function updateRepeatUI(){const freq=document.getElementById('eventRepeat').value;const iw=document.getElementById('repeatIntervalWrap');const uw=document.getElementById('repeatUntilWrap');const unit=document.getElementById('repeatIntervalUnit');const isRepeat=freq!=='none';uw.style.display=isRepeat?'':'none';if(!isRepeat){iw.style.display='none';return}if(freq==='weekdays'){iw.style.display='none';return}iw.style.display='flex';unit.textContent={daily:'天',weekly:'週',monthly:'個月',yearly:'年'}[freq]||'天';if(typeof lucide!=='undefined')lucide.createIcons();}
   function readRecurrenceFromForm(){const freq=document.getElementById('eventRepeat').value;if(freq==='none')return null;const interval=Math.max(1,parseInt(document.getElementById('eventRepeatInterval').value,10)||1);const until=document.getElementById('eventRepeatUntil').value||null;return {freq,interval:(freq==='weekdays'?1:interval),until};}
@@ -1577,67 +1609,132 @@
       return all.sort((a,b) => new Date(a._occStart) - new Date(b._occStart));
     })();
 
-    document.getElementById('drawerEventCount').textContent = dayEvents.length > 0 ? `${dayEvents.length} 個日程` : '尚無事件';
+    // 任務以「截止日期」歸屬到這一天；有時間的任務再按截止時間排序。
+    const dayTasks = (state.tasks || [])
+      .filter(task => {
+        if (!task || !task.dueAt) return false;
+        const due = new Date(task.dueAt);
+        return !isNaN(due.getTime()) && dateKey(due) === dateKey(date);
+      })
+      .sort((a,b) => new Date(a.dueAt) - new Date(b.dueAt));
+
+    const totalItems = dayEvents.length + dayTasks.length;
+    document.getElementById('drawerEventCount').textContent =
+      totalItems > 0
+        ? `${dayEvents.length} 個日程${dayTasks.length ? ` · ${dayTasks.length} 個任務` : ''}`
+        : '尚無事件';
     const content = document.getElementById('drawerContent');
 
-    if (dayEvents.length === 0) {
-      content.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-10 fade-in">
-          <div class="w-24 h-24 mb-5">
-            <svg viewBox="0 0 100 100" fill="none" class="w-full h-full">
-              <path d="M35 20 L35 50 L10 50 L10 80 L90 80 L90 50 L65 50 L65 20 Z" stroke="currentColor" stroke-width="2" fill="none" class="text-ink-400"/>
-              <circle cx="60" cy="25" r="8" fill="none" stroke="currentColor" stroke-width="2" class="text-ink-400"/>
-            </svg>
-          </div>
-          <p class="text-base font-bold text-ink-600 dark:text-ink-300 mb-1">尚無事件</p>
-          <p class="text-xs text-ink-400 mb-6">點擊「+」建立</p>
-          <button id="drawerEmptyCreateBtn" class="px-8 py-3 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-2xl text-sm font-bold shadow-glow flex items-center space-x-2">
-            <i data-lucide="plus" class="w-4 h-4"></i><span>建立日程</span>
-          </button>
-        </div>`;
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-      document.getElementById('drawerEmptyCreateBtn').addEventListener('click', () => {
+    const emptyEventHtml = `
+      <div class="flex flex-col items-center justify-center py-10 fade-in">
+        <div class="w-24 h-24 mb-5">
+          <svg viewBox="0 0 100 100" fill="none" class="w-full h-full">
+            <path d="M35 20 L35 50 L10 50 L10 80 L90 80 L90 50 L65 50 L65 20 Z" stroke="currentColor" stroke-width="2" fill="none" class="text-ink-400"/>
+            <circle cx="60" cy="25" r="8" fill="none" stroke="currentColor" stroke-width="2" class="text-ink-400"/>
+          </svg>
+        </div>
+        <p class="text-base font-bold text-ink-600 dark:text-ink-300 mb-1">尚無日程</p>
+        <p class="text-xs text-ink-400 mb-6">點擊「+」建立</p>
+        <button id="drawerEmptyCreateBtn" class="px-8 py-3 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl font-bold flex items-center gap-2">
+          <i data-lucide="plus" class="w-4 h-4"></i><span>建立日程</span>
+        </button>
+      </div>`;
+
+    const eventsHtml = dayEvents.length ? `
+      <div class="space-y-2">
+        ${dayEvents.map(evt => {
+          const cat = getCat(evt.category);
+          const timeStr = evt.allDay ? '全天' : `${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;
+          const age = getYearsLabel(evt, evt._occStart);
+          const badge = age ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>` : '';
+          const repIcon = evt._isRecurring && !age ? '<i data-lucide="repeat" class="w-3 h-3 inline -mt-0.5 ml-1 opacity-50"></i>' : '';
+          return `
+            <div class="schedule-card flex items-center justify-between p-3 rounded-xl border-l-4 cursor-pointer transition hover:opacity-90" style="--c:${cat.color}" data-id="${evt.id}">
+              <div class="flex flex-col gap-1 min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-sm text-ink-800 dark:text-ink-100 truncate">${escapeHtml(evt.title)}</span>
+                  ${badge}
+                </div>
+                <div class="text-xs text-ink-500 dark:text-ink-400 flex items-center gap-2">
+                  <span>${timeStr}</span>
+                  ${repIcon}
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-ink-400 shrink-0"></i>
+            </div>`;
+        }).join('')}
+      </div>` : emptyEventHtml;
+
+    const tasksHtml = dayTasks.length ? `
+      <section class="mt-5 pt-4 border-t border-ink-200/70 dark:border-ink-800/70">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-extrabold text-ink-700 dark:text-ink-200 flex items-center gap-2">
+            <i data-lucide="check-square" class="w-4 h-4 text-brand-500"></i>
+            <span>任務</span>
+          </h3>
+          <span class="text-[11px] text-ink-400">${dayTasks.filter(t => t.completed).length} / ${dayTasks.length} 已完成</span>
+        </div>
+        <div class="space-y-2">
+          ${dayTasks.map(task => {
+            const cat = getCat(task.category);
+            const due = new Date(task.dueAt);
+            const dueText = task.dueHasTime ? `截止 ${formatTime(due)}` : '全天';
+            return `
+              <div class="day-task-card flex items-center gap-3 p-3 rounded-xl border-l-4 bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 ${task.completed ? 'opacity-60' : ''}" style="--c:${cat.color}" data-task-id="${task.id}">
+                <button type="button" aria-label="${task.completed ? '標記為未完成' : '標記為已完成'}" class="day-task-toggle shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition ${task.completed ? 'bg-brand-500 border-brand-500' : 'border-ink-300 dark:border-ink-600 bg-transparent'}" data-task-id="${task.id}">
+                  ${task.completed ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
+                </button>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="day-task-title text-sm font-bold truncate ${task.completed ? 'line-through text-ink-400' : 'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded-full cat-chip border shrink-0" style="--c:${cat.color}">${escapeHtml(cat.name)}</span>
+                  </div>
+                  <div class="text-[11px] text-ink-400 mt-1">${dueText}</div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+      </section>` : '';
+
+    content.innerHTML = `
+      <div class="space-y-1">
+        ${eventsHtml}
+        ${tasksHtml}
+      </div>`;
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    const emptyCreateBtn = document.getElementById('drawerEmptyCreateBtn');
+    if (emptyCreateBtn) {
+      emptyCreateBtn.addEventListener('click', () => {
         closeDayDetail();
         setTimeout(() => openEventModal(null, date), 250);
       });
-    } else {
-      content.innerHTML = `
-        <div class="space-y-2">
-          ${dayEvents.map(evt => {
-            const cat = getCat(evt.category);
-            const timeStr = evt.allDay ? '全天' : `${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;
-            const age = getYearsLabel(evt, evt._occStart);
-            const badge = age ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>` : '';
-            const repIcon = evt._isRecurring && !age ? '<i data-lucide="repeat" class="w-3 h-3 inline -mt-0.5 ml-1 opacity-50"></i>' : '';
-            return `
-              <div class="schedule-card flex items-center justify-between p-3 rounded-xl border-l-4 cursor-pointer transition hover:opacity-90" style="--c:${cat.color}" data-id="${evt.id}">
-                <div class="flex flex-col gap-1 min-w-0 flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="font-bold text-sm text-ink-800 dark:text-ink-100 truncate">${escapeHtml(evt.title)}</span>
-                    ${badge}
-                  </div>
-                  <div class="text-xs text-ink-500 dark:text-ink-400 flex items-center gap-2">
-                    <span>${timeStr}</span>
-                    ${repIcon}
-                  </div>
-                </div>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-ink-400 shrink-0"></i>
-              </div>`;
-          }).join('')}
-        </div>`;
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-
-      content.querySelectorAll('.schedule-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const id = card.dataset.id;
-          const targetEvt = dayEvents.find(e => e.id === id);
-          if (targetEvt) {
-            closeDayDetail();
-            setTimeout(() => openEventDetailModal(targetEvt), 120);
-          }
-        });
-      });
     }
+
+    content.querySelectorAll('.schedule-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.id;
+        const targetEvt = dayEvents.find(e => e.id === id);
+        if (targetEvt) {
+          closeDayDetail();
+          setTimeout(() => openEventDetailModal(targetEvt), 120);
+        }
+      });
+    });
+
+    content.querySelectorAll('.day-task-toggle').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const task = (state.tasks || []).find(t => t.id === btn.dataset.taskId);
+        if (!task) return;
+        task.completed = !task.completed;
+        task.completedAt = task.completed ? Date.now() : null;
+        saveTasks();
+        renderAll();
+        openDayDetail(dateKey(date));
+      });
+    });
 
     document.getElementById('dayDrawerOverlay').classList.add('open');
     document.getElementById('dayDrawerPanel').classList.add('open');
@@ -1665,7 +1762,7 @@
   function goToPrevMonth(){state.currentDate.setMonth(state.currentDate.getMonth()-1);state.currentDate.setDate(1);state.miniDate=new Date(state.currentDate);updateHeaderInfo();renderMiniCalendar();renderStats();renderMainView('right')}
   function goToNextMonth(){state.currentDate.setMonth(state.currentDate.getMonth()+1);state.currentDate.setDate(1);state.miniDate=new Date(state.currentDate);updateHeaderInfo();renderMiniCalendar();renderStats();renderMainView('left')}
 
-  function renderMonthView(){const c=document.getElementById('calendarViewContainer');const y=state.currentDate.getFullYear(),m=state.currentDate.getMonth();const days=getMonthGridDays(y,m);const rangeStart=new Date(days[0].date);rangeStart.setHours(0,0,0,0);const rangeEnd=new Date(days[days.length-1].date);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd);const today=new Date();let html=`<div class="swipe-container h-full" id="monthSwipeContainer"><div class="month-view-wrapper h-full flex flex-col"><div class="grid grid-cols-[36px_repeat(7,1fr)] border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center py-2.5 text-[11px] font-bold text-ink-500 shrink-0 month-header"><div class="wk-cell"></div><div class="text-rose-500">週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div class="text-brand-500">週六</div></div><div class="flex-1 grid grid-cols-[36px_repeat(7,1fr)] month-grid" style="grid-template-rows: repeat(${Math.ceil(days.length/7)}, minmax(0, 1fr));">`;days.forEach((item,index)=>{if(index%7===0){const wkNum=getWeekNumber(item.date);html+=`<div class="month-cell wk-cell flex flex-col items-center justify-center text-[10px] text-ink-400 leading-tight"><span>WK</span><span class="font-semibold text-ink-500">${wkNum}</span></div>`}const isToday=isSameDay(item.date,today);const dayEvents=events.filter(e=>{const st=new Date(e._occStart),et=new Date(e._occEnd),ds=new Date(item.date);ds.setHours(0,0,0,0);const de=new Date(item.date);de.setHours(23,59,59,999);return st<=de&&et>=ds;});const sub=getDaySubText(item.date);const isHoliday=hasHolidayEvent(item.date);let numClass='text-xs font-semibold ';if(isToday)numClass+='w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center';else if(isHoliday&&item.isCurrentMonth)numClass+='text-rose-600 dark:text-rose-400 font-extrabold';else if(item.isCurrentMonth)numClass+='text-ink-700 dark:text-ink-200';else numClass+='text-ink-300 dark:text-ink-600';html+=`<div class="month-cell p-1 flex flex-col hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition cursor-pointer overflow-y-auto cell-day" data-date="${dateKey(item.date)}"><div class="flex flex-col items-center mb-0.5"><span class="${numClass}">${item.date.getDate()}</span>${sub.text?`<span class="${subTextClass(sub.type)}">${escapeHtml(sub.text)}</span>`:''}${index%7===0?`<span class="mobile-only-wk text-[7px] text-ink-300 dark:text-ink-600 font-bold leading-none mt-0.5">W${getWeekNumber(item.date)}</span>`:''}</div><div class="flex-1 overflow-hidden space-y-0.5">${dayEvents.slice(0,3).map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const prefix=(evt._isRecurring&&!age)?'↻ ':'';return`<div class="month-event-block" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(item.date)}">${prefix}${escapeHtml(evt.title)}${age?` · ${age}`:''}</div>`}).join('')}${dayEvents.length>3?`<div class="text-[9px] text-ink-400 font-semibold px-1">+${dayEvents.length-3}</div>`:''}</div></div>`;});html+=`</div></div></div>`;c.innerHTML=html;}
+  function renderMonthView(){const c=document.getElementById('calendarViewContainer');const y=state.currentDate.getFullYear(),m=state.currentDate.getMonth();const days=getMonthGridDays(y,m);const rangeStart=new Date(days[0].date);rangeStart.setHours(0,0,0,0);const rangeEnd=new Date(days[days.length-1].date);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd);const today=new Date();let html=`<div class="swipe-container h-full" id="monthSwipeContainer"><div class="month-view-wrapper h-full flex flex-col"><div class="grid grid-cols-[36px_repeat(7,1fr)] border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center py-2.5 text-[11px] font-bold text-ink-500 shrink-0 month-header"><div class="wk-cell"></div><div class="text-rose-500">週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div class="text-brand-500">週六</div></div><div class="flex-1 grid grid-cols-[36px_repeat(7,1fr)] month-grid" style="grid-template-rows: repeat(${Math.ceil(days.length/7)}, minmax(0, 1fr));">`;days.forEach((item,index)=>{if(index%7===0){const wkNum=getWeekNumber(item.date);html+=`<div class="month-cell wk-cell flex flex-col items-center justify-center text-[10px] text-ink-400 leading-tight"><span>WK</span><span class="font-semibold text-ink-500">${wkNum}</span></div>`}const isToday=isSameDay(item.date,today);const dayEvents=events.filter(e=>{const st=new Date(e._occStart),et=new Date(e._occEnd),ds=new Date(item.date);ds.setHours(0,0,0,0);const de=new Date(item.date);de.setHours(23,59,59,999);return st<=de&&et>=ds;});const sub=getDaySubText(item.date);const isHoliday=hasHolidayEvent(item.date);let numClass='text-xs font-semibold ';if(isToday)numClass+='w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center';else if(isHoliday&&item.isCurrentMonth)numClass+='text-rose-600 dark:text-rose-400 font-extrabold';else if(item.isCurrentMonth)numClass+='text-ink-700 dark:text-ink-200';else numClass+='text-ink-300 dark:text-ink-600';html+=`<div class="month-cell p-1 flex flex-col hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition cursor-pointer overflow-y-auto cell-day" data-date="${dateKey(item.date)}"><div class="flex flex-col items-center mb-0.5"><span class="${numClass}">${item.date.getDate()}</span>${sub.text?`<span class="${subTextClass(sub.type)}">${escapeHtml(sub.text)}</span>`:''}${index%7===0?`<span class="mobile-only-wk text-[7px] text-ink-300 dark:text-ink-600 font-bold leading-none mt-0.5">W${getWeekNumber(item.date)}</span>`:''}</div><div class="flex-1 overflow-hidden space-y-0.5">${dayEvents.slice(0,3).map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const prefix=(evt._isRecurring&&!age)?'↻ ':'';return`<div class="month-event-block${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(item.date)}"><span class="${evt._isTask?'task-calendar-title':''}">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):prefix}${escapeHtml(evt.title)}${age?` · ${age}`:''}</span></div>`}).join('')}${dayEvents.length>3?`<div class="text-[9px] text-ink-400 font-semibold px-1">+${dayEvents.length-3}</div>`:''}</div></div>`;});html+=`</div></div></div>`;c.innerHTML=html;}
 
   /* ===== 週檢視：手機橫向滾動 + 合理欄寬 ===== */
   function renderWeekView(){
@@ -1715,7 +1812,7 @@
     }).join('');
     const allDayRow=weekDays.map((d,i)=>{
       const items=allDayByDay[i];
-      return `<div class="border-r border-ink-200/70 dark:border-ink-800/70 p-1 flex flex-col gap-0.5 cell-allday cursor-pointer min-h-[36px] max-h-[90px] overflow-y-auto" data-date="${dateKey(d)}">${items.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);return `<div class="event-pill cat-chip text-[10px] px-1.5 py-0.5 rounded border font-medium truncate" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}">${escapeHtml(evt.title)}${age?` · ${age}`:''}</div>`}).join('')}</div>`;
+      return `<div class="border-r border-ink-200/70 dark:border-ink-800/70 p-1 flex flex-col gap-0.5 cell-allday cursor-pointer min-h-[36px] max-h-[90px] overflow-y-auto" data-date="${dateKey(d)}">${items.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);return `<div class="event-pill cat-chip text-[10px] px-1.5 py-0.5 rounded border font-medium truncate${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><span class="${evt._isTask?'task-calendar-title':''}">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}${age?` · ${age}`:''}</span></div>`}).join('')}</div>`;
     }).join('');
     let timeLabelsHtml='';
     for(let h=0;h<24;h++){const ts=(h<10?'0'+h:h)+':00';timeLabelsHtml+=`<div class="text-[10px] text-ink-400 text-center border-r border-ink-200/70 dark:border-ink-800/70 tabular-nums" style="height:${HOUR_H}px;line-height:${HOUR_H}px;">${ts}</div>`;}
@@ -1731,7 +1828,7 @@
         const cat=getCat(evt.category);
         const age=getYearsLabel(evt,evt._occStart);
         const timeStr=formatTime(evt._occStart)+' - '+formatTime(evt._occEnd);
-        return `<div class="timed-event cat-chip absolute rounded-md border p-1 overflow-hidden cursor-pointer transition hover:z-10 hover:shadow-lg" style="--c:${cat.color};top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);" data-id="${evt.id}" data-day-date="${dateKey(d)}" title="${escapeHtml(evt.title)} &#10;${timeStr}"><div class="text-[10px] font-semibold leading-tight truncate">${escapeHtml(evt.title)}${age?` · ${age}`:''}</div><div class="text-[9px] opacity-75 leading-tight tabular-nums">${timeStr}</div></div>`;
+        return `<div class="timed-event cat-chip absolute rounded-md border p-1 overflow-hidden cursor-pointer transition hover:z-10 hover:shadow-lg${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color};top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);" data-id="${evt.id}" data-day-date="${dateKey(d)}" title="${escapeHtml(evt.title)} &#10;${timeStr}"><div class="text-[10px] font-semibold leading-tight truncate task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}${age?` · ${age}`:''}</div><div class="text-[9px] opacity-75 leading-tight tabular-nums">${timeStr}</div></div>`;
       }).join('');
       return `<div class="week-col relative border-r border-ink-200/70 dark:border-ink-800/70" style="height:${24*HOUR_H}px;" data-date="${dateKey(d)}">${itemsHtml}</div>`;
     }).join('');
@@ -1742,9 +1839,9 @@
     attachWeekEdgeSwipe();
   }
 
-  function renderDayView(){const c=document.getElementById('calendarViewContainer');const d=state.currentDate;const ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const today=new Date();const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const sub=getDaySubText(d);let subLine=`週${['日','一','二','三','四','五','六'][d.getDay()]}`;if(lunar.full)subLine+=` · ${escapeHtml(lunar.full)}`;if(sub.type==='term'||sub.type==='festival')subLine+=` · ${escapeHtml(sub.text)}`;subLine+=` · 第${weekNum}週`;let dateCls='text-2xl font-extrabold tracking-tight ';if(isHoliday)dateCls+='text-rose-600 dark:text-rose-400';let html=`<div class="h-full flex flex-col p-5 max-w-3xl mx-auto w-full anim-in"><div class="flex items-center justify-between pb-5 border-b border-ink-200/70 dark:border-ink-800/70 mb-5"><div><h3 class="${dateCls} flex items-center space-x-2"><span>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>${isToday?'<span class="text-[10px] px-2 py-1 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-full font-bold">今天</span>':''}${isHoliday?'<span class="text-[10px] px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full font-bold">節假日</span>':''}</h3><p class="text-xs text-ink-500 mt-1.5">${subLine}</p><p class="text-xs text-ink-400 mt-0.5">共 ${events.length} 個日程</p></div><button id="addDayEventBtn" class="px-4 py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl text-xs font-semibold shadow-glow">+ 新建</button></div><div class="flex-1 overflow-y-auto space-y-3 pr-2">`;if(events.length===0){html+=`<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="calendar-x" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">今日尚無規劃日程</p></div>`}else{html+=events.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-2 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold shrink-0">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3.5 h-3.5 opacity-50 shrink-0"></i>':'';return`<div class="event-pill cat-chip p-4 rounded-2xl border cursor-pointer flex items-start justify-between" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="space-y-1.5 min-w-0"><div class="flex items-center space-x-2 flex-wrap gap-y-1"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><h4 class="font-bold text-base truncate">${escapeHtml(evt.title)}</h4>${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs opacity-80"><span class="flex items-center space-x-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="tabular-nums">${evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<p class="text-xs opacity-90 pt-1">${escapeHtml(evt.description)}</p>`:''}</div><i data-lucide="chevron-right" class="w-5 h-5 opacity-40 shrink-0"></i></div>`}).join('')}html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();const addBtn=document.getElementById('addDayEventBtn');if(addBtn)addBtn.addEventListener('click',()=>openEventModal(null,d));}
+  function renderDayView(){const c=document.getElementById('calendarViewContainer');const d=state.currentDate;const ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const today=new Date();const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const sub=getDaySubText(d);let subLine=`週${['日','一','二','三','四','五','六'][d.getDay()]}`;if(lunar.full)subLine+=` · ${escapeHtml(lunar.full)}`;if(sub.type==='term'||sub.type==='festival')subLine+=` · ${escapeHtml(sub.text)}`;subLine+=` · 第${weekNum}週`;let dateCls='text-2xl font-extrabold tracking-tight ';if(isHoliday)dateCls+='text-rose-600 dark:text-rose-400';let html=`<div class="h-full flex flex-col p-5 max-w-3xl mx-auto w-full anim-in"><div class="flex items-center justify-between pb-5 border-b border-ink-200/70 dark:border-ink-800/70 mb-5"><div><h3 class="${dateCls} flex items-center space-x-2"><span>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>${isToday?'<span class="text-[10px] px-2 py-1 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-full font-bold">今天</span>':''}${isHoliday?'<span class="text-[10px] px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full font-bold">節假日</span>':''}</h3><p class="text-xs text-ink-500 mt-1.5">${subLine}</p><p class="text-xs text-ink-400 mt-0.5">共 ${events.length} 個日程</p></div><button id="addDayEventBtn" class="px-4 py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl text-xs font-semibold shadow-glow">+ 新建</button></div><div class="flex-1 overflow-y-auto space-y-3 pr-2">`;if(events.length===0){html+=`<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="calendar-x" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">今日尚無規劃日程</p></div>`}else{html+=events.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-2 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold shrink-0">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3.5 h-3.5 opacity-50 shrink-0"></i>':'';return`<div class="event-pill cat-chip p-4 rounded-2xl border cursor-pointer flex items-start justify-between${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="space-y-1.5 min-w-0"><div class="flex items-center space-x-2 flex-wrap gap-y-1"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><h4 class="font-bold text-base truncate task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}</h4>${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs opacity-80"><span class="flex items-center space-x-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="tabular-nums">${evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<p class="text-xs opacity-90 pt-1">${escapeHtml(evt.description)}</p>`:''}</div><i data-lucide="chevron-right" class="w-5 h-5 opacity-40 shrink-0"></i></div>`}).join('')}html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();const addBtn=document.getElementById('addDayEventBtn');if(addBtn)addBtn.addEventListener('click',()=>openEventModal(null,d));}
 
-  function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3 h-3 opacity-50"></i>':'';const timeStr=evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;return `<div class="schedule-card" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap">${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();setTimeout(()=>{const el=document.getElementById('todayScheduleItem');if(el)el.scrollIntoView({behavior:'auto',block:'start'})},100);}
+  function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3 h-3 opacity-50"></i>':'';const timeStr=evt.allDay?'全天':`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`;return `<div class="schedule-card${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();setTimeout(()=>{const el=document.getElementById('todayScheduleItem');if(el)el.scrollIntoView({behavior:'auto',block:'start'})},100);}
 
 
   // 事件計日設定：獨立使用 counterSettings/{uid} Firestore 文件。
@@ -2360,16 +2457,74 @@
     document.querySelectorAll('.my-cat-del-btn').forEach(btn=>btn.addEventListener('click',()=>deleteCategory(btn.dataset.cat)));
   }
 
-  function renderTasksView(){const c=document.getElementById('calendarViewContainer');const tasks=state.tasks||[];const completedCount=tasks.filter(t=>t.completed).length;const totalCount=tasks.length;const progress=totalCount>0?Math.round((completedCount/totalCount)*100):0;let html=`<div class="h-full flex flex-col anim-in"><div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60"><div class="flex items-center justify-between mb-1"><h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2"><i data-lucide="check-square" class="w-6 h-6 text-brand-500"></i><span>任務清單</span></h2><div class="text-right"><span class="text-xs text-ink-400 font-medium block">${completedCount} / ${totalCount} 已完成</span></div></div><div class="w-full bg-ink-200 dark:bg-ink-700 rounded-full h-2 mt-3"><div class="bg-gradient-to-r from-brand-500 to-fuchsia-500 h-2 rounded-full transition-all duration-500" style="width:${progress}%"></div></div></div><div class="p-4 flex items-center gap-2 bg-white/60 dark:bg-ink-900/60 border-b border-ink-200/70 dark:border-ink-800/70"><input type="text" id="taskInput" placeholder="新增任務..." class="flex-1 px-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"><button id="addTaskBtn" class="p-2.5 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl shadow-glow active:scale-95 transition"><i data-lucide="plus" class="w-5 h-5"></i></button></div><div class="flex-1 overflow-y-auto p-5 space-y-2 bg-white/30 dark:bg-ink-900/30">${tasks.length===0?`<div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in"><i data-lucide="clipboard-list" class="w-16 h-16 mb-4 opacity-30"></i><p class="text-sm font-medium">還沒有任務</p><p class="text-xs mt-1">在上方輸入框新增一個吧！</p></div>`:tasks.sort((a,b)=>a.completed===b.completed?a.createdAt-b.createdAt:b.completed-a.completed).map(task=>`<div class="group flex items-start gap-3 p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm hover:shadow-md transition"><button class="toggle-task-btn shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${task.completed?'bg-brand-500 border-brand-500':'border-ink-300 dark:border-ink-600 hover:border-brand-400'}" data-id="${task.id}">${task.completed?'<i data-lucide="check" class="w-3 h-3 text-white"></i>':''}</button><div class="flex-1 min-w-0"><p class="text-sm font-medium break-words ${task.completed?'line-through text-ink-400 dark:text-ink-500':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p><p class="text-[10px] text-ink-400 mt-1">${new Date(task.createdAt).toLocaleString()}</p></div><button class="delete-task-btn shrink-0 p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-id="${task.id}"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`).join('')}</div></div>`;c.innerHTML=html;lucide.createIcons();const addTask=async()=>{const input=document.getElementById('taskInput');const text=input.value.trim();if(!text)return;const newTask={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now()};state.tasks.push(newTask);saveTasks();input.value='';renderTasksView();};document.getElementById('addTaskBtn').addEventListener('click',addTask);document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask()});document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.id;const task=state.tasks.find(t=>t.id===id);if(!task)return;task.completed=!task.completed;saveTasks();renderTasksView();}));document.querySelectorAll('.delete-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{
-    const id=btn.dataset.id;
-    if(window.currentUser && typeof window.deleteTaskFromCloud === 'function'){
-      try{ await window.deleteTaskFromCloud(id); }catch(e){ console.error(e); }
-    }
-    state.tasks=state.tasks.filter(t=>t.id!==id);
-    saveTasks();
-    renderTasksView();
-  }));}
+  function renderTasksView(){
+    const c=document.getElementById('calendarViewContainer'),tasks=state.tasks||[];
+    const completedCount=tasks.filter(t=>t.completed).length,totalCount=tasks.length,progress=totalCount?Math.round(completedCount/totalCount*100):0;
+    const catOptions=state.categories.map(cat=>`<option value="${escapeHtml(cat.id)}">${escapeHtml(cat.name)}</option>`).join('');
+    const todayKey=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`})();
+    const taskDateKey=(task)=>{if(!task||!task.dueAt)return '';const d=new Date(task.dueAt);if(isNaN(d.getTime()))return '';return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+    const pastCompleted=tasks.filter(t=>t.completed&&taskDateKey(t)&&taskDateKey(t)<todayKey);
+    const mode=state.taskViewMode==='past'?'past':(state.taskViewMode==='add'?'add':'active');
+    const visibleTasks=mode==='past'?pastCompleted:tasks.filter(t=>!(t.completed&&taskDateKey(t)&&taskDateKey(t)<todayKey));
+    const sorted=visibleTasks.slice().sort((a,b)=>a.completed===b.completed?((a.dueAt&&b.dueAt)?new Date(a.dueAt)-new Date(b.dueAt):(a.dueAt?-1:b.dueAt?1:(a.createdAt||0)-(b.createdAt||0))):(a.completed?1:-1));
+    const sectionTitle=mode==='past'?'已過去任務':mode==='add'?'新增任務':'任務清單';
 
+    const tab=(id,label,active)=>`<button type="button" data-task-tab="${id}" class="px-4 py-2 rounded-xl text-sm font-semibold transition ${active?'bg-brand-500 text-white shadow-sm':'text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800'}">${label}${id==='past'&&pastCompleted.length?` <span class="ml-1 text-[10px] opacity-80">(${pastCompleted.length})</span>`:''}</button>`;
+
+    let content='';
+    if(mode==='add'){
+      content=`<div class="flex-1 overflow-y-auto p-5 bg-white/30 dark:bg-ink-900/30">
+        <div class="max-w-3xl mx-auto rounded-2xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-5">
+            <div><h3 class="text-lg font-extrabold">新增任務</h3><p class="text-xs text-ink-400 mt-1">設定任務內容、截止日期、時間與分類。</p></div>
+            <button id="closeTaskAddTabBtn" type="button" class="w-9 h-9 rounded-xl border border-ink-200 dark:border-ink-700 text-ink-500 flex items-center justify-center hover:bg-ink-100 dark:hover:bg-ink-800" aria-label="返回任務清單"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <div class="space-y-4">
+            <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">任務名稱</label><input type="text" id="taskInput" placeholder="例如：完成數學作業" class="w-full px-4 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-300"></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">截止日期</label><input type="text" id="taskDueDate" inputmode="numeric" autocomplete="off" placeholder="YYYY/MM/DD" maxlength="10" class="w-full px-3 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" aria-label="截止日期（YYYY/MM/DD）"></div>
+              <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">截止時間（可選）</label><input type="text" id="taskDueTime" inputmode="numeric" autocomplete="off" placeholder="HH:MM" maxlength="5" class="w-full px-3 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" aria-label="截止時間（HH:MM）"></div>
+              <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">分類</label><select id="taskCategory" class="w-full px-3 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950">${catOptions}</select></div>
+            </div>
+            <div class="rounded-xl bg-ink-50 dark:bg-ink-800/60 p-3 text-xs text-ink-500">截止日期會同步顯示在月、週、日及日程檢視。完成後日曆上的任務會變灰並加刪除線；完成且日期已過的任務會自動移到「已過去任務」。</div>
+            <div class="flex justify-end gap-2 pt-2"><button id="cancelTaskAddBtn" type="button" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800">取消</button><button id="addTaskBtn" type="button" class="px-5 py-2.5 rounded-xl bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white text-sm font-semibold shadow-sm">新增任務</button></div>
+          </div>
+        </div>
+      </div>`;
+    }else{
+      content=`<div class="flex-1 overflow-y-auto p-5 space-y-2 bg-white/30 dark:bg-ink-900/30">${sorted.length===0?`<div class="text-center py-20 text-ink-400"><i data-lucide="${mode==='past'?'archive':'clipboard-list'}" class="w-16 h-16 mx-auto mb-4 opacity-30"></i><p class="text-sm font-medium">${mode==='past'?'目前沒有已過去的已完成任務':'還沒有任務'}</p><p class="text-xs mt-1">${mode==='past'?'已完成且截止日期已經過去的任務會自動出現在這裡。':'按右上角「＋」新增第一個任務。'}</p></div>`:sorted.map(task=>{const cat=getCat(task.category);const due=task.dueAt?new Date(task.dueAt):null;const dueText=due&&!isNaN(due)?`截止：${due.getFullYear()}/${String(due.getMonth()+1).padStart(2,'0')}/${String(due.getDate()).padStart(2,'0')}${task.dueHasTime?' '+formatTime(due):'（全天）'}`:'未設定截止日期';return `<div class="group flex items-start gap-3 p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm ${task.completed?'opacity-75':''}"><button class="toggle-task-btn shrink-0 mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center ${task.completed?'bg-brand-500 border-brand-500':'border-ink-300 dark:border-ink-600'}" data-id="${task.id}" aria-label="${task.completed?'標記為未完成':'標記為已完成'}">${task.completed?'<i data-lucide="check" class="w-3 h-3 text-white"></i>':''}</button><div class="flex-1 min-w-0"><p class="text-sm font-medium break-words ${task.completed?'line-through text-ink-400':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p><div class="flex flex-wrap items-center gap-2 mt-1.5"><span class="text-[10px] px-2 py-0.5 rounded-full cat-chip border" style="--c:${cat.color}">${escapeHtml(cat.name)}</span><span class="text-[10px] text-ink-400">${dueText}</span></div></div><button class="delete-task-btn shrink-0 p-1.5 text-ink-300 hover:text-rose-500" data-id="${task.id}" aria-label="刪除任務"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`}).join('')}</div>`;
+    }
+
+    c.innerHTML=`<div class="h-full flex flex-col anim-in">
+      <div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2"><i data-lucide="check-square" class="w-6 h-6 text-brand-500"></i><span>任務</span></h2>
+          <div class="flex items-center gap-2"><span class="text-xs text-ink-400">${completedCount} / ${totalCount} 已完成</span><button id="newTaskTabBtn" type="button" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white flex items-center justify-center shadow-sm hover:opacity-90 transition" aria-label="新增任務"><i data-lucide="plus" class="w-5 h-5"></i></button></div>
+        </div>
+        <div class="flex items-center gap-1 mt-4 border-b border-ink-200 dark:border-ink-800 pb-1">
+          ${tab('active','任務清單',mode==='active')}${tab('past','已過去任務',mode==='past')}${tab('add','新增任務',mode==='add')}
+        </div>
+        <div class="w-full bg-ink-200 dark:bg-ink-700 rounded-full h-2 mt-3"><div class="bg-gradient-to-r from-brand-500 to-fuchsia-500 h-2 rounded-full" style="width:${progress}%"></div></div>
+      </div>${content}</div>`;
+
+    lucide.createIcons();
+
+    document.querySelectorAll('[data-task-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+      state.taskViewMode=btn.dataset.taskTab;
+      renderTasksView();
+    }));
+    document.getElementById('newTaskTabBtn')?.addEventListener('click',()=>{state.taskViewMode='add';renderTasksView();setTimeout(()=>document.getElementById('taskInput')?.focus(),0);});
+    document.getElementById('closeTaskAddTabBtn')?.addEventListener('click',()=>{state.taskViewMode='active';renderTasksView();});
+    document.getElementById('cancelTaskAddBtn')?.addEventListener('click',()=>{state.taskViewMode='active';renderTasksView();});
+
+    if(mode==='add'){
+      const addTask=async()=>{const input=document.getElementById('taskInput'),text=input.value.trim(),rawDate=document.getElementById('taskDueDate').value.trim(),time=document.getElementById('taskDueTime').value;if(!text)return;if(!rawDate){showToast('請輸入任務截止日期（YYYY/MM/DD）');return}const m=rawDate.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);if(!m){showToast('截止日期格式請使用 YYYY/MM/DD');return}const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]),check=new Date(y,mo-1,d);if(check.getFullYear()!==y||check.getMonth()!==mo-1||check.getDate()!==d){showToast('請輸入有效的截止日期');return}const date=`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;if(time&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)){showToast('截止時間格式請使用 HH:MM（24小時制）');return}const due=new Date(`${date}T${time||'23:59'}`);if(isNaN(due.getTime()))return;const task={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now(),dueAt:due.toISOString(),dueHasTime:!!time,category:document.getElementById('taskCategory').value||state.categories[0]?.id};state.tasks.push(task);saveTasks();state.taskViewMode='active';renderTasksView();renderAll()};
+      document.getElementById('addTaskBtn').addEventListener('click',addTask);
+      document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask()});
+    }
+    const taskDateInput=document.getElementById('taskDueDate');if(taskDateInput&&!taskDateInput.dataset.formatBound){taskDateInput.dataset.formatBound='1';taskDateInput.addEventListener('input',e=>{const digits=e.target.value.replace(/\D/g,'').slice(0,8);let v=digits;if(digits.length>=4){v=digits.slice(0,4)+'/'+digits.slice(4);}if(digits.length>=6){v=digits.slice(0,4)+'/'+digits.slice(4,6)+'/'+digits.slice(6);}e.target.value=v;});}const taskTimeInput=document.getElementById('taskDueTime');if(taskTimeInput&&!taskTimeInput.dataset.formatBound){taskTimeInput.dataset.formatBound='1';taskTimeInput.addEventListener('input',e=>{const digits=e.target.value.replace(/\D/g,'').slice(0,4);let v=digits;if(digits.length>=2)v=digits.slice(0,2)+':'+digits.slice(2);e.target.value=v;});}document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',()=>{const task=state.tasks.find(t=>t.id===btn.dataset.id);if(!task)return;task.completed=!task.completed;task.completedAt=task.completed?Date.now():null;saveTasks();renderTasksView();renderAll()}));
+    document.querySelectorAll('.delete-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{const id=btn.dataset.id;if(window.currentUser&&typeof window.deleteTaskFromCloud==='function'){try{await window.deleteTaskFromCloud(id)}catch(e){}}state.tasks=state.tasks.filter(t=>t.id!==id);saveTasks();renderTasksView();renderAll() }));
+  }
   function renderNotesView(){
     const c=document.getElementById('calendarViewContainer');
     const notes=state.notes||[];
@@ -2942,40 +3097,70 @@
       onRight: function(){ handleSwipe(1); }
     });
   }
-  window.onload=function(){
-    applyTheme();
-    updateFavicon();
-    setInterval(()=>{const today=new Date().getDate();if(today!==window._lastFaviconDay){window._lastFaviconDay=today;updateFavicon();}},60000);
-    window._lastFaviconDay=new Date().getDate();
-    state.categories=loadCategories();
-    ensureAnniversaryCategory();
-    const sa=loadActiveCats();const allIds=state.categories.map(c=>c.id);
-    state.activeCategories=(sa||allIds).filter(id=>state.categories.some(c=>c.id===id));
-    if(state.categories.some(c=>c.id===ANNIVERSARY_CAT_ID)&&!state.activeCategories.includes(ANNIVERSARY_CAT_ID)){state.activeCategories.push(ANNIVERSARY_CAT_ID);}
-    state.events=loadSavedEvents();
-    if(normalizeSpecialEvents()) saveEvents(false);
-    state.tasks=loadSavedTasks();
-    state.notes=loadSavedNotes();
-    const savedFolders=loadSavedFolders();state.noteFolders=savedFolders.note||[];state.diaryFolders=savedFolders.diary||[];state.folders=[...new Set([...(state.noteFolders||[]),...(state.diaryFolders||[])])];
-    state.events.forEach(e=>{if(e.category&&state.categories.some(c=>c.id===e.category)&&!state.activeCategories.includes(e.category)){state.activeCategories.push(e.category);}});
-    try{localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories))}catch(e){}
-    populateLunarDropdowns();
-    renderCategories();
-    initEventListeners();
-    initNoteEventListeners();
-    renderEventTypeButtons();
-    renderAll();
-    updateTopHeaderVisibility();
-    lucide.createIcons();
-    if(window.syncAndroidWidget)setTimeout(()=>window.syncAndroidWidget(),200);
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(getTheme()==='system'){applyTheme();if(window.state&&window.state.view==='my'&&typeof window.renderMyView==='function'){window.renderMyView();}}});
-  };
+  window.__calendarInitialized=false;
+  window.__calendarInitError=null;
+  function __showCalendarInitError(err, stage){
+    window.__calendarInitError={stage:stage,error:String(err&&err.stack||err)};
+    console.error('[CalendarApp] 初始化失敗:', stage, err);
+    try{
+      var box=document.getElementById('calendarInitError');
+      if(!box){
+        box=document.createElement('div');
+        box.id='calendarInitError';
+        box.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;padding:12px 14px;border-radius:12px;background:#fee2e2;color:#991b1b;font:14px/1.45 sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.18);white-space:pre-wrap;';
+        document.body.appendChild(box);
+      }
+      box.textContent='日曆初始化失敗（'+stage+'）\n'+String(err&&err.message||err);
+    }catch(_){}
+  }
+  function __initCalendarApp(){
+    if(window.__calendarInitialized) return;
+    var stage='start';
+    try{
+      stage='theme';
+      applyTheme();
+      updateFavicon();
+      setInterval(()=>{const today=new Date().getDate();if(today!==window._lastFaviconDay){window._lastFaviconDay=today;updateFavicon();}},60000);
+      window._lastFaviconDay=new Date().getDate();
+      stage='load data';
+      state.categories=loadCategories();
+      ensureAnniversaryCategory();
+      const sa=loadActiveCats();const allIds=state.categories.map(c=>c.id);
+      state.activeCategories=(sa||allIds).filter(id=>state.categories.some(c=>c.id===id));
+      if(state.categories.some(c=>c.id===ANNIVERSARY_CAT_ID)&&!state.activeCategories.includes(ANNIVERSARY_CAT_ID)){state.activeCategories.push(ANNIVERSARY_CAT_ID);}
+      state.events=loadSavedEvents();
+      if(normalizeSpecialEvents()) saveEvents(false);
+      state.tasks=loadSavedTasks();
+      state.notes=loadSavedNotes();
+      const savedFolders=loadSavedFolders();state.noteFolders=savedFolders.note||[];state.diaryFolders=savedFolders.diary||[];state.folders=[...new Set([...(state.noteFolders||[]),...(state.diaryFolders||[])])];
+      state.events.forEach(e=>{if(e.category&&state.categories.some(c=>c.id===e.category)&&!state.activeCategories.includes(e.category)){state.activeCategories.push(e.category);}});
+      try{localStorage.setItem(ACTIVE_CAT_KEY,JSON.stringify(state.activeCategories))}catch(e){}
+      stage='render setup';
+      populateLunarDropdowns();
+      renderCategories();
+      initEventListeners();
+      initNoteEventListeners();
+      renderEventTypeButtons();
+      renderAll();
+      updateTopHeaderVisibility();
+      stage='icons';
+      if(window.lucide&&typeof window.lucide.createIcons==='function') window.lucide.createIcons();
+      if(window.syncAndroidWidget)setTimeout(()=>window.syncAndroidWidget(),200);
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(getTheme()==='system'){applyTheme();if(window.state&&window.state.view==='my'&&typeof window.renderMyView==='function'){window.renderMyView();}}});
+      window.__calendarInitialized=true;
+      console.log('[CalendarApp] 初始化完成');
+    }catch(err){
+      __showCalendarInitError(err,stage);
+    }
+  }
+  window.addEventListener('DOMContentLoaded',__initCalendarApp,{once:true});
+  window.addEventListener('load',__initCalendarApp,{once:true});
 </script>
 
 <script type="module">
-  import{initializeApp}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-  import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+  import{initializeApp}from"./firebase-app.js";
+  import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"./libs/firebase-auth.js";
+  import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc,serverTimestamp}from"./libs/firebase-firestore.js";
 
   const fc=window.FIREBASE_CONFIG;
   const app=initializeApp(fc);
@@ -3005,6 +3190,12 @@
   };
   const gp=new GoogleAuthProvider();
   gp.setCustomParameters({prompt:'select_account'});
+
+  const isWidgetBackgroundSync = location.search.indexOf('widgetSync=1') >= 0;
+  // Keep widget mode state on window so it is unambiguous across classic/module scripts.
+  window.__widgetBackgroundSync = isWidgetBackgroundSync;
+  window.__widgetAuthReady=false;
+  window.__widgetCloudReady=false;
 
   let cu=null,ue=null,cue=null,hml=false;
   window.currentUser=null;
@@ -3042,9 +3233,11 @@
 
   onAuthStateChanged(auth,async user=>{
     cu=user;window.currentUser=user;
+    window.__widgetAuthReady=true;
+    window.__widgetCloudReady=!user;
     if(user){
       updateLoginUI(user);
-      if(!hml){
+      if(!hml && !window.__widgetBackgroundSync){
         try{
           const stateHasLocalEvents = window.state && window.state.events && window.state.events.length > 0;
           const stateHasLocalTasks = window.state && window.state.tasks && window.state.tasks.length > 0;
@@ -3120,7 +3313,7 @@
           if(typeof window.renderNotesView==='function'&&window.state.view==='notes')window.renderNotesView();
         }},err=>console.error(err));}
   window.saveCategoriesToCloud=async function(){if(!cu)return;const ref=doc(db,"userSettings",cu.uid);await setDoc(ref,{categories:window.state.categories,activeCategories:window.state.activeCategories,folders: {note:window.state.noteFolders||[],diary:window.state.diaryFolders||[]}},{merge:true});};
-  function startListening(){if(!cu)return;if(ue)ue();const q=query(collection(db,"events"),where("userId","==",cu.uid));ue=onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...evt}=data;arr.push({id:d.id,...evt})});if(window.state){window.state.events=arr;const repaired=typeof window.normalizeSpecialEvents==='function'&&window.normalizeSpecialEvents();arr.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_events_v1',JSON.stringify(window.state.events))}catch(e){}if(repaired&&typeof window.saveEventToCloud==='function'){window.state.events.filter(e=>e.eventType==='birthday'||e.eventType==='anniversary').forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('修復生日/紀念日失敗',err)));}if(typeof window.renderAll==='function')window.renderAll();if(window.syncAndroidWidget)window.syncAndroidWidget();}},err=>console.error(err));}
+  function startListening(){if(!cu)return;if(ue)ue();const q=query(collection(db,"events"),where("userId","==",cu.uid));ue=onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...evt}=data;arr.push({id:d.id,...evt})});if(window.state){window.state.events=arr;const repaired=typeof window.normalizeSpecialEvents==='function'&&window.normalizeSpecialEvents();arr.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_events_v1',JSON.stringify(window.state.events))}catch(e){}if(repaired&&typeof window.saveEventToCloud==='function'){window.state.events.filter(e=>e.eventType==='birthday'||e.eventType==='anniversary').forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('修復生日/紀念日失敗',err)));}if(typeof window.renderAll==='function')window.renderAll();window.__widgetCloudReady=true;if(window.syncAndroidWidget)window.syncAndroidWidget();}},err=>console.error(err));}
   window.saveEventToCloud=async function(event){if(!cu)throw new Error("未登入");const ref=doc(db,"events",event.id);await setDoc(ref,{...event,userId:cu.uid})};
   window.deleteEventFromCloud=async function(id){if(!cu)throw new Error("未登入");await deleteDoc(doc(db,"events",id))};
   function startListeningTasks(){if(!cu)return;const q=query(collection(db,"tasks"),where("userId","==",cu.uid));onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});if(window.state){window.state.tasks=arr;try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();}},err=>console.error("監聽任務失敗:",err));}
@@ -3379,7 +3572,7 @@
       return {
         date:dk,day:item.date.getDate(),currentMonth:!!item.isCurrentMonth,
         isToday:dk===todayKey,lunar:lunar,sub:sub,subType:subType,
-        colors:colors.slice(0,3),events:events
+        holiday:hasHolidayEvent(item.date),colors:colors.slice(0,3),events:events
       };
     });
     return {monthTitle:y+'年 '+(m+1)+'月',grid:grid};
@@ -3388,25 +3581,92 @@
   function buildPayload(){
     try{
       if(!window.state || typeof getMonthGridDays!=='function') return null;
+      // 背景同步時先載入本機事件與「事件計日」選擇，避免 widget 啟動時 state 還沒完成初始化。
+      if(window.__widgetBackgroundSync){
+        try{
+          const rawEvents=localStorage.getItem('calendar_events_v1');
+          if(rawEvents){ const localEvents=JSON.parse(rawEvents); if(Array.isArray(localEvents)) window.state.events=localEvents; }
+          const rawCats=localStorage.getItem('calendar_categories_v1');
+          if(rawCats){ const localCats=JSON.parse(rawCats); if(Array.isArray(localCats)) window.state.categories=localCats; }
+          const rawActive=localStorage.getItem('calendar_active_cats_v1');
+          if(rawActive){ const localActive=JSON.parse(rawActive); if(Array.isArray(localActive)) window.state.activeCategories=localActive; }
+          const rawCounter=localStorage.getItem('calendar_event_counter_v1');
+          if(rawCounter){
+            const cs=JSON.parse(rawCounter)||{};
+            const by=cs.selectedIdsByMode&&typeof cs.selectedIdsByMode==='object'?cs.selectedIdsByMode:{};
+            window.state.counterSelectedIdsByMode={
+              up:Array.from(new Set(Array.isArray(by.up)?by.up.map(String):[])),
+              down:Array.from(new Set(Array.isArray(by.down)?by.down.map(String):[]))
+            };
+            window.state.counterMode=(cs.mode==='up'||cs.mode==='down')?cs.mode:window.state.counterMode;
+            window.state.counterSelectedIds=window.state.counterSelectedIdsByMode[window.state.counterMode||'down']||[];
+          }
+        }catch(e){ console.warn('Widget 本機資料載入失敗',e); }
+      }
+
       const now=new Date(), cy=now.getFullYear(), cm=now.getMonth();
       let selected=dateKey(now);
       try{selected=localStorage.getItem('calendar_widget_selected_date')||selected;}catch(e){}
       if(!/^\d{4}-\d{2}-\d{2}$/.test(selected)) selected=dateKey(now);
 
-      // Widget 預先帶入前後 12 個月，讓左右箭頭不必等待 App 再計算。
       const months={};
       for(let offset=-12;offset<=12;offset++){
         const d=new Date(cy,cm+offset,1);
         const y=d.getFullYear(), m=d.getMonth();
         months[`${y}-${String(m+1).padStart(2,'0')}`]=buildMonthData(y,m);
       }
+
+      // 「事件計日 → 倒數」才是 Countdown Widget 的唯一來源。
+      // 一般 calendar events 不得自動變成倒數。
+      let countdowns=[];
+      let selectedDownIds=[];
+      try{
+        const raw=localStorage.getItem('calendar_event_counter_v1');
+        if(raw){
+          const cs=JSON.parse(raw)||{};
+          const by=cs.selectedIdsByMode&&typeof cs.selectedIdsByMode==='object'?cs.selectedIdsByMode:{};
+          selectedDownIds=Array.from(new Set(Array.isArray(by.down)?by.down.map(String):[]));
+        }
+      }catch(e){}
+      try{
+        if(typeof getCounterSelectedEvents==='function'){
+          countdowns=getCounterSelectedEvents('down')
+            .filter(info=>info && info.diff>=0)
+            .sort((a,b)=>a.diff-b.diff)
+            .slice(0,10)
+            .map(info=>{
+              const e=info.evt||{};
+              const d=new Date(info.targetDay||info.target);
+              const wd=['日','一','二','三','四','五','六'][d.getDay()];
+              const dateLabel=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}（週${wd}）`;
+              const cat=typeof getCat==='function'?getCat(e.category):null;
+              return {
+                id:String(e.id||''),
+                title:String(e.title||'未命名事件'),
+                dateLabel:dateLabel,
+                diff:Number(info.diff)||0,
+                color:cat&&cat.color?String(cat.color):'#6366F1'
+              };
+            });
+        }
+      }catch(e){ console.warn('Widget 倒數清單建立失敗',e); }
+
+      // 若頁面函式尚未完成初始化，至少把「倒數選取 ID」送到原生端。
+      // 原生端會依 selected IDs 過濾 months/grid/events；絕不把所有事件當成倒數。
+      if(!selectedDownIds.length && window.state && window.state.counterSelectedIdsByMode){
+        selectedDownIds=Array.from(new Set((window.state.counterSelectedIdsByMode.down||[]).map(String)));
+      }
+
       return {
-        version:5,
+        version:7,
         monthTitle:cy+'年 '+(cm+1)+'月',
         today:dateKey(now),
         selectedDate:selected,
         categories:state.categories||[],
         months:months,
+        counterMode:'down',
+        counterSelectedIds:selectedDownIds,
+        countdowns:countdowns,
         generatedAt:Date.now()
       };
     }catch(e){
@@ -3416,6 +3676,10 @@
   }
 
   window.syncAndroidWidget=function(){
+    if(window.__widgetBackgroundSync){
+      if(!window.__widgetAuthReady)return;
+      if(window.currentUser && !window.__widgetCloudReady)return;
+    }
     const p=buildPayload();
     if(p) post(p);
   };
