@@ -136,7 +136,7 @@
     .task-calendar-item.completed .task-calendar-title{text-decoration:line-through;text-decoration-thickness:1.5px}
     .task-form-grid{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px}
     @media(max-width:640px){.task-form-grid{grid-template-columns:1fr 1fr}.task-form-grid .task-cat-wrap{grid-column:1/-1}}
-<style>.day-task-card{border-left-color:var(--c)}</style></style>
+<style>.day-task-card{border-left-color:var(--c)}</style>
 
   <style>
     .lunar-convert-tab{color:rgb(107 114 128)}
@@ -3170,9 +3170,9 @@
 </script>
 
 <script type="module">
-  import{initializeApp}from"./firebase-app.js";
-  import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"./libs/firebase-auth.js";
-  import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc,serverTimestamp}from"./libs/firebase-firestore.js";
+  import{initializeApp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+  import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
   const fc=window.FIREBASE_CONFIG;
   const app=initializeApp(fc);
