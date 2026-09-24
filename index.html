@@ -143,18 +143,6 @@
     .lunar-convert-tab.active{background:white;color:rgb(124 58 237);box-shadow:0 1px 3px rgba(0,0,0,.08)}
     @media (prefers-color-scheme:dark){.lunar-convert-tab.active{background:rgb(31 41 55);color:rgb(196 181 253)}}
   </style>
-<script>
-(function(){
-  window.addEventListener('error',function(e){
-    if(e && e.target && e.target.tagName==='SCRIPT') console.warn('外部程式庫載入失敗：',e.target.src);
-  },true);
-  window.addEventListener('load',function(){
-    if(window.lucide && typeof window.lucide.createIcons==='function'){
-      try{ window.lucide.createIcons(); }catch(e){ console.warn('Lucide 圖示初始化失敗',e); }
-    }
-  });
-})();
-</script>
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
 
@@ -3328,9 +3316,25 @@
   function startListening(){if(!cu)return;if(ue)ue();const q=query(collection(db,"events"),where("userId","==",cu.uid));ue=onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...evt}=data;arr.push({id:d.id,...evt})});if(window.state){window.state.events=arr;const repaired=typeof window.normalizeSpecialEvents==='function'&&window.normalizeSpecialEvents();arr.forEach(e=>{if(e.category&&window.state.categories.some(c=>c.id===e.category)&&!window.state.activeCategories.includes(e.category)){window.state.activeCategories.push(e.category);}});try{localStorage.setItem('calendar_events_v1',JSON.stringify(window.state.events))}catch(e){}if(repaired&&typeof window.saveEventToCloud==='function'){window.state.events.filter(e=>e.eventType==='birthday'||e.eventType==='anniversary').forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('修復生日/紀念日失敗',err)));}if(typeof window.renderAll==='function')window.renderAll();window.__widgetCloudReady=true;if(window.syncAndroidWidget)window.syncAndroidWidget();}},err=>console.error(err));}
   window.saveEventToCloud=async function(event){if(!cu)throw new Error("未登入");const ref=doc(db,"events",event.id);await setDoc(ref,{...event,userId:cu.uid})};
   window.deleteEventFromCloud=async function(id){if(!cu)throw new Error("未登入");await deleteDoc(doc(db,"events",id))};
-  function startListeningTasks(){if(!cu)return;const q=query(collection(db,"tasks"),where("userId","==",cu.uid));onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});if(window.state){window.state.tasks=arr;try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();}},err=>console.error("監聽任務失敗:",err));}
+  function startListeningTasks(){if(!cu)return;const q=query(collection(db,"tasks"),where("userId","==",cu.uid));onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...task}=data;arr.push({id:d.id,...task})});if(window.state){window.state.tasks=arr;try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(arr))}catch(e){}if(typeof window.renderTasksView==='function' && window.state.view==='tasks')window.renderTasksView();if(typeof window.renderAll==='function')window.renderAll();}},err=>console.error("監聽任務失敗:",err));}
   window.saveTaskToCloud=async function(task){if(!cu)return;const ref=doc(db,"tasks",task.id);await setDoc(ref,{...task,userId:cu.uid});};
   window.deleteTaskFromCloud=async function(id){if(!cu)return;await deleteDoc(doc(db,"tasks",id));};
+  window.completeTaskFromWidget=async function(taskId,completed){
+    try{
+      if(!window.state||!Array.isArray(window.state.tasks))return false;
+      const task=window.state.tasks.find(t=>String(t.id)===String(taskId));
+      if(!task)return false;
+      if(!window.currentUser||typeof window.saveTaskToCloud!=='function')return false;
+      task.completed=!!completed;
+      task.completedAt=task.completed?Date.now():null;
+      try{localStorage.setItem('calendar_tasks_v1',JSON.stringify(window.state.tasks));}catch(e){}
+      await window.saveTaskToCloud(task);
+      if(typeof window.renderAll==='function')window.renderAll();
+      if(typeof window.renderTasksView==='function'&&window.state.view==='tasks')window.renderTasksView();
+      if(typeof window.syncAndroidWidget==='function')window.syncAndroidWidget();
+      return true;
+    }catch(e){console.error('小組件任務同步失敗',e);return false;}
+  };
   function startListeningNotes(){if(!cu)return;const q=query(collection(db,"notes"),where("userId","==",cu.uid));onSnapshot(q,snap=>{const arr=[];snap.forEach(d=>{const data=d.data();const{userId,...note}=data;arr.push({id:d.id,...note})});if(window.state){window.state.notes=arr;try{localStorage.setItem('calendar_notes_v1',JSON.stringify(arr))}catch(e){}if(typeof window.renderNotesView==='function' && window.state.view==='notes')window.renderNotesView();}},err=>console.error("監聽筆記失敗:",err));}
   window.saveNoteToCloud=async function(note){if(!cu)return;const ref=doc(db,"notes",note.id);await setDoc(ref,{...note,userId:cu.uid});};
   window.deleteNoteFromCloud=async function(id){if(!cu)return;await deleteDoc(doc(db,"notes",id));};
@@ -3450,6 +3454,16 @@
 
     function goBackOneView(){
       const v=window.state?.view || 'month';
+
+      // 任務內頁的 Android 返回鍵採兩層流程：
+      // 「已過去任務／新增任務」→「任務清單」→「日曆」。
+      if(v==='tasks' && (window.state?.taskViewMode==='past' || window.state?.taskViewMode==='add')){
+        window.state.taskViewMode='active';
+        window.renderAll();
+        lastCalendarBackAt=0;
+        return true;
+      }
+
       const parent={
         'my-settings':'my',
         'my-categories':'my-settings',
@@ -3556,6 +3570,8 @@
     const re=new Date(days[days.length-1].date); re.setHours(23,59,59,999);
     const occurrences=safeOccurrences(rs,re);
     const todayKey=dateKey(new Date());
+    const pad=n=>String(n).padStart(2,'0');
+    const taskItems=Array.isArray(state.tasks)?state.tasks:[];
     const grid=days.map(item=>{
       const dk=dateKey(item.date), ds=new Date(item.date), de=new Date(item.date);
       ds.setHours(0,0,0,0); de.setHours(23,59,59,999);
@@ -3563,21 +3579,51 @@
         const st=new Date(e._occStart||e.start), et=new Date(e._occEnd||e.end||e._occStart||e.start);
         return !isNaN(st.getTime()) && st<=de && (isNaN(et.getTime()) || et>=ds);
       });
+      const dayTasks=taskItems.filter(task=>{
+        if(!task||!task.dueAt)return false;
+        const due=new Date(task.dueAt);
+        if(isNaN(due.getTime())||dateKey(due)!==dk)return false;
+        const catId=task.category||state.categories[0]?.id||'personal';
+        if(state.categories.some(c=>c.id===catId)&&!state.activeCategories.includes(catId))return false;
+        return true;
+      });
       const colors=[];
-      dayEvents.forEach(e=>{
+      [...dayEvents,...dayTasks.map(t=>({category:t.category}))].forEach(e=>{
         const c=getCat(e.category);
         if(c&&c.color&&!colors.includes(c.color)) colors.push(c.color);
       });
-      const events=dayEvents.map(e=>{
+      const items=[];
+      dayEvents.forEach(e=>{
         const c=getCat(e.category), st=new Date(e._occStart||e.start), et=new Date(e._occEnd||e.end||e._occStart||e.start);
+        const allDay=!!e.allDay;
         let time='全天';
-        if(!e.allDay&&!isNaN(st.getTime())){
-          const pad=n=>String(n).padStart(2,'0');
+        if(!allDay&&!isNaN(st.getTime())){
           time=pad(st.getHours())+':'+pad(st.getMinutes());
           if(!isNaN(et.getTime())) time+=' - '+pad(et.getHours())+':'+pad(et.getMinutes());
         }
-        return {id:String(e.id||''),title:String(e.title||'未命名事件'),time,location:String(e.location||''),color:c&&c.color?c.color:'#6366f1'};
+        items.push({
+          id:String(e.id||''),title:String(e.title||'未命名事件'),time,location:String(e.location||''),
+          color:c&&c.color?c.color:'#6366f1',allDay,isTask:false,completed:false,
+          sortTime:allDay?0:st.getTime()
+        });
       });
+      dayTasks.forEach(task=>{
+        const due=new Date(task.dueAt), c=getCat(task.category), allDay=!task.dueHasTime;
+        items.push({
+          id:String(task.id||''),title:String(task.text||'未命名任務'),
+          time:allDay?'全天':pad(due.getHours())+':'+pad(due.getMinutes()),
+          location:c&&c.name?String(c.name):'',
+          color:c&&c.color?c.color:'#6366f1',allDay,isTask:true,completed:!!task.completed,
+          sortTime:allDay?0:due.getTime()
+        });
+      });
+      items.sort((a,b)=>{
+        if(a.allDay!==b.allDay)return a.allDay?-1:1;
+        if(a.sortTime!==b.sortTime)return a.sortTime-b.sortTime;
+        if(a.isTask!==b.isTask)return a.isTask?1:-1;
+        return a.title.localeCompare(b.title,'zh-Hant');
+      });
+      const events=items.map(({sortTime,...item})=>item);
       let lunar='', sub='', subType='none';
       try{ lunar=(getLunarInfo(item.date)||{}).day||''; }catch(e){}
       try{ const st=getDaySubText(item.date)||{}; sub=st.text||''; subType=st.type||'none'; }catch(e){}
@@ -3600,6 +3646,8 @@
           if(rawEvents){ const localEvents=JSON.parse(rawEvents); if(Array.isArray(localEvents)) window.state.events=localEvents; }
           const rawCats=localStorage.getItem('calendar_categories_v1');
           if(rawCats){ const localCats=JSON.parse(rawCats); if(Array.isArray(localCats)) window.state.categories=localCats; }
+          const rawTasks=localStorage.getItem('calendar_tasks_v1');
+          if(rawTasks){ const localTasks=JSON.parse(rawTasks); if(Array.isArray(localTasks)) window.state.tasks=localTasks; }
           const rawActive=localStorage.getItem('calendar_active_cats_v1');
           if(rawActive){ const localActive=JSON.parse(rawActive); if(Array.isArray(localActive)) window.state.activeCategories=localActive; }
           const rawCounter=localStorage.getItem('calendar_event_counter_v1');
