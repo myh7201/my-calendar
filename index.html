@@ -128,7 +128,7 @@
     .month-grid{grid-template-columns:repeat(7,1fr)!important}
     .month-header{grid-template-columns:repeat(7,1fr)!important}
     .wk-cell{display:none!important}
-    .month-cell{min-height:68px;max-height:88px;overflow-y:auto;padding:2px 1px!important;-webkit-overflow-scrolling:touch}
+    .month-cell{min-height:0;max-height:none;overflow-y:auto;padding:2px 1px!important;-webkit-overflow-scrolling:touch}
     /* 手機版：日期圓圈與一般日期數字垂直對齊，避免圓圈視覺上向下偏移 */
     .month-cell .day-circle{transform:translateY(0)}
     .mobile-hide{display:none!important}
@@ -153,6 +153,131 @@
     .lunar-convert-tab.active{background:white;color:rgb(124 58 237);box-shadow:0 1px 3px rgba(0,0,0,.08)}
     @media (prefers-color-scheme:dark){.lunar-convert-tab.active{background:rgb(31 41 55);color:rgb(196 181 253)}}
   </style>
+
+  <style id="month-fill-viewport">
+    /* Keep the calendar and navigation in the same flex layout. */
+    body.h-full{height:100vh;height:100dvh;overflow:hidden}
+    #appViewport,#mainContent,#calendarViewContainer{min-height:0;min-width:0}
+    #monthSwipeContainer,.month-view-wrapper{min-height:0}
+    .month-grid{min-height:0}
+    .month-grid > .month-cell{min-height:0;max-height:none}
+  </style>
+
+<style id="event-editor-v11">
+#eventModal{--ed-bg:#fff;--ed-soft:#f6f7fb;--ed-line:#f0f1f4;--ed-text:#25272c;--ed-sub:#9397a0;--ed-blue:#099feb;padding:24px;color:var(--ed-text)}
+.dark #eventModal{--ed-bg:#17191f;--ed-soft:#22252e;--ed-line:#30333c;--ed-text:#f1f2f5;--ed-sub:#a0a5b0;--ed-blue:#39b4f4}
+#eventModal .event-editor-shell{background:var(--ed-bg);width:100%;max-width:620px;max-height:94vh;max-height:94dvh;display:flex;flex-direction:column;border-radius:24px;overflow:hidden;box-shadow:0 20px 80px #0003}
+#eventModal .event-editor-header{display:flex;align-items:center;padding:16px 20px;gap:12px;flex:none;background:var(--ed-bg)}
+#eventModal #modalTitle{flex:1;font-size:15px;font-weight:500;color:var(--ed-sub)}
+#eventModal #closeModalBtn{width:44px;height:44px;display:grid;place-items:center;color:var(--ed-text);padding:0}
+#eventModal #closeModalBtn svg{width:25px;height:25px}
+#eventModal .editor-save{background:var(--ed-blue);color:#fff;border-radius:24px;min-height:42px;padding:8px 23px;font-size:16px;font-weight:600}
+#eventModal .event-editor-form{display:flex;flex-direction:column;min-height:0;overflow:hidden;margin:0}
+#eventModal .event-editor-body{overflow-y:auto;overscroll-behavior:contain;min-height:0;padding:0 20px 20px;scroll-padding:20px}
+#eventModal .event-editor-body>div{margin:0 0 12px}
+#eventModal label{letter-spacing:0;text-transform:none}
+#eventModal #eventTypeGroup{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px 0 14px}
+#eventModal #eventTypeGroup button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:68px;border:0;background:transparent;background-image:none;box-shadow:none;color:var(--ed-sub);font-size:13px;font-weight:500;padding:8px 0;border-radius:12px}
+#eventModal #eventTypeGroup button svg{width:23px;height:23px}
+#eventModal #eventTypeGroup button.text-white{color:var(--ed-blue);background:var(--ed-soft)}
+#eventModal .event-title-field{display:flex;align-items:center;gap:14px;background:var(--ed-soft);padding:14px;border-radius:12px;margin-bottom:20px}
+#eventModal .editor-title-icon{width:20px;height:20px;flex:none;color:var(--ed-blue)}
+#eventModal input:not([type=checkbox]):not([type=hidden]),#eventModal select,#eventModal textarea{background:transparent;color:var(--ed-text);border:0;border-radius:6px;box-shadow:none;font-size:15px;min-height:44px;max-width:100%}
+#eventModal #eventTitle{font-size:21px;width:100%;min-width:0;padding:4px 0 4px 14px;border-left:1px solid #e3e5ed;border-radius:0;font-weight:400}
+#eventModal input::placeholder,#eventModal textarea::placeholder{color:var(--ed-sub)}
+#eventModal input:focus-visible,#eventModal select:focus-visible,#eventModal textarea:focus-visible,#eventModal button:focus-visible{outline:2px solid var(--ed-blue);outline-offset:2px}
+#eventModal .editor-normal-options{display:flex;flex-direction:column;gap:0}
+#eventModal .editor-all-day,#eventModal .editor-category{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 4px;border:0;border-radius:0;background:transparent;color:var(--ed-text);font-size:16px}
+#eventModal .editor-all-day{order:-1}
+#eventModal .editor-all-day span{flex:1}
+#eventModal .editor-category{order:2}
+#eventModal .editor-category label{margin:0;font-size:16px;color:var(--ed-text);font-weight:400}
+#eventModal .editor-category select{margin-left:auto;max-width:65%;text-align:right;color:var(--ed-sub);padding-right:8px}
+#eventModal .editor-all-day svg,#eventModal .editor-category svg,#eventModal .editor-toggle-label svg,#eventModal .editor-detail-row label svg{width:20px;height:20px;flex:none;color:#686d74}
+#eventModal input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:38px;height:23px;border:0;border-radius:20px;background:#d9dadd;flex:none;cursor:pointer;box-shadow:none;transition:background .15s}
+#eventModal input[type=checkbox]:before{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:white;box-shadow:0 1px 3px #0002;transition:transform .15s}
+#eventModal input[type=checkbox]:checked{background:var(--ed-blue)}
+#eventModal input[type=checkbox]:checked:before{transform:translateX(15px)}
+#eventModal .event-date-section{padding:6px 0 20px;border-bottom:1px solid var(--ed-line)}
+#eventModal .event-date-rows{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;position:relative;padding-left:34px}
+#eventModal .event-date-rows:before{content:'›';position:absolute;left:50%;top:42%;color:#c9ccd2;font-size:34px;font-weight:200}
+#eventModal .event-date-row{padding:0;min-width:0}
+#eventModal .event-date-row>label{font-size:12px;color:var(--ed-sub);font-weight:400;margin-bottom:2px}
+#eventModal .event-date-row>div{display:flex;flex-direction:column;gap:0}
+#eventModal .event-date-row>div label{display:none}
+#eventModal .event-date-row input{width:100%;padding:2px 0;font-variant-numeric:tabular-nums;min-height:36px}
+#eventModal #eventStartTime,#eventModal #eventEndTime{font-size:28px;min-height:42px}
+#eventModal .editor-setting-row{padding:12px 4px;border:0;border-bottom:1px solid var(--ed-line);border-radius:0;background:transparent;display:flex;flex-direction:column;align-items:stretch;gap:8px}
+#eventModal .editor-toggle-label{display:flex;align-items:center;gap:14px;min-height:40px;width:100%;font-size:16px;font-weight:400;color:var(--ed-text)}
+#eventModal .editor-toggle-label span{flex:1}
+#eventModal .editor-toggle-label input{margin-left:auto}
+#eventModal #reminderSettings,#eventModal #repeatSettings{margin-left:34px;color:var(--ed-sub)}
+#eventModal #reminderSettings{flex-wrap:wrap;gap:6px}
+#eventModal #eventReminderValue{width:64px;background:var(--ed-soft)}
+#eventModal #repeatLockedHint{max-width:130px;font-size:10px}
+#eventModal .editor-detail-row{padding:14px 4px;border-bottom:1px solid var(--ed-line)}
+#eventModal .editor-detail-row label{display:flex;align-items:center;gap:14px;font-size:16px;font-weight:400;color:var(--ed-text);margin-bottom:2px}
+#eventModal .editor-detail-row input,#eventModal .editor-detail-row textarea{padding:8px 0;width:calc(100% - 34px);margin-left:34px;resize:vertical}
+#eventModal #eventCounterOptions{background:var(--ed-soft);border:0;border-radius:12px}
+#eventModal .event-editor-footer{flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 20px max(8px,env(safe-area-inset-bottom));background:var(--ed-bg)}
+#eventModal .event-editor-footer button{min-height:40px;font-size:13px}
+#eventModal #cancelModalBtn{color:var(--ed-sub)}
+@media(max-width:640px){#eventModal{padding:0;align-items:stretch}#eventModal .event-editor-shell{height:100%;max-height:100%;max-width:none;border-radius:0;box-shadow:none}#eventModal .event-editor-form{flex:1}#eventModal .event-editor-body{flex:1;padding:0 16px 16px}#eventModal .event-editor-header{padding:12px 14px}}
+@media(max-width:350px){#eventModal .event-date-rows{padding-left:12px;gap:20px}#eventModal #eventTitle{font-size:18px}#eventModal .event-date-row input{font-size:13px}}
+</style>
+<style id="event-editor-v13-balanced">
+/* Scale editor content, including conditional lunar/counter settings, while
+   leaving the full-screen shell and scroll viewport at the device size. */
+#eventModal .event-editor-header,
+#eventModal .event-editor-body,
+#eventModal .event-editor-footer { zoom: 0.8; }
+#eventModal .event-editor-body { min-width: 0; }
+#eventModal .event-editor-footer { padding-bottom: max(8px, calc(env(safe-area-inset-bottom) / 0.8)); }
+</style>
+<style id="event-editor-v14-focus">
+#eventModal input:focus,#eventModal input:focus-visible,
+#eventModal select:focus,#eventModal select:focus-visible,
+#eventModal textarea:focus,#eventModal textarea:focus-visible {
+  outline:none!important;box-shadow:none!important;
+  --tw-ring-shadow:0 0 #0000;--tw-ring-offset-shadow:0 0 #0000;
+}
+</style>
+<style id="schedule-v15-performance">
+.schedule-card { content-visibility:auto; contain-intrinsic-size:auto 100px; }
+#calendarViewContainer > .anim-in:has(.schedule-item) { animation:none; }
+</style>
+<style id="event-special-v19-polish">
+#eventModal #eventTypeGroup{padding-bottom:8px}
+#eventModal .event-title-field{margin-bottom:16px;border-radius:14px}
+#eventModal #eventTitle{font-size:20px}
+#eventModal #lunarToggleArea{padding:8px 4px;margin:0 0 8px;border:0;border-radius:0;background:transparent;background-image:none;box-shadow:none}
+#eventModal #lunarToggleArea .editor-toggle-label{margin:0;font-weight:400}
+#eventModal .editor-all-day,#eventModal .editor-category{min-height:52px}
+#eventModal #gregorianSpecialDateInputs,#eventModal #lunarDateInputs{padding:16px;margin:4px 0 10px;background:var(--ed-soft);border:0;border-radius:14px;gap:0}
+#eventModal #gregorianSpecialDateInputs>div:first-child,#eventModal #lunarDateInputs>div:first-child{gap:12px;grid-template-columns:1.2fr 1fr 1fr}
+#eventModal #gregorianSpecialDateInputs label,#eventModal #lunarDateInputs label{font-size:12px;font-weight:500;color:var(--ed-sub);line-height:1.5;min-height:18px;margin:0 0 8px;white-space:nowrap}
+#eventModal #gregorianSpecialDateInputs input,#eventModal #gregorianSpecialDateInputs select,#eventModal #lunarDateInputs input,#eventModal #lunarDateInputs select{background:var(--ed-bg);border:0;border-radius:10px;height:44px;padding:8px;font-size:16px;text-align:center;min-width:0;width:100%;font-variant-numeric:tabular-nums}
+#eventModal #specialGregorianHint{display:none}
+#eventModal #eventTypeHint{color:var(--ed-sub);font-size:11px;line-height:1.75;padding:0 4px;margin:0 0 10px;letter-spacing:0}
+#eventModal #eventTypeHint>svg{display:none}
+#eventModal .lunar-preview{margin:10px 0 0;padding:10px 0 0;border:0;border-top:1px solid var(--ed-line);border-radius:0;background:transparent}
+#eventModal .lunar-preview p{font-size:11px;color:var(--ed-sub);line-height:1.65}
+#eventModal .editor-setting-row{padding:10px 4px;margin-bottom:0}
+#eventModal .editor-setting-row:has(#repeatLockedHint:not(.hidden))>div:first-child{flex-wrap:wrap;gap:0}
+#eventModal .editor-setting-row:has(#repeatLockedHint:not(.hidden)) .editor-toggle-label{flex-basis:100%}
+#eventModal #repeatLockedHint{max-width:none;width:100%;padding:0 0 2px 34px;font-size:11px;line-height:1.6;color:var(--ed-sub);font-weight:400}
+#eventModal #eventTypeHintText{color:inherit}
+#eventModal #normalEventOptions{margin-bottom:4px}
+</style>
+<style id="my-stat-v20">
+.my-stat-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.my-stat-range{font:inherit;font-size:12px;max-width:100px;padding:6px 10px;border:0;border-radius:10px;color:#7560d7;background:#f3f0ff}
+.dark .my-stat-range{color:#c3b3ff;background:#302943}
+.my-stat-custom{display:flex;align-items:center;gap:8px;margin-bottom:14px;min-width:0}
+.my-stat-custom label{font-size:10px;color:#9198a5;flex:1;min-width:0}
+.my-stat-custom input{display:block;width:100%;min-width:0;font:inherit;font-size:12px;color:inherit;padding:8px 4px;border:1px solid #e5e7eb;border-radius:8px;background:transparent}
+.my-stat-custom>span{font-size:11px;color:#9198a5;padding-top:15px}
+</style>
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
 
@@ -209,7 +334,7 @@
   </div>
 </header>
 
-<div id="appViewport" class="flex-1 flex overflow-hidden relative pb-16">
+<div id="appViewport" class="flex-1 flex overflow-hidden relative">
   <aside id="sidebar" class="w-72 bg-white/70 dark:bg-ink-900/60 backdrop-blur-xl border-r border-ink-200/70 dark:border-ink-800/70 p-4 flex flex-col space-y-5 shrink-0 transition-all duration-300 z-10 hidden md:flex">
     <div class="bg-gradient-to-b from-ink-50 to-white dark:from-ink-800/60 dark:to-ink-900/60 p-3.5 rounded-2xl border border-ink-100 dark:border-ink-800 shadow-soft">
       <div class="flex items-center justify-between mb-3">
@@ -265,7 +390,7 @@
   </main>
 </div>
 
-<nav id="mobileBottomNav" class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-ink-900/95 backdrop-blur-lg border-t border-ink-200 dark:border-ink-800 z-50 pb-safe">
+<nav id="mobileBottomNav" class="shrink-0 bg-white/95 dark:bg-ink-900/95 backdrop-blur-lg border-t border-ink-200 dark:border-ink-800 z-50 pb-safe">
   <div class="flex justify-around items-center h-16 max-w-2xl mx-auto">
     <button class="bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-brand-600 transition-colors" data-nav="month"><i data-lucide="calendar" class="w-5 h-5"></i><span class="text-[10px] font-semibold">日曆</span></button>
     <button class="bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-ink-500 dark:text-ink-400 transition-colors" data-nav="tasks"><i data-lucide="check-square" class="w-5 h-5"></i><span class="text-[10px] font-semibold">任務</span></button>
@@ -399,183 +524,275 @@
 </div>
 
 <!-- 事件編輯彈窗 -->
-<div id="eventModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-200">
-  <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-200 max-h-[92vh] overflow-y-auto">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200/70 dark:border-ink-800 bg-gradient-to-r from-ink-50 to-white dark:from-ink-800/60 dark:to-ink-900/60 sticky top-0 z-10">
-      <h3 id="modalTitle" class="text-lg font-bold tracking-tight">新建日程</h3>
-      <button id="closeModalBtn" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
-    </div>
-    <form id="eventForm" class="p-6 space-y-4">
-      <input type="hidden" id="eventId">
-      <div>
-        <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">事件類型</label>
-        <div id="eventTypeGroup" class="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <button type="button" data-type="normal" class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition">普通事件</button>
-          <button type="button" data-type="birthday" class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition">🎂 生日</button>
-          <button type="button" data-type="anniversary" class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition">💝 紀念日</button>
-          <button type="button" id="eventCounterBtn" class="event-counter-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800">⏱ 事件計日</button>
-        </div>
-        <input type="hidden" id="eventType" value="normal">
-      </div>
-
-      <div id="eventCounterOptions" class="rounded-2xl border border-sky-200/80 dark:border-sky-900/50 bg-sky-50/50 dark:bg-sky-950/20 p-3.5 space-y-3" style="display:none">
-        <div class="flex items-center justify-between gap-3">
-          <div>
-            <div class="text-sm font-bold text-ink-800 dark:text-ink-100">事件計日</div>
-            <div class="text-[10px] text-ink-400 mt-0.5">可同時開啟正數與倒數，之後可在「我的 → 事件計日」查看。</div>
-          </div>
-          <span class="text-[10px] font-semibold text-sky-600 dark:text-sky-300 shrink-0">可多選</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 cursor-pointer select-none hover:bg-ink-50 dark:hover:bg-ink-900">
-            <input type="checkbox" id="eventCounterUp" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
-            <span><span class="block text-sm font-semibold">↗ 正數</span><span class="block text-[10px] text-ink-400 mt-0.5">從事件日期開始計算已經過多少日</span></span>
-          </label>
-          <label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 cursor-pointer select-none hover:bg-ink-50 dark:hover:bg-ink-900">
-            <input type="checkbox" id="eventCounterDown" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
-            <span><span class="block text-sm font-semibold">↘ 倒數</span><span class="block text-[10px] text-ink-400 mt-0.5">計算距離下一次事件還有多少日</span></span>
-          </label>
-        </div>
-      </div>
-      <div id="lunarToggleArea" class="flex items-center justify-between p-3 rounded-2xl border border-brand-200/70 dark:border-brand-900/50 bg-gradient-to-r from-brand-50/60 to-fuchsia-50/40 dark:from-brand-950/20 dark:to-fuchsia-950/10" style="display:none">
-        <label class="text-sm font-semibold flex items-center space-x-2 cursor-pointer select-none flex-1">
-          <input type="checkbox" id="eventIsLunar" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
-          <span class="flex items-center gap-1.5">🌙 <span>使用農曆日期</span></span>
-        </label>
-        <span class="text-[10px] text-brand-600/80 dark:text-brand-300/80 font-medium">長輩常記農曆</span>
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">日程標題</label>
-        <input type="text" id="eventTitle" required placeholder="例如:開會時間" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-      </div>
-
-      <!-- 普通事件：公历开始/结束时间（日期與時間分開手動輸入） -->
-      <div id="gregorianDateInputs" class="space-y-4">
-        <input type="hidden" id="eventStart">
-        <input type="hidden" id="eventEnd">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-3 rounded-2xl border border-ink-200 dark:border-ink-700 bg-ink-50/40 dark:bg-ink-900/30">
-            <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">開始</label>
-            <div class="grid grid-cols-2 gap-2">
-              <div><label class="block text-[10px] font-semibold text-ink-400 mb-1">日期</label><input type="text" id="eventStartDate" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="YYYY/MM/DD" aria-label="開始日期" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums"></div>
-              <div><label class="block text-[10px] font-semibold text-ink-400 mb-1">時間</label><input type="text" id="eventStartTime" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="HH:MM" aria-label="開始時間" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums"></div>
-            </div>
-          </div>
-          <div class="p-3 rounded-2xl border border-ink-200 dark:border-ink-700 bg-ink-50/40 dark:bg-ink-900/30">
-            <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">結束</label>
-            <div class="grid grid-cols-2 gap-2">
-              <div><label class="block text-[10px] font-semibold text-ink-400 mb-1">日期</label><input type="text" id="eventEndDate" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="YYYY/MM/DD" aria-label="結束日期" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums"></div>
-              <div><label class="block text-[10px] font-semibold text-ink-400 mb-1">時間</label><input type="text" id="eventEndTime" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="HH:MM" aria-label="結束時間" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums"></div>
-            </div>
-          </div>
-        </div>
-        <p class="text-[10px] text-ink-400">日期與時間分開輸入，例如日期「2026/09/21」、時間「09:00」。</p>
-      </div>
-
-      <div id="normalEventOptions" class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">分類</label>
-          <select id="eventCategory" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select>
-        </div>
-        <label class="flex items-center gap-2 self-end px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 cursor-pointer select-none">
-          <input type="checkbox" id="eventAllDay" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
-          <span>全天事件</span>
-        </label>
-      </div>
-
-      <!-- 生日/纪念日：公历 年/月/日 输入 -->
-      <div id="gregorianSpecialDateInputs" class="space-y-3" style="display:none">
-        <div class="grid grid-cols-3 gap-2">
-          <div><label id="eventGregorianYearLabel" class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">出生年份</label><input type="number" id="eventBirthYearGregorian" min="1900" max="2100" placeholder="1990" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums"></div>
-          <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">月</label><select id="eventBirthMonthGregorian" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select></div>
-          <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">日</label><select id="eventBirthDayGregorian" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select></div>
-        </div>
-        <p id="specialGregorianHint" class="text-[10px] text-brand-600/90 dark:text-brand-300/90">生日會每年自動重複，請填寫出生年份與日期。</p>
-      </div>
-
-      <!-- 生日/纪念日：农历 年/月/日 输入 -->
-      <div id="lunarDateInputs" class="space-y-3" style="display:none">
-        <div class="grid grid-cols-3 gap-2">
-          <div><label id="eventLunarYearLabel" class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">出生年份</label><input type="number" id="eventBirthYear" min="1900" max="2100" placeholder="1990" class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums"></div>
-          <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">農曆月</label><select id="eventLunarMonth" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select></div>
-          <div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">農曆日</label><select id="eventLunarDay" class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"></select></div>
-        </div>
-        <div class="lunar-preview rounded-xl p-2.5">
-          <p class="text-[10px] text-brand-700 dark:text-brand-300 leading-relaxed flex items-start gap-1.5"><i data-lucide="sparkles" class="w-3 h-3 mt-0.5 shrink-0"></i><span id="lunarPreviewText">請填寫出生年份並選擇農曆月日</span></p>
-        </div>
-      </div>
-      <p id="eventTypeHint" class="text-[10px] text-brand-600/90 dark:text-brand-300/90 leading-relaxed" style="display:none"><i data-lucide="info" class="w-3 h-3 inline -mt-0.5"></i><span id="eventTypeHintText">生日請填寫出生年份。開啟農曆後系統會每年自動對應農曆日期。</span></p>
-
-      <!-- 提前提醒开关 -->
-      <div class="flex items-center justify-between pt-1">
-        <label class="text-sm font-medium flex items-center space-x-2 cursor-pointer select-none">
-          <input type="checkbox" id="enableReminder" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4"><span>開啟提醒</span>
-        </label>
-        <div id="reminderSettings" class="flex items-center space-x-2" style="display:none">
-          <label class="text-[11px] font-bold text-ink-500 uppercase tracking-widest">提前</label>
-          <input type="number" id="eventReminderValue" min="0" step="1" value="10" class="w-20 px-3 py-1.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center">
-          <select id="eventReminderUnit" class="px-3 py-1.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-            <option value="min">分鐘</option><option value="hour">小時</option><option value="day">天</option>
-          </select>
-          <span class="text-[10px] text-ink-400">前</span>
-        </div>
-      </div>
-
-      <!-- 重复设置开关与区域 -->
-      <div class="rounded-2xl border border-brand-200/70 dark:border-brand-900/50 bg-brand-50/40 dark:bg-brand-950/20 p-3.5 space-y-3">
-        <div class="flex items-center justify-between">
-          <label class="text-sm font-medium flex items-center space-x-2 cursor-pointer select-none">
-            <input type="checkbox" id="enableRepeat" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4"><span>重複日程</span>
-          </label>
-          <span id="repeatLockedHint" class="text-[10px] text-brand-600/80 dark:text-brand-300/80 font-medium hidden">生日/紀念日每年自動重複</span>
-        </div>
-        <div id="repeatSettings" style="display:none">
-          <div class="flex items-center gap-2">
-            <select id="eventRepeat" class="flex-1 min-w-0 px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-              <option value="none">不重複</option>
-              <option value="daily">每天</option>
-              <option value="weekdays">每個工作日（週一至週五）</option>
-              <option value="weekly">每週</option>
-              <option value="monthly">每月</option>
-              <option value="yearly">每年</option>
-            </select>
-            <div id="repeatIntervalWrap" style="display:none" class="items-center gap-1.5 shrink-0">
-              <span class="text-xs text-ink-500 whitespace-nowrap">每</span>
-              <input type="number" id="eventRepeatInterval" min="1" max="99" value="1" class="w-14 px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center">
-              <span id="repeatIntervalUnit" class="text-xs text-ink-500 whitespace-nowrap">天</span>
-            </div>
-          </div>
-          <div id="repeatUntilWrap" style="display:none">
-            <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">重複結束於</label>
-            <input type="date" id="eventRepeatUntil" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-            <p class="text-[10px] text-ink-400 mt-1">留空表示永久重複</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 地点、备注（特殊事件隐藏） -->
-      <div id="locationWrapper">
-        <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">地點</label>
-        <div class="relative">
-          <i data-lucide="map-pin" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
-          <input type="text" id="eventLocation" placeholder="例如：3樓會議室" class="w-full pl-9 pr-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60">
-        </div>
-      </div>
-      <div id="descriptionWrapper">
-        <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5">備註</label>
-        <textarea id="eventDescription" rows="3" placeholder="補充細節..." class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 resize-none"></textarea>
-      </div>
-
-      <div class="flex items-center justify-between pt-4 border-t border-ink-200/70 dark:border-ink-800">
-        <button type="button" id="deleteEventBtn" class="px-3.5 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition hidden"><i data-lucide="trash-2" class="w-4 h-4 inline -mt-0.5 mr-1"></i>刪除</button>
-        <div class="flex space-x-2 ml-auto">
-          <button type="button" id="cancelModalBtn" class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition">取消</button>
-          <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 rounded-xl shadow-glow transition">儲存</button>
-        </div>
-      </div>
-    </form>
-  </div>
+<div aria-labelledby="modalTitle" aria-modal="true" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-200" id="eventModal" role="dialog">
+<div class="event-editor-shell">
+<div class="event-editor-header"><button aria-label="關閉日程編輯" class="p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-400 hover:text-ink-600 transition" id="closeModalBtn"><i class="w-5 h-5" data-lucide="x"></i></button>
+<h3 class="text-lg font-bold tracking-tight" id="modalTitle">新建日程</h3>
+<button class="editor-save" form="eventForm" type="submit">儲存</button></div>
+<form class="event-editor-form" id="eventForm"><div class="event-editor-body"><div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="eventTypeGroup">
+<button class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition" data-type="normal" type="button"><i aria-hidden="true" data-lucide="calendar-days"></i><span>日程</span></button>
+<button class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition" data-type="birthday" type="button"><i aria-hidden="true" data-lucide="cake"></i><span>生日</span></button>
+<button class="event-type-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition" data-type="anniversary" type="button"><i aria-hidden="true" data-lucide="bookmark"></i><span>紀念日</span></button>
+<button class="event-counter-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800" id="eventCounterBtn" type="button"><i aria-hidden="true" data-lucide="hourglass"></i><span>事件計日</span></button>
 </div>
+<input id="eventType" type="hidden" value="normal"/>
+</div><div class="event-title-field">
+<i aria-hidden="true" class="editor-title-icon" data-lucide="pencil-line"></i><input aria-label="日程標題" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventTitle" placeholder="在此輸入事件" required="" type="text"/>
+</div>
+<input id="eventId" type="hidden"/>
+<div class="rounded-2xl border border-sky-200/80 dark:border-sky-900/50 bg-sky-50/50 dark:bg-sky-950/20 p-3.5 space-y-3 event-section" id="eventCounterOptions" style="display:none">
+<div class="flex items-center justify-between gap-3">
+<div>
+<div class="text-sm font-bold text-ink-800 dark:text-ink-100">事件計日</div>
+<div class="text-[10px] text-ink-400 mt-0.5">可同時開啟正數與倒數，之後可在「我的 → 事件計日」查看。</div>
+</div>
+<span class="text-[10px] font-semibold text-sky-600 dark:text-sky-300 shrink-0">可多選</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+<label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 cursor-pointer select-none hover:bg-ink-50 dark:hover:bg-ink-900">
+<input class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4" id="eventCounterUp" type="checkbox"/>
+<span><span class="block text-sm font-semibold">↗ 正數</span><span class="block text-[10px] text-ink-400 mt-0.5">從事件日期開始計算已經過多少日</span></span>
+</label>
+<label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 cursor-pointer select-none hover:bg-ink-50 dark:hover:bg-ink-900">
+<input class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4" id="eventCounterDown" type="checkbox"/>
+<span><span class="block text-sm font-semibold">↘ 倒數</span><span class="block text-[10px] text-ink-400 mt-0.5">計算距離下一次事件還有多少日</span></span>
+</label>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-2xl border border-brand-200/70 dark:border-brand-900/50 bg-gradient-to-r from-brand-50/60 to-fuchsia-50/40 dark:from-brand-950/20 dark:to-fuchsia-950/10" id="lunarToggleArea" style="display:none">
+<label class="editor-toggle-label">
+<i data-lucide="moon" aria-hidden="true"></i><span>使用農曆日期</span>
+<input class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4" id="eventIsLunar" type="checkbox"/>
+</label>
+</div>
+<!-- 普通事件：公历开始/结束时间（日期與時間分開手動輸入） -->
+<div class="editor-normal-options" id="normalEventOptions">
+<div class="event-date-section" id="gregorianDateInputs">
+<input id="eventStart" type="hidden"/>
+<input id="eventEnd" type="hidden"/>
+<div class="event-date-rows">
+<div class="event-date-row">
+<label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">開始</label>
+<div class="grid grid-cols-2 gap-2">
+<div><label class="block text-[10px] font-semibold text-ink-400 mb-1" for="eventStartDate">日期</label><input aria-label="開始日期" autocapitalize="off" autocomplete="off" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums" id="eventStartDate" inputmode="text" placeholder="YYYY/MM/DD" spellcheck="false" type="text"/></div>
+<div><label class="block text-[10px] font-semibold text-ink-400 mb-1" for="eventStartTime">時間</label><input aria-label="開始時間" autocapitalize="off" autocomplete="off" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums" id="eventStartTime" inputmode="text" placeholder="HH:MM" spellcheck="false" type="text"/></div>
+</div>
+</div>
+<div class="event-date-row">
+<label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-2">結束</label>
+<div class="grid grid-cols-2 gap-2">
+<div><label class="block text-[10px] font-semibold text-ink-400 mb-1" for="eventEndDate">日期</label><input aria-label="結束日期" autocapitalize="off" autocomplete="off" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums" id="eventEndDate" inputmode="text" placeholder="YYYY/MM/DD" spellcheck="false" type="text"/></div>
+<div><label class="block text-[10px] font-semibold text-ink-400 mb-1" for="eventEndTime">時間</label><input aria-label="結束時間" autocapitalize="off" autocomplete="off" class="w-full min-w-0 px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 tabular-nums" id="eventEndTime" inputmode="text" placeholder="HH:MM" spellcheck="false" type="text"/></div>
+</div>
+</div>
+</div>
+</div><div class="editor-category"><i aria-hidden="true" data-lucide="calendar"></i>
+<label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventCategory">分類</label>
+<select class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventCategory"></select>
+</div>
+<label class="editor-all-day"><i aria-hidden="true" data-lucide="sun"></i>
+<span>全天事件</span>
+<input class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4" id="eventAllDay" type="checkbox"/></label>
+</div>
+<!-- 生日/纪念日：公历 年/月/日 输入 -->
+<div class="space-y-3 event-section" id="gregorianSpecialDateInputs" style="display:none">
+<div class="grid grid-cols-3 gap-2">
+<div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventBirthYearGregorian" id="eventGregorianYearLabel">出生年份</label><input class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums" id="eventBirthYearGregorian" max="2100" min="1900" placeholder="1990" type="number"/></div>
+<div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventBirthMonthGregorian">月</label><select class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventBirthMonthGregorian"></select></div>
+<div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventBirthDayGregorian">日</label><select class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventBirthDayGregorian"></select></div>
+</div>
+<p class="text-[10px] text-brand-600/90 dark:text-brand-300/90" id="specialGregorianHint">生日會每年自動重複，請填寫出生年份與日期。</p>
+</div>
+<!-- 生日/纪念日：农历 年/月/日 输入 -->
+<div class="space-y-3 event-section" id="lunarDateInputs" style="display:none">
+<div class="grid grid-cols-3 gap-2">
+<div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventBirthYear" id="eventLunarYearLabel">出生年份</label><input class="w-full px-3 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center tabular-nums" id="eventBirthYear" max="2100" min="1900" placeholder="1990" type="number"/></div>
+<div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventLunarMonth">農曆月</label><select class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventLunarMonth"></select></div>
+<div><label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventLunarDay">農曆日</label><select class="w-full px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventLunarDay"></select></div>
+</div>
+<div class="lunar-preview rounded-xl p-2.5">
+<p class="text-[10px] text-brand-700 dark:text-brand-300 leading-relaxed flex items-start gap-1.5"><i class="w-3 h-3 mt-0.5 shrink-0" data-lucide="sparkles"></i><span id="lunarPreviewText">請填寫出生年份並選擇農曆月日</span></p>
+</div>
+</div>
+<p class="text-[10px] text-brand-600/90 dark:text-brand-300/90 leading-relaxed" id="eventTypeHint" style="display:none"><i class="w-3 h-3 inline -mt-0.5" data-lucide="info"></i><span id="eventTypeHintText">生日請填寫出生年份。開啟農曆後系統會每年自動對應農曆日期。</span></p>
+<!-- 提前提醒开关 -->
+<div class="editor-setting-row">
+<label class="editor-toggle-label"><i aria-hidden="true" data-lucide="bell"></i>
+<span>開啟提醒</span>
+<input class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4" id="enableReminder" type="checkbox"/></label>
+<div class="flex items-center space-x-2" id="reminderSettings" style="display:none">
+<label class="text-[11px] font-bold text-ink-500 uppercase tracking-widest" for="eventReminderUnit">提前</label>
+<input class="w-20 px-3 py-1.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center" id="eventReminderValue" min="0" step="1" type="number" value="10"/>
+<select class="px-3 py-1.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventReminderUnit">
+<option value="min">分鐘</option><option value="hour">小時</option><option value="day">天</option>
+</select>
+<span class="text-[10px] text-ink-400">前</span>
+</div>
+</div>
+<!-- 重复设置开关与区域 -->
+<div class="editor-setting-row">
+<div class="flex items-center justify-between">
+<label class="editor-toggle-label"><i aria-hidden="true" data-lucide="repeat-2"></i>
+<span>重複日程</span>
+<input class="rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4" id="enableRepeat" type="checkbox"/></label>
+<span class="text-[10px] text-brand-600/80 dark:text-brand-300/80 font-medium hidden" id="repeatLockedHint">每年自動重複</span>
+</div>
+<div id="repeatSettings" style="display:none">
+<div class="flex items-center gap-2">
+<select class="flex-1 min-w-0 px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventRepeat">
+<option value="none">不重複</option>
+<option value="daily">每天</option>
+<option value="weekdays">每個工作日（週一至週五）</option>
+<option value="weekly">每週</option>
+<option value="monthly">每月</option>
+<option value="yearly">每年</option>
+</select>
+<div class="items-center gap-1.5 shrink-0" id="repeatIntervalWrap" style="display:none">
+<span class="text-xs text-ink-500 whitespace-nowrap">每</span>
+<input class="w-14 px-2 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 text-center" id="eventRepeatInterval" max="99" min="1" type="number" value="1"/>
+<span class="text-xs text-ink-500 whitespace-nowrap" id="repeatIntervalUnit">天</span>
+</div>
+</div>
+<div id="repeatUntilWrap" style="display:none">
+<label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventRepeatUntil">重複結束於</label>
+<input class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventRepeatUntil" type="date"/>
+<p class="text-[10px] text-ink-400 mt-1">留空表示永久重複</p>
+</div>
+</div>
+</div>
+<!-- 地点、备注（特殊事件隐藏） -->
+<div class="editor-detail-row" id="locationWrapper">
+<label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5"><i aria-hidden="true" data-lucide="map-pin"></i>地點</label>
+<div class="relative">
+<input class="w-full pl-9 pr-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60" id="eventLocation" placeholder="添加地點" type="text"/>
+</div>
+</div>
+<div class="editor-detail-row" id="descriptionWrapper">
+<label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5" for="eventDescription"><i aria-hidden="true" data-lucide="align-left"></i>備註</label>
+<textarea class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60 resize-none" id="eventDescription" placeholder="添加備註" rows="2"></textarea>
+</div>
+</div><div class="event-editor-footer">
+<button class="px-3.5 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition hidden" id="deleteEventBtn" type="button"><i class="w-4 h-4 inline -mt-0.5 mr-1" data-lucide="trash-2"></i>刪除</button>
+<div class="flex space-x-2 ml-auto">
+<button class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition" id="cancelModalBtn" type="button">取消</button>
+</div>
+</div></form>
+</div>
+</div>
+
+<div id="taskEditDialog" role="dialog" aria-modal="true" aria-labelledby="taskEditHeading" class="hidden">
+<form id="taskEditForm" class="p-5 space-y-4">
+<div class="flex items-center justify-between"><h3 id="taskEditHeading" class="text-lg font-bold">編輯任務</h3><button id="closeTaskEditBtn" type="button" aria-label="關閉任務編輯" class="p-2 text-ink-400">✕</button></div>
+<input id="taskEditId" type="hidden">
+<div><label for="taskEditTitle" class="block text-xs text-ink-500 mb-1">任務名稱</label><input id="taskEditTitle" type="text" required class="w-full p-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-transparent" autocomplete="off"></div>
+<div class="grid grid-cols-2 gap-3">
+<div><label for="taskEditDate" class="block text-xs text-ink-500 mb-1">截止日期</label><input id="taskEditDate" type="text" inputmode="text" placeholder="YYYY/MM/DD" aria-label="截止日期 YYYY/MM/DD" required autocomplete="off" class="w-full min-w-0 p-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-transparent"></div>
+<div><label for="taskEditTime" class="block text-xs text-ink-500 mb-1">截止時間（可選）</label><input id="taskEditTime" type="text" inputmode="text" placeholder="HH:MM" aria-label="截止時間 HH:MM" autocomplete="off" class="w-full min-w-0 p-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-transparent"></div>
+</div>
+<div><label for="taskEditCategory" class="block text-xs text-ink-500 mb-1">分類</label><select id="taskEditCategory" class="w-full p-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900"></select></div>
+<p id="taskEditError" role="alert" class="text-xs text-rose-500" hidden></p>
+<div class="flex justify-end gap-2"><button id="cancelTaskEditBtn" type="button" class="px-4 py-2 text-sm text-ink-500">取消</button><button type="submit" class="px-5 py-2 rounded-xl text-white bg-brand-600 text-sm font-semibold">儲存</button></div>
+</form></div>
+<style id="task-edit-v16">
+#taskEditDialog{position:fixed;inset:0;z-index:95;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.45);color:#252936}
+#taskEditDialog:not(.hidden){display:flex}
+#taskEditForm{width:100%;max-width:480px;max-height:calc(100dvh - 32px);overflow-y:auto;background:white;border-radius:18px;box-shadow:0 12px 50px #0002}
+.dark #taskEditForm{background:#1b202b;color:#eef1f8}
+#taskEditDialog::backdrop{background:rgba(15,23,42,.45)}
+#taskEditDialog input:focus,#taskEditDialog select:focus{outline:none;box-shadow:none}
+.task-edit-row,.day-task-card{cursor:pointer}
+.task-edit-row:focus-visible,.day-task-card:focus-visible{outline:2px solid #8b5cf6;outline-offset:2px}
+</style>
+
+<dialog id="appSelectDialog" aria-labelledby="appSelectTitle">
+<div class="app-select-handle" aria-hidden="true"></div>
+<header class="app-select-header"><div><h3 id="appSelectTitle">請選擇</h3><p id="appSelectSubtitle">選擇後即套用</p></div><button id="appSelectClose" type="button" aria-label="關閉選單">✕</button></header>
+<div id="appSelectOptions" role="radiogroup" aria-labelledby="appSelectTitle"></div>
+</dialog>
+<style id="app-select-v17">
+#appSelectDialog{--pick-bg:#fff;--pick-text:#252936;--pick-sub:#969cab;--pick-line:#f0f1f5;--pick-active:#7160df;--pick-soft:#f3f0ff;position:fixed;inset:auto 0 0;margin:0 auto;padding:0;width:100%;max-width:560px;max-height:75vh;max-height:75dvh;border:0;border-radius:22px 22px 0 0;background:var(--pick-bg);color:var(--pick-text);box-shadow:0 -8px 40px #0f172a15;overflow:hidden;font-family:inherit}
+.dark #appSelectDialog{--pick-bg:#1b202b;--pick-text:#eef1f8;--pick-sub:#9ba6ba;--pick-line:#2c3444;--pick-active:#b19afc;--pick-soft:#2c2941;color-scheme:dark}
+#appSelectDialog[open]{display:flex;flex-direction:column}
+#appSelectDialog::backdrop{background:rgba(20,25,40,.38)}
+#appSelectDialog .app-select-handle{width:34px;height:4px;margin:10px auto 0;border-radius:8px;background:#d8dce5;flex:none}
+#appSelectDialog .app-select-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px;border-bottom:1px solid var(--pick-line);flex:none}
+#appSelectTitle{font-size:17px;font-weight:700;margin:0}
+#appSelectSubtitle{font-size:11px;color:var(--pick-sub);margin:4px 0 0}
+#appSelectClose{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;font-size:17px;background:var(--pick-line);color:var(--pick-sub)}
+#appSelectOptions{overflow-y:auto;overscroll-behavior:contain;padding:10px 12px max(16px,env(safe-area-inset-bottom));min-height:0}
+#appSelectOptions .app-select-option{display:flex;align-items:center;gap:12px;min-height:48px;width:100%;padding:12px;border:0;border-radius:12px;text-align:left;color:var(--pick-text);background:transparent;font-size:15px;line-height:1.4;margin:2px 0;flex-shrink:0}
+#appSelectOptions .app-select-option[aria-checked=true]{background:var(--pick-soft);color:var(--pick-active);font-weight:600}
+#appSelectOptions .app-select-option:disabled{opacity:.4;cursor:default}
+#appSelectOptions .app-select-label{flex:1;min-width:0;overflow-wrap:anywhere}
+#appSelectOptions .app-select-mark{width:20px;height:20px;flex:none;border:1.5px solid #d7dce5;border-radius:50%;display:grid;place-items:center;color:transparent;font-size:12px}
+#appSelectOptions [aria-checked=true] .app-select-mark{background:var(--pick-active);border-color:var(--pick-active);color:var(--pick-bg)}
+#appSelectOptions .app-select-dot{width:10px;height:10px;border-radius:50%;flex:none}
+#appSelectOptions .app-select-group{font-size:11px;font-weight:650;color:var(--pick-sub);padding:12px 12px 4px}
+#appSelectDialog button:focus-visible{outline:2px solid var(--pick-active);outline-offset:-2px}
+select{font-family:inherit}
+@media(min-width:768px){#appSelectDialog{inset:0;margin:auto;border-radius:22px;max-height:70vh;width:420px}}
+</style>
+
+<div id="taskReadModal" role="dialog" aria-modal="true" aria-labelledby="taskReadHeading" class="hidden v21-overlay">
+<div class="task-read-panel"><header><h3 id="taskReadHeading"><i data-lucide="eye"></i>任務詳情</h3><button type="button" id="taskReadX" aria-label="關閉任務詳情">✕</button></header>
+<div class="task-read-content"><div class="task-read-title-row"><h4 id="taskReadTitle"></h4><span id="taskReadState"></span></div><div class="task-read-category"><span id="taskReadDot"></span><span id="taskReadCategory"></span></div><div class="task-read-due"><i data-lucide="calendar"></i><span id="taskReadDue"></span></div></div>
+<footer><button id="taskReadDelete" type="button"><i data-lucide="trash-2"></i>刪除</button><div><button id="taskReadClose" type="button">關閉</button><button id="taskReadEdit" type="button"><i data-lucide="edit-3"></i>編輯</button></div></footer></div></div>
+<div id="statDateModal" role="dialog" aria-modal="true" aria-labelledby="statDateTitle" class="hidden v21-overlay">
+<div class="stat-date-sheet"><header><button id="statDateClose" type="button" aria-label="關閉日期選擇">✕</button><h3 id="statDateTitle">選擇日期</h3><span></span></header>
+<div class="stat-date-nav"><button type="button" id="statDateMonthToggle" aria-label="選擇年月"></button><div><button type="button" id="statDatePrev" aria-label="上一個月">‹</button><button type="button" id="statDateNext" aria-label="下一個月">›</button></div></div>
+<div id="statDateJump" hidden><label>年份<select id="statDateYear" aria-label="選擇年份"></select></label><label>月份<select id="statDateMonth" aria-label="選擇月份"></select></label></div>
+<div class="stat-date-weekdays"> <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div id="statDateGrid" class="stat-date-grid"></div>
+<button id="statDateConfirm" type="button">確定</button></div></div>
+<style id="details-filter-v21">
+.v21-overlay{position:fixed;inset:0;z-index:105;background:#11182766;padding:16px;align-items:center;justify-content:center;color:#242936}
+.v21-overlay:not(.hidden){display:flex}
+.task-read-panel{background:#fff;border-radius:24px;width:100%;max-width:440px;max-height:90dvh;overflow:auto;box-shadow:0 20px 70px #0002}
+.task-read-panel header,.task-read-panel footer{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;gap:12px;border-bottom:1px solid #edf0f5}
+.task-read-panel header h3{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700}
+.task-read-panel svg{width:18px;height:18px;flex:none;color:#7862dd}
+.task-read-panel button{min-height:38px;padding:6px 10px;font-size:14px;border-radius:12px}
+.task-read-content{padding:22px 20px;display:flex;flex-direction:column;gap:18px}
+.task-read-title-row{display:flex;align-items:flex-start;gap:12px}
+#taskReadTitle{font-size:21px;font-weight:750;line-height:1.5;overflow-wrap:anywhere;flex:1;min-width:0}
+#taskReadState{font-size:10px;color:#7a8393;background:#f1f4f9;padding:5px 8px;border-radius:16px;white-space:nowrap;margin-top:5px}
+.task-read-category{display:flex;align-items:center;gap:7px;font-size:13px}
+#taskReadDot{width:9px;height:9px;border-radius:50%}
+.task-read-due{display:flex;align-items:flex-start;gap:12px;color:#788192;font-size:14px}
+.task-read-panel footer{border-bottom:0;border-top:1px solid #edf0f5}
+.task-read-panel footer>div{display:flex;align-items:center;gap:9px}
+#taskReadDelete,#taskReadEdit{display:flex;align-items:center;gap:6px}
+#taskReadDelete,#taskReadDelete svg{color:#e34c6c}
+#taskReadEdit{background:linear-gradient(45deg,#7151dd,#bf49ed);color:white;padding:8px 18px}
+#taskReadEdit svg{color:inherit}
+.my-stat-picker{display:flex;align-items:center;gap:6px;flex:none;font-size:11px;font-weight:500;color:#7c8292;border:1px solid #e8ebf2;border-radius:18px;padding:6px 9px;background:transparent;min-height:30px}
+.my-stat-picker svg{width:13px;height:13px}
+.my-stat-range{display:none!important}
+.my-stat-date-button{display:block;width:100%;text-align:left;font-size:12px;min-height:38px;padding:8px;border-radius:9px;background:#f5f6fa;color:#626b7c;white-space:nowrap}
+#statDateModal{padding:0;align-items:flex-end;z-index:110}
+.stat-date-sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;max-height:92dvh;overflow:auto;padding:16px 20px max(20px,env(safe-area-inset-bottom))}
+.stat-date-sheet header{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;margin-bottom:18px;text-align:center}
+.stat-date-sheet header h3{font-size:17px;font-weight:650}
+.stat-date-sheet header button,.stat-date-nav button{background:#f6f7fa;border-radius:12px;min-width:34px;height:34px;color:#8c92a0;font-size:22px}
+.stat-date-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+#statDateMonthToggle{padding:4px 12px;font-size:14px;color:#3d4553}
+.stat-date-nav>div{display:flex;gap:8px}
+.stat-date-weekdays,.stat-date-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center}
+.stat-date-weekdays{color:#a2a7b2;font-size:12px;margin-bottom:6px}
+.stat-date-grid{row-gap:4px}
+.stat-date-grid button{aspect-ratio:1;max-height:44px;max-width:44px;width:100%;margin:auto;font-size:15px;border-radius:50%;background:transparent}
+.stat-date-grid button[aria-pressed=true]{background:#3978ef;color:white}
+.stat-date-grid button:disabled{opacity:.25}
+#statDateConfirm{width:100%;margin-top:20px;min-height:44px;border-radius:14px;background:#3978ef;color:white;font-size:15px;font-weight:600}
+#statDateJump:not([hidden]){display:flex;gap:12px;margin-bottom:12px;font-size:12px}
+#statDateJump label{flex:1;color:#9198a5}
+#statDateJump select{display:block;width:100%;padding:8px;background:#f5f6fa;border:0;border-radius:10px;color:#5a6473}
+.dark .task-read-panel,.dark .stat-date-sheet{background:#1b202b;color:#eef1f8}
+.dark .task-read-panel header,.dark .task-read-panel footer{border-color:#303848}
+.dark #taskReadState,.dark .my-stat-date-button,.dark .stat-date-nav button,.dark .stat-date-sheet header button,.dark #statDateJump select{background:#2b3240;color:#aab4c8}
+.dark .my-stat-picker{border-color:#3a4252;color:#b7bfd0}
+@media(min-width:768px){#statDateModal{align-items:center;padding:20px}.stat-date-sheet{border-radius:24px;max-width:420px}}
+</style>
 
 <div id="categoryModal" class="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden opacity-0 transition-opacity duration-200">
   <div class="bg-white dark:bg-ink-900 rounded-3xl shadow-pop border border-ink-200/70 dark:border-ink-800 w-full max-w-sm p-5 space-y-4 transform scale-95 transition-transform duration-200">
@@ -712,10 +929,12 @@
   <div class="px-5 pt-2 pb-4 border-b border-ink-200/70 dark:border-ink-800/70 shrink-0">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0 flex-1">
-        <div class="flex items-baseline space-x-2 flex-wrap">
+        <div>
           <h3 id="drawerDateTitle" class="text-xl font-extrabold tracking-tight">今天</h3>
-          <span id="drawerLunarText" class="text-xs text-ink-400 font-medium"></span>
-          <span id="drawerDateOffset" class="text-sm text-ink-400 font-medium whitespace-nowrap"></span>
+          <div class="flex items-center gap-1.5 mt-1 min-w-0">
+            <span id="drawerLunarText" class="text-xs text-ink-400 font-medium whitespace-nowrap"></span>
+            <span id="drawerDateOffset" class="text-xs text-ink-400 font-medium whitespace-nowrap"></span>
+          </div>
         </div>
         <p id="drawerEventCount" class="text-[11px] text-ink-400 mt-1">尚無事件</p>
       </div>
@@ -932,54 +1151,55 @@
     return dt;
   }
 
-  // 日期／時間輸入：輸入到指定位數後自動插入分隔符號。
-  // 日期：YYYY -> YYYY/ -> YYYY/MM -> YYYY/MM/ -> YYYY/MM/DD
-  // 時間：HH -> HH: -> HH:MM
-  function autoFormatDateInput(el){
-    if(!el)return;
-    const oldValue=String(el.value||'');
-    const oldPos=typeof el.selectionStart==='number'?el.selectionStart:oldValue.length;
-    const digitsBefore=(oldValue.slice(0,oldPos).match(/\d/g)||[]).length;
-    let digits=oldValue.replace(/\D/g,'').slice(0,8);
-    let out=digits;
-    if(digits.length>=4)out=digits.slice(0,4)+'/'+digits.slice(4);
-    if(digits.length>=6)out=digits.slice(0,4)+'/'+digits.slice(4,6)+'/'+digits.slice(6);
-    let pos=digitsBefore;
-    if(pos>=4)pos+=1;
-    if(pos>=6)pos+=1;
-    pos=Math.min(pos,out.length);
+  // Share one editor across tasks and events. Deletion is always left to the IME.
+  function formatDateTimeInput(el,type,inputType='insertText'){
+    if(!el || inputType.startsWith('delete'))return;
+    const value=String(el.value||'');
+    const start=el.selectionStart==null?value.length:el.selectionStart;
+    const end=el.selectionEnd==null?start:el.selectionEnd;
+    const normalize=text=>text.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xfee0));
+    const digits=normalize(value).replace(/\D/g,'').slice(0,type==='date'?8:4);
+    const boundaries=type==='date'?[4,6]:[2];
+    const separator=type==='date'?'/':':';
+    const trailing=inputType!=='blur';
+    let out='';
+    for(let i=0;i<digits.length;i++){
+      out+=digits[i];
+      if(boundaries.includes(i+1) && (i+1<digits.length || trailing))out+=separator;
+    }
+    const mapPosition=pos=>{
+      const count=Math.min(normalize(value.slice(0,pos)).replace(/\D/g,'').length,digits.length);
+      return Math.min(count+boundaries.filter(n=>n<=count && (n<digits.length || trailing)).length,out.length);
+    };
     el.value=out;
-    try{el.setSelectionRange(pos,pos);}catch(e){}
+    try{el.setSelectionRange(mapPosition(start),mapPosition(end));}catch(e){}
   }
-  function autoFormatTimeInput(el){
-    if(!el)return;
-    const oldValue=String(el.value||'');
-    const oldPos=typeof el.selectionStart==='number'?el.selectionStart:oldValue.length;
-    const digitsBefore=(oldValue.slice(0,oldPos).match(/\d/g)||[]).length;
-    const digits=oldValue.replace(/\D/g,'').slice(0,4);
-    let out=digits;
-    if(digits.length>=2)out=digits.slice(0,2)+':'+digits.slice(2);
-    let pos=digitsBefore+(digitsBefore>=2?1:0);
-    pos=Math.min(pos,out.length);
-    el.value=out;
-    try{el.setSelectionRange(pos,pos);}catch(e){}
-  }
+  function autoFormatDateInput(el,inputType){formatDateTimeInput(el,'date',inputType);}
+  function autoFormatTimeInput(el,inputType){formatDateTimeInput(el,'time',inputType);}
   function bindAutoDateTimeInput(el,type,which){
-    if(!el)return;
-    el.addEventListener('input',()=>{
-      if(type==='date')autoFormatDateInput(el);
-      else autoFormatTimeInput(el);
-      syncSplitDateTime(which);
+    if(!el || el.dataset.formatBound)return;
+    el.dataset.formatBound='1';
+    let composing=false,pendingType='';
+    const sync=()=>{if(which)syncSplitDateTime(which);};
+    el.addEventListener('compositionstart',()=>{composing=true;});
+    el.addEventListener('compositionend',()=>{
+      composing=false;pendingType='';formatDateTimeInput(el,type);sync();
     });
+    el.addEventListener('beforeinput',e=>{pendingType=e.inputType||'';});
     el.addEventListener('keydown',e=>{
-      if(e.key!=='Backspace' || el.selectionStart!==el.selectionEnd)return;
-      const pos=el.selectionStart||0;
-      const separator=type==='date'?'/':':';
-      if(pos>0 && el.value[pos-1]===separator){
-        e.preventDefault();
-        el.setSelectionRange(pos-2,pos-1);
-        document.execCommand('delete');
-      }
+      if(e.key==='Backspace')pendingType='deleteContentBackward';
+      else if(e.key==='Delete')pendingType='deleteContentForward';
+      else pendingType='';
+    });
+    el.addEventListener('input',e=>{
+      const inputType=e.inputType||pendingType;
+      pendingType='';
+      if(composing || e.isComposing)return;
+      formatDateTimeInput(el,type,inputType);sync();
+    });
+    el.addEventListener('blur',()=>{
+      if(composing)return;
+      pendingType='';formatDateTimeInput(el,type,'blur');sync();
     });
   }
   function clearSplitDateTimes(){setSplitDateTime('start',null);setSplitDateTime('end',null);}
@@ -995,6 +1215,21 @@
   window.ensureCategoryActive=ensureCategoryActive;
 
   let jumpTarget='calendar';let jumpType='solar';
+  function gregorianMonthDays(year,month){
+    if(!Number.isInteger(year)||!Number.isInteger(month)||month<1||month>12)return 31;
+    if(month===2)return year%4===0&&(year%100!==0||year%400===0)?29:28;
+    return [4,6,9,11].includes(month)?30:31;
+  }
+  function updateGregorianDayOptions(){
+    const yearInput=document.getElementById('eventBirthYearGregorian');
+    const monthInput=document.getElementById('eventBirthMonthGregorian');
+    const dayInput=document.getElementById('eventBirthDayGregorian');
+    if(!yearInput||!monthInput||!dayInput)return;
+    const year=Number(yearInput.value)||new Date().getFullYear(),month=Number(monthInput.value)||1;
+    const previous=Number(dayInput.value)||1,max=gregorianMonthDays(year,month);
+    if(dayInput.options.length!==max)dayInput.innerHTML=Array.from({length:max},(_,i)=>`<option value="${i+1}">${i+1}日</option>`).join('');
+    dayInput.value=String(Math.min(previous,max));
+  }
   function populateLunarDropdowns(){const monthSel=document.getElementById('eventLunarMonth');const daySel=document.getElementById('eventLunarDay');if(!monthSel||!daySel)return;if(monthSel.options.length===0){monthSel.innerHTML=LUNAR_MONTHS.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');}if(daySel.options.length===0){daySel.innerHTML=LUNAR_DAYS.map((d,i)=>`<option value="${i+1}">${d}</option>`).join('');}const jMonth=document.getElementById('jumpLunarMonth');const jDay=document.getElementById('jumpLunarDay');if(jMonth&&jMonth.options.length===0){jMonth.innerHTML=LUNAR_MONTHS.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');}if(jDay&&jDay.options.length===0){jDay.innerHTML=LUNAR_DAYS.map((d,i)=>`<option value="${i+1}">${d}</option>`).join('');}
   const gMonth=document.getElementById('eventBirthMonthGregorian');const gDay=document.getElementById('eventBirthDayGregorian');
   if(gMonth&&gMonth.options.length===0){gMonth.innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}月</option>`).join('');}
@@ -1031,7 +1266,10 @@
   function updateEventCounterButton(){
     const btn=document.getElementById('eventCounterBtn');
     if(!btn)return;
-    const active=getEventCounterModes().length>0;
+    const panel=document.getElementById('eventCounterOptions');
+    const expanded=!!panel && panel.style.display!=='none' && panel.style.display!=='';
+    const active=expanded || getEventCounterModes().length>0;
+    btn.setAttribute('aria-expanded',String(expanded));
     btn.className=active
       ? 'event-counter-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition border-transparent bg-gradient-to-tr from-sky-500 to-brand-500 text-white shadow-glow'
       : 'event-counter-btn px-2 py-2.5 text-xs font-semibold rounded-xl border transition border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800';
@@ -1124,8 +1362,10 @@
     const type=typeEl?typeEl.value:'normal';
     const isBirthday=type==='birthday';
     const isAnniversary=type==='anniversary';
+    const titleInput=document.getElementById('eventTitle');
+    if(titleInput)titleInput.placeholder=isBirthday?'例如：媽媽生日':isAnniversary?'例如：結婚紀念日':'在此輸入事件';
     if(!isBirthday&&!isAnniversary)return;
-    const yearLabel=isBirthday?'出生年份':'開始時間';
+    const yearLabel=isBirthday?'出生年份':'開始年份';
     const gLabel=document.getElementById('eventGregorianYearLabel');
     const lLabel=document.getElementById('eventLunarYearLabel');
     if(gLabel)gLabel.textContent=yearLabel;
@@ -1143,6 +1383,7 @@
   }
 
   function updateLunarVisibility(){
+    updateGregorianDayOptions();
     updateSpecialEventLabels();
     const typeEl = document.getElementById('eventType');
     if (!typeEl) return;
@@ -1741,6 +1982,8 @@
       });
     });
 
+    bindTaskEditRows(content,'.day-task-card','taskId');
+
     content.querySelectorAll('.day-task-toggle').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
@@ -1953,6 +2196,12 @@
   c.innerHTML=html;
 }
   /* ===== 週檢視：手機橫向滾動 + 合理欄寬 ===== */
+  function weekEventBounds(startHour, durationHours, hourHeight, minHeight=22){
+    const dayHeight=24*hourHeight;
+    const height=Math.min(dayHeight, Math.max(durationHours*hourHeight-2, minHeight));
+    const top=Math.max(0, Math.min(startHour*hourHeight, dayHeight-height));
+    return {top,height};
+  }
   function renderWeekView(){
     const c=document.getElementById('calendarViewContainer');
     const curr=new Date(state.currentDate);
@@ -2008,9 +2257,8 @@
       const list=laidOut[i];
       const itemsHtml=list.map(evt=>{
         const st=new Date(evt._occStart);const et=new Date(evt._occEnd);
-        const top=(st.getHours()+st.getMinutes()/60)*HOUR_H;
         let durHours=(et-st)/3600000;if(durHours<=0)durHours=0.5;
-        const height=Math.max(durHours*HOUR_H-2,22);
+        const {top,height}=weekEventBounds(st.getHours()+st.getMinutes()/60,durHours,HOUR_H,evt._isTask?32:22);
         const colCount=evt._colCount||1;const col=evt._col||0;
         const widthPct=100/colCount;const leftPct=col*widthPct;
         const cat=getCat(evt.category);
@@ -2029,7 +2277,7 @@
 
   function renderDayView(){const c=document.getElementById('calendarViewContainer');const d=state.currentDate;const ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const today=new Date();const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const sub=getDaySubText(d);let subLine=`週${['日','一','二','三','四','五','六'][d.getDay()]}`;if(lunar.full)subLine+=` · ${escapeHtml(lunar.full)}`;if(sub.type==='term'||sub.type==='festival')subLine+=` · ${escapeHtml(sub.text)}`;subLine+=` · 第${weekNum}週`;let dateCls='text-2xl font-extrabold tracking-tight ';if(isHoliday)dateCls+='text-rose-600 dark:text-rose-400';let html=`<div class="h-full flex flex-col p-5 max-w-3xl mx-auto w-full anim-in"><div class="flex items-center justify-between pb-5 border-b border-ink-200/70 dark:border-ink-800/70 mb-5"><div><h3 class="${dateCls} flex items-center space-x-2"><span>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>${isToday?'<span class="text-[10px] px-2 py-1 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-full font-bold">今天</span>':''}${isHoliday?'<span class="text-[10px] px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full font-bold">節假日</span>':''}</h3><p class="text-xs text-ink-500 mt-1.5">${subLine}</p><p class="text-xs text-ink-400 mt-0.5">共 ${events.length} 個日程</p></div><button id="addDayEventBtn" class="px-4 py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl text-xs font-semibold shadow-glow">+ 新建</button></div><div class="flex-1 overflow-y-auto space-y-3 pr-2">`;if(events.length===0){html+=`<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="calendar-x" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">今日尚無規劃日程</p></div>`}else{html+=events.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-2 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold shrink-0">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3.5 h-3.5 opacity-50 shrink-0"></i>':'';return`<div class="event-pill cat-chip p-4 rounded-2xl border cursor-pointer flex items-start justify-between${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="space-y-1.5 min-w-0"><div class="flex items-center space-x-2 flex-wrap gap-y-1"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><h4 class="font-bold text-base truncate task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}</h4>${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs opacity-80"><span class="flex items-center space-x-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="tabular-nums">${evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`)}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<p class="text-xs opacity-90 pt-1">${escapeHtml(evt.description)}</p>`:''}</div><i data-lucide="chevron-right" class="w-5 h-5 opacity-40 shrink-0"></i></div>`}).join('')}html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();const addBtn=document.getElementById('addDayEventBtn');if(addBtn)addBtn.addEventListener('click',()=>openEventModal(null,d));}
 
-  function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3 h-3 opacity-50"></i>':'';const timeStr=evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`);return `<div class="schedule-card${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><i data-lucide="clock" class="w-3 h-3"></i><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();setTimeout(()=>{const el=document.getElementById('todayScheduleItem');if(el)el.scrollIntoView({behavior:'auto',block:'start'})},100);}
+  function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3 opacity-50"><path d="m17 2 4 4-4 4M3 11V8a2 2 0 0 1 2-2h16M7 22l-4-4 4-4m14-1v3a2 2 0 0 1-2 2H3"/></svg>':'';const timeStr=evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`);return `<div class="schedule-card${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;const list=c.firstElementChild;const el=document.getElementById('todayScheduleItem');if(list&&el)list.scrollTop=el.getBoundingClientRect().top-list.getBoundingClientRect().top+list.scrollTop;}
 
 
   // 事件計日設定：獨立使用 counterSettings/{uid} Firestore 文件。
@@ -2489,22 +2737,59 @@
     document.getElementById('myCounterPastBackBtn').addEventListener('click',()=>{state.view='my-counter-results';renderAll();});
   }
 
+  const myStatFilters={summary:{mode:'all',start:'',end:''},chart:{mode:'all',start:'',end:''}};
+  function myStatRange(filter,now=new Date()){
+    if(filter.mode==='all')return null;
+    let start=new Date(now.getFullYear(),now.getMonth(),now.getDate()),end=new Date(start);
+    if(filter.mode==='week'){start.setDate(start.getDate()-start.getDay());end=new Date(start);end.setDate(end.getDate()+6);}
+    else if(filter.mode==='month'){start=new Date(now.getFullYear(),now.getMonth(),1);end=new Date(now.getFullYear(),now.getMonth()+1,0);}
+    else if(filter.mode==='year'){start=new Date(now.getFullYear(),0,1);end=new Date(now.getFullYear(),11,31);}
+    else if(filter.mode==='custom'){
+      const parse=value=>{const m=value.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return null;const y=+m[1],mo=+m[2],d=+m[3];if(mo<1||mo>12||d<1||d>gregorianMonthDays(y,mo))return null;return new Date(y,mo-1,d);};
+      start=parse(filter.start);end=parse(filter.end);if(!start||!end||start>end)return [];
+    }
+    end.setHours(23,59,59,999);return [start,end];
+  }
+  function myStatEvents(range){
+    if(range===null)return state.events;
+    if(range.length!==2)return [];
+    const out=[];state.events.forEach(event=>expandEvent(event,range[0],range[1],out));return out;
+  }
+  function myStatFilterHtml(key){
+    const f=myStatFilters[key],choices=[['all','全部'],['week','一週'],['month','月'],['year','年'],['custom','自定義']];
+    const label=choices.find(c=>c[0]===f.mode)?.[1]||'全部';
+    return `<button type="button" class="my-stat-picker" data-stat-picker="${key}" aria-label="${key==='summary'?'摘要':'事件分類'}時間篩選"><i data-lucide="calendar-days"></i><span>${label}</span><i data-lucide="chevron-down"></i></button><select id="my${key}Range" tabindex="-1" aria-hidden="true" data-my-range="${key}" class="my-stat-range">${choices.map(([value,label])=>`<option value="${value}" ${f.mode===value?'selected':''}>${label}</option>`).join('')}</select>`;
+  }
+  function myStatCustomHtml(key){
+    const f=myStatFilters[key];if(f.mode!=='custom')return '';
+    return `<div class="my-stat-custom">${[['start','開始日期'],['end','結束日期']].map(([bound,label])=>`<label>${label}<button type="button" class="my-stat-date-button" data-my-date="${key}" data-bound="${bound}">${escapeHtml(f[bound].replace(/-/g,'/'))}</button></label>`).join('<span>至</span>')}</div>${myStatRange(f).length===0?'<p class="text-xs text-rose-500 mb-3" role="alert">請選擇有效的日期範圍</p>':''}`;
+  }
+  function bindMyStatFilters(root){
+    const rerender=()=>{const scroller=root.firstElementChild,top=scroller?.scrollTop||0;renderMyView();if(root.firstElementChild)root.firstElementChild.scrollTop=top;};
+    root.querySelectorAll('[data-my-range]').forEach(select=>select.addEventListener('change',()=>{
+      const f=myStatFilters[select.dataset.myRange];f.mode=select.value;
+      if(f.mode==='custom'&&(!f.start||!f.end)){const now=new Date();f.start=dateKey(new Date(now.getFullYear(),now.getMonth(),1));f.end=dateKey(now);}
+      rerender();
+    }));
+    root.querySelectorAll('[data-stat-picker]').forEach(button=>button.onclick=()=>openAppSelect(root.querySelector(`[data-my-range="${button.dataset.statPicker}"]`)));
+    root.querySelectorAll('[data-my-date]').forEach(button=>button.onclick=()=>openStatDate(button.dataset.myDate,button.dataset.bound));
+  }
   function renderMyView(){
     const c=document.getElementById('calendarViewContainer');
     const today=new Date();
     const ts=new Date(today);ts.setHours(0,0,0,0);
     const te=new Date(today);te.setHours(23,59,59,999);
-    const todayEvents=getOccurrencesInRange(ts,te);
-    const totalEvents=state.events.length;
-    const dayCounts=[0,0,0,0,0,0,0];
-    state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime()))dayCounts[d.getDay()]++;});
-    const maxCount=Math.max(...dayCounts);
-    const weekdays=['週日','週一','週二','週三','週四','週五','週六'];
-    const busiestDay=maxCount>0?weekdays[dayCounts.indexOf(maxCount)]:'無';
-    const noteCount=(state.notes||[]).filter(n=>n&&n.type==='note').length;
+    const summaryRange=myStatRange(myStatFilters.summary),chartRange=myStatRange(myStatFilters.chart);
+    const summaryEvents=myStatEvents(summaryRange),chartEvents=myStatEvents(chartRange);
+    const todayEvents=[];
+    state.events.forEach(event=>expandEvent(event,ts,te,todayEvents));
+    const visibleToday=summaryRange===null||summaryRange.length===2&&ts<=summaryRange[1]&&te>=summaryRange[0]?todayEvents.length:0;
+    const totalEvents=summaryEvents.length;
+    const taskCount=(state.tasks||[]).filter(task=>{if(summaryRange===null)return true;if(summaryRange.length!==2)return false;const due=new Date(task.dueAt);return due>=summaryRange[0]&&due<=summaryRange[1];}).length;
+    const noteCount=(state.notes||[]).filter(n=>{if(!n||n.type!=='note')return false;if(summaryRange===null)return true;if(summaryRange.length!==2)return false;const created=new Date(n.createdAt);return created>=summaryRange[0]&&created<=summaryRange[1];}).length;
     const diaryCount=(state.notes||[]).filter(n=>n&&n.type==='diary').length;
     const categoryChartMap=new Map();
-    state.events.forEach(e=>{
+    chartEvents.forEach(e=>{
       const cat=getCat(e.category);
       const key=cat?.id||e.category||'__uncategorized__';
       const existing=categoryChartMap.get(key);
@@ -2559,17 +2844,17 @@
       </div>
 
       <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
-        <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">摘要</h3>
+        <div class="my-stat-header"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200">摘要</h3>${myStatFilterHtml('summary')}</div>${myStatCustomHtml('summary')}
         <div class="grid grid-cols-2 gap-4">
-          <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center"><i data-lucide="calendar-check" class="w-5 h-5 text-orange-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">今日事件</div><div class="text-xl font-extrabold tabular-nums">${todayEvents.length}</div></div></div>
-          <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center"><i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">所有事件</div><div class="text-xl font-extrabold tabular-nums">${totalEvents}</div></div></div>
-          <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center"><i data-lucide="briefcase" class="w-5 h-5 text-emerald-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">最忙碌的一天</div><div class="text-base font-extrabold">${busiestDay}</div></div></div>
-          <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center"><i data-lucide="file-pen" class="w-5 h-5 text-rose-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">總筆記數</div><div class="text-xl font-extrabold tabular-nums">${noteCount}</div></div></div>
+          <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center"><i data-lucide="calendar-check" class="w-5 h-5 text-orange-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">今日事件</div><div class="text-xl font-extrabold tabular-nums">${visibleToday}</div></div></div>
+          <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center"><i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">${summaryRange===null?'所有事件':'期間事件'}</div><div class="text-xl font-extrabold tabular-nums">${totalEvents}</div></div></div>
+          <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center"><i data-lucide="check-square" class="w-5 h-5 text-emerald-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">任務數</div><div class="text-base font-extrabold">${taskCount}</div></div></div>
+          <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center"><i data-lucide="file-pen" class="w-5 h-5 text-rose-500"></i></div><div><div class="text-[10px] text-ink-400 font-semibold">${summaryRange===null?'總筆記數':'期間筆記數'}</div><div class="text-xl font-extrabold tabular-nums">${noteCount}</div></div></div>
         </div>
       </div>
 
       <div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
-        <h3 class="text-sm font-bold text-ink-700 dark:text-ink-200 mb-4">事件&行事曆分類</h3>
+        <div class="my-stat-header"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200">事件&行事曆分類</h3>${myStatFilterHtml('chart')}</div>${myStatCustomHtml('chart')}
         <div class="flex items-center gap-6">
           <div class="relative w-36 h-36 shrink-0 rounded-full" style="background:${categoryChartGradient};">
             <div class="absolute inset-[35%] rounded-full bg-white dark:bg-ink-900"></div>
@@ -2594,6 +2879,7 @@
       </div>
     </div>`;
     c.innerHTML=html;
+    bindMyStatFilters(c);
     lucide.createIcons();
     document.getElementById('myCounterBtn').addEventListener('click',()=>{state.view='my-counter-mode';renderAll();});
     document.getElementById('mySettingsBtn').addEventListener('click',()=>{state.view='my-settings';renderAll();});
@@ -2645,6 +2931,118 @@
     document.querySelectorAll('.my-cat-del-btn').forEach(btn=>btn.addEventListener('click',()=>deleteCategory(btn.dataset.cat)));
   }
 
+  function readTaskEditValues(text,rawDate,time,category){
+    text=text.trim();rawDate=rawDate.trim();time=time.trim();
+    if(!text)throw new Error('請輸入任務名稱');
+    const m=rawDate.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+    if(!m)throw new Error('截止日期格式請使用 YYYY/MM/DD');
+    const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]),check=new Date(y,mo-1,d);
+    if(check.getFullYear()!==y||check.getMonth()!==mo-1||check.getDate()!==d)throw new Error('請輸入有效的截止日期');
+    if(time&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))throw new Error('截止時間格式請使用 HH:MM（24小時制）');
+    const due=new Date(y,mo-1,d,...(time?time.split(':').map(Number):[23,59]),0,0);
+    return {text,dueAt:due.toISOString(),dueHasTime:!!time,category};
+  }
+  function closeTaskDetails(){document.getElementById('taskReadModal').classList.add('hidden');}
+  function openTaskDetails(id){
+    const task=(state.tasks||[]).find(t=>t.id===id);if(!task)return;
+    closeDayDetail();const el=id=>document.getElementById(id),cat=getCat(task.category),due=new Date(task.dueAt);
+    el('taskReadTitle').textContent=task.text||'未命名任務';el('taskReadState').textContent=task.completed?'已完成':'未完成';
+    el('taskReadCategory').textContent=cat.name;el('taskReadDot').style.backgroundColor=cat.color;
+    el('taskReadDue').textContent=isNaN(due.getTime())?'未設定截止日期':`${due.getFullYear()}年${due.getMonth()+1}月${due.getDate()}日 週${['日','一','二','三','四','五','六'][due.getDay()]} · ${task.dueHasTime?'截止 '+formatTime(due):'全天'}`;
+    el('taskReadX').onclick=el('taskReadClose').onclick=closeTaskDetails;
+    el('taskReadEdit').onclick=()=>{closeTaskDetails();openTaskEditor(id);};
+    el('taskReadDelete').onclick=async()=>{
+      if(!confirm('確定要刪除這項任務嗎？'))return;
+      try{if(window.currentUser&&typeof window.deleteTaskFromCloud==='function')await window.deleteTaskFromCloud(id);
+        state.tasks=state.tasks.filter(t=>t.id!==id);saveTasks();closeTaskDetails();renderAll();showToast('任務已刪除');
+      }catch(err){showToast('刪除失敗，請稍後再試');}
+    };
+    el('taskReadModal').classList.remove('hidden');if(typeof lucide!=='undefined')lucide.createIcons();el('taskReadX').focus({preventScroll:true});
+  }
+  let statDateDraft=null;
+  function closeStatDate(){document.getElementById('statDateModal').classList.add('hidden');statDateDraft=null;}
+  function dateGridCells(year,month){
+    const offset=(new Date(year,month-1,1).getDay()+6)%7;
+    return [...Array(offset).fill(null),...Array.from({length:gregorianMonthDays(year,month)},(_,i)=>i+1)];
+  }
+  function renderStatDate(){
+    const draft=statDateDraft;if(!draft)return;
+    const y=draft.year,m=draft.month;
+    document.getElementById('statDateMonthToggle').textContent=`${y}年 ${m}月 ⌄`;
+    document.getElementById('statDateYear').value=y;document.getElementById('statDateMonth').value=m;
+    document.getElementById('statDatePrev').disabled=y===1900&&m===1;
+    document.getElementById('statDateNext').disabled=y===2100&&m===12;
+    const grid=document.getElementById('statDateGrid');grid.innerHTML=dateGridCells(y,m).map(d=>d===null?'<span></span>':`<button type="button" data-stat-day="${d}" aria-label="${y}年${m}月${d}日" aria-pressed="${draft.selected===`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`}">${d}</button>`).join('');
+    grid.querySelectorAll('[data-stat-day]').forEach(button=>button.onclick=()=>{draft.selected=`${y}-${String(m).padStart(2,'0')}-${button.dataset.statDay.padStart(2,'0')}`;renderStatDate();document.querySelector('#statDateGrid [aria-pressed=true]')?.focus({preventScroll:true});});
+  }
+  function openStatDate(key,bound){
+    const selected=myStatFilters[key][bound]||dateKey(new Date()),parts=selected.split('-').map(Number);
+    statDateDraft={key,bound,selected,year:parts[0],month:parts[1]};
+    document.getElementById('statDateTitle').textContent=bound==='start'?'開始日期':'結束日期';
+    document.getElementById('statDateJump').hidden=true;
+    document.getElementById('statDateYear').innerHTML=Array.from({length:201},(_,i)=>`<option value="${1900+i}">${1900+i}年</option>`).join('');
+    document.getElementById('statDateMonth').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}月</option>`).join('');
+    document.getElementById('statDateClose').onclick=closeStatDate;
+    document.getElementById('statDateMonthToggle').onclick=()=>{const area=document.getElementById('statDateJump');area.hidden=!area.hidden;};
+    for(const id of ['statDateYear','statDateMonth'])document.getElementById(id).onchange=()=>{statDateDraft.year=Number(document.getElementById('statDateYear').value);statDateDraft.month=Number(document.getElementById('statDateMonth').value);renderStatDate();};
+    const move=delta=>{const d=new Date(statDateDraft.year,statDateDraft.month-1+delta,1);if(d.getFullYear()<1900||d.getFullYear()>2100)return;statDateDraft.year=d.getFullYear();statDateDraft.month=d.getMonth()+1;renderStatDate();};
+    document.getElementById('statDatePrev').onclick=()=>move(-1);document.getElementById('statDateNext').onclick=()=>move(1);
+    document.getElementById('statDateConfirm').onclick=()=>{
+      if(!statDateDraft)return;const {key,bound,selected}=statDateDraft;
+      myStatFilters[key][bound]=selected;const c=document.getElementById('calendarViewContainer'),top=c.firstElementChild?.scrollTop||0;
+      closeStatDate();renderMyView();c.firstElementChild.scrollTop=top;
+    };
+    renderStatDate();document.getElementById('statDateModal').classList.remove('hidden');document.getElementById('statDateClose').focus({preventScroll:true});
+  }
+  function closeTaskEditor(){
+    closeAppSelect();
+    document.getElementById('taskEditDialog').classList.add('hidden');
+  }
+  function openTaskEditor(id){
+    const task=(state.tasks||[]).find(t=>t.id===id);
+    if(!task)return;
+    closeDayDetail();
+    const dialog=document.getElementById('taskEditDialog');
+    const field=id=>document.getElementById(id);
+    field('taskEditId').value=task.id;
+    field('taskEditTitle').value=task.text||'';
+    const due=new Date(task.dueAt);
+    field('taskEditDate').value=isNaN(due.getTime())?'':dateKey(due).replace(/-/g,'/');
+    field('taskEditTime').value=task.dueHasTime&&!isNaN(due.getTime())?formatTime(due):'';
+    const cats=state.categories.slice();
+    if(task.category&&!cats.some(c=>c.id===task.category))cats.push({id:task.category,name:'原有分類'});
+    field('taskEditCategory').innerHTML=cats.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`).join('');
+    field('taskEditCategory').value=task.category||cats[0]?.id||'';
+    field('taskEditError').hidden=true;
+    bindAutoDateTimeInput(field('taskEditDate'),'date');
+    bindAutoDateTimeInput(field('taskEditTime'),'time');
+    field('closeTaskEditBtn').onclick=field('cancelTaskEditBtn').onclick=closeTaskEditor;
+    field('taskEditForm').onsubmit=e=>{
+      e.preventDefault();
+      const current=state.tasks.find(t=>t.id===field('taskEditId').value);
+      if(!current){closeTaskEditor();showToast('這項任務已不存在');return;}
+      try{
+        const changes=readTaskEditValues(field('taskEditTitle').value,field('taskEditDate').value,field('taskEditTime').value,field('taskEditCategory').value);
+        Object.assign(current,changes);
+        saveTasks();closeTaskEditor();renderAll();showToast('任務已更新');
+      }catch(err){field('taskEditError').textContent=err.message;field('taskEditError').hidden=false;}
+    };
+    dialog.classList.remove('hidden');
+    field('closeTaskEditBtn').focus({preventScroll:true});
+  }
+  function bindTaskEditRows(root,selector,idKey){
+    root.querySelectorAll(selector).forEach(row=>{
+      row.setAttribute('role','button');row.tabIndex=0;row.setAttribute('aria-label','查看任務');
+      row.addEventListener('click',e=>{
+        if(e.target.closest('button'))return;
+        e.stopPropagation();openTaskDetails(row.dataset[idKey]);
+      });
+      row.addEventListener('keydown',e=>{
+        if(e.target!==row || !['Enter',' '].includes(e.key))return;
+        e.preventDefault();openTaskDetails(row.dataset[idKey]);
+      });
+    });
+  }
   function renderTasksView(){
     const c=document.getElementById('calendarViewContainer'),tasks=state.tasks||[];
     const completedCount=tasks.filter(t=>t.completed).length,totalCount=tasks.length,progress=totalCount?Math.round(completedCount/totalCount*100):0;
@@ -2670,8 +3068,8 @@
           <div class="space-y-4">
             <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">任務名稱</label><input type="text" id="taskInput" placeholder="例如：完成數學作業" class="w-full px-4 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-300"></div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">截止日期</label><input type="text" id="taskDueDate" inputmode="numeric" autocomplete="off" placeholder="YYYY/MM/DD" maxlength="10" class="w-full px-3 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" aria-label="截止日期（YYYY/MM/DD）"></div>
-              <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">截止時間（可選）</label><input type="text" id="taskDueTime" inputmode="numeric" autocomplete="off" placeholder="HH:MM" maxlength="5" class="w-full px-3 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" aria-label="截止時間（HH:MM）"></div>
+              <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">截止日期</label><input type="text" id="taskDueDate" inputmode="text" autocomplete="off" placeholder="YYYY/MM/DD" maxlength="10" class="w-full px-3 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" aria-label="截止日期（YYYY/MM/DD）"></div>
+              <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">截止時間（可選）</label><input type="text" id="taskDueTime" inputmode="text" autocomplete="off" placeholder="HH:MM" maxlength="5" class="w-full px-3 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" aria-label="截止時間（HH:MM）"></div>
               <div><label class="block text-[11px] font-bold text-ink-400 mb-1.5">分類</label><select id="taskCategory" class="w-full px-3 py-3 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950">${catOptions}</select></div>
             </div>
             <div class="rounded-xl bg-ink-50 dark:bg-ink-800/60 p-3 text-xs text-ink-500">截止日期會同步顯示在月、週、日及日程檢視。完成後日曆上的任務會變灰並加刪除線；完成且日期已過的任務會自動移到「已過去任務」。</div>
@@ -2680,7 +3078,7 @@
         </div>
       </div>`;
     }else{
-      content=`<div class="flex-1 overflow-y-auto p-5 space-y-2 bg-white/30 dark:bg-ink-900/30">${sorted.length===0?`<div class="text-center py-20 text-ink-400"><i data-lucide="${mode==='past'?'archive':'clipboard-list'}" class="w-16 h-16 mx-auto mb-4 opacity-30"></i><p class="text-sm font-medium">${mode==='past'?'目前沒有已過去的已完成任務':'還沒有任務'}</p><p class="text-xs mt-1">${mode==='past'?'已完成且截止日期已經過去的任務會自動出現在這裡。':'按右上角「＋」新增第一個任務。'}</p></div>`:sorted.map(task=>{const cat=getCat(task.category);const due=task.dueAt?new Date(task.dueAt):null;const dueText=due&&!isNaN(due)?`截止：${due.getFullYear()}/${String(due.getMonth()+1).padStart(2,'0')}/${String(due.getDate()).padStart(2,'0')}${task.dueHasTime?' '+formatTime(due):'（全天）'}`:'未設定截止日期';return `<div class="group flex items-start gap-3 p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm ${task.completed?'opacity-75':''}"><button class="toggle-task-btn shrink-0 mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center ${task.completed?'bg-brand-500 border-brand-500':'border-ink-300 dark:border-ink-600'}" data-id="${task.id}" aria-label="${task.completed?'標記為未完成':'標記為已完成'}">${task.completed?'<i data-lucide="check" class="w-3 h-3 text-white"></i>':''}</button><div class="flex-1 min-w-0"><p class="text-sm font-medium break-words ${task.completed?'line-through text-ink-400':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p><div class="flex flex-wrap items-center gap-2 mt-1.5"><span class="text-[10px] px-2 py-0.5 rounded-full cat-chip border" style="--c:${cat.color}">${escapeHtml(cat.name)}</span><span class="text-[10px] text-ink-400">${dueText}</span></div></div><button class="delete-task-btn shrink-0 p-1.5 text-ink-300 hover:text-rose-500" data-id="${task.id}" aria-label="刪除任務"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`}).join('')}</div>`;
+      content=`<div class="flex-1 overflow-y-auto p-5 space-y-2 bg-white/30 dark:bg-ink-900/30">${sorted.length===0?`<div class="text-center py-20 text-ink-400"><i data-lucide="${mode==='past'?'archive':'clipboard-list'}" class="w-16 h-16 mx-auto mb-4 opacity-30"></i><p class="text-sm font-medium">${mode==='past'?'目前沒有已過去的已完成任務':'還沒有任務'}</p><p class="text-xs mt-1">${mode==='past'?'已完成且截止日期已經過去的任務會自動出現在這裡。':'按右上角「＋」新增第一個任務。'}</p></div>`:sorted.map(task=>{const cat=getCat(task.category);const due=task.dueAt?new Date(task.dueAt):null;const dueText=due&&!isNaN(due)?`截止：${due.getFullYear()}/${String(due.getMonth()+1).padStart(2,'0')}/${String(due.getDate()).padStart(2,'0')}${task.dueHasTime?' '+formatTime(due):'（全天）'}`:'未設定截止日期';return `<div data-task-id="${task.id}" class="task-edit-row group flex items-start gap-3 p-3.5 rounded-xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-sm ${task.completed?'opacity-75':''}"><button class="toggle-task-btn shrink-0 mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center ${task.completed?'bg-brand-500 border-brand-500':'border-ink-300 dark:border-ink-600'}" data-id="${task.id}" aria-label="${task.completed?'標記為未完成':'標記為已完成'}">${task.completed?'<i data-lucide="check" class="w-3 h-3 text-white"></i>':''}</button><div class="flex-1 min-w-0"><p class="text-sm font-medium break-words ${task.completed?'line-through text-ink-400':'text-ink-800 dark:text-ink-100'}">${escapeHtml(task.text)}</p><div class="flex flex-wrap items-center gap-2 mt-1.5"><span class="text-[10px] px-2 py-0.5 rounded-full cat-chip border" style="--c:${cat.color}">${escapeHtml(cat.name)}</span><span class="text-[10px] text-ink-400">${dueText}</span></div></div><button class="delete-task-btn shrink-0 p-1.5 text-ink-300 hover:text-rose-500" data-id="${task.id}" aria-label="刪除任務"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`}).join('')}</div>`;
     }
 
     c.innerHTML=`<div class="h-full flex flex-col anim-in">
@@ -2708,9 +3106,12 @@
     if(mode==='add'){
       const addTask=async()=>{const input=document.getElementById('taskInput'),text=input.value.trim(),rawDate=document.getElementById('taskDueDate').value.trim(),time=document.getElementById('taskDueTime').value;if(!text)return;if(!rawDate){showToast('請輸入任務截止日期（YYYY/MM/DD）');return}const m=rawDate.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);if(!m){showToast('截止日期格式請使用 YYYY/MM/DD');return}const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]),check=new Date(y,mo-1,d);if(check.getFullYear()!==y||check.getMonth()!==mo-1||check.getDate()!==d){showToast('請輸入有效的截止日期');return}const date=`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;if(time&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)){showToast('截止時間格式請使用 HH:MM（24小時制）');return}const due=new Date(`${date}T${time||'23:59'}`);if(isNaN(due.getTime()))return;const task={id:`task_${Date.now()}`,text,completed:false,createdAt:Date.now(),dueAt:due.toISOString(),dueHasTime:!!time,category:document.getElementById('taskCategory').value||state.categories[0]?.id};state.tasks.push(task);saveTasks();state.taskViewMode='active';renderTasksView();renderAll()};
       document.getElementById('addTaskBtn').addEventListener('click',addTask);
-      document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask()});
+      document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229)addTask()});
     }
-    const taskDateInput=document.getElementById('taskDueDate');if(taskDateInput&&!taskDateInput.dataset.formatBound){taskDateInput.dataset.formatBound='1';taskDateInput.addEventListener('input',e=>{const digits=e.target.value.replace(/\D/g,'').slice(0,8);let v=digits;if(digits.length>=4){v=digits.slice(0,4)+'/'+digits.slice(4);}if(digits.length>=6){v=digits.slice(0,4)+'/'+digits.slice(4,6)+'/'+digits.slice(6);}e.target.value=v;});}const taskTimeInput=document.getElementById('taskDueTime');if(taskTimeInput&&!taskTimeInput.dataset.formatBound){taskTimeInput.dataset.formatBound='1';taskTimeInput.addEventListener('input',e=>{const digits=e.target.value.replace(/\D/g,'').slice(0,4);let v=digits;if(digits.length>=2)v=digits.slice(0,2)+':'+digits.slice(2);e.target.value=v;});}document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',()=>{const task=state.tasks.find(t=>t.id===btn.dataset.id);if(!task)return;task.completed=!task.completed;task.completedAt=task.completed?Date.now():null;saveTasks();renderTasksView();renderAll()}));
+    bindAutoDateTimeInput(document.getElementById('taskDueDate'),'date');
+    bindAutoDateTimeInput(document.getElementById('taskDueTime'),'time');
+    bindTaskEditRows(c,'.task-edit-row','taskId');
+    document.querySelectorAll('.toggle-task-btn').forEach(btn=>btn.addEventListener('click',()=>{const task=state.tasks.find(t=>t.id===btn.dataset.id);if(!task)return;task.completed=!task.completed;task.completedAt=task.completed?Date.now():null;saveTasks();renderTasksView();renderAll()}));
     document.querySelectorAll('.delete-task-btn').forEach(btn=>btn.addEventListener('click',async()=>{const id=btn.dataset.id;if(window.currentUser&&typeof window.deleteTaskFromCloud==='function'){try{await window.deleteTaskFromCloud(id)}catch(e){}}state.tasks=state.tasks.filter(t=>t.id!==id);saveTasks();renderTasksView();renderAll() }));
   }
   function renderNotesView(){
@@ -2881,11 +3282,13 @@
           lunar.checked=false;
           document.getElementById('eventBirthYearGregorian').value=sourceYear;
           document.getElementById('eventBirthMonthGregorian').value=sourceDate.getMonth()+1;
+          updateGregorianDayOptions();
           document.getElementById('eventBirthDayGregorian').value=sourceDate.getDate();
         }else{
           lunar.checked=false;
           document.getElementById('eventBirthYearGregorian').value=sourceYear;
           document.getElementById('eventBirthMonthGregorian').value=sourceDate.getMonth()+1;
+          updateGregorianDayOptions();
           document.getElementById('eventBirthDayGregorian').value=sourceDate.getDate();
         }
       }else{
@@ -2991,22 +3394,14 @@
 
         // 月曆中的事件也遵守「第一次點日期只選取、第二次才開啟」的邏輯。
         // 因為事件區塊本身覆蓋在日期格內，不能第一次碰到事件就直接開事件欄。
-        const dayDate = p.dataset.dayDate;
-        if(dayDate){
-          // 月曆日期點擊已由 calendarViewContainer 的 capture listener 統一處理。
-          // 這裡只作保險，不再直接開啟事件欄。
-          return;
-        }
-
-        // 其他視圖維持原本行為。
+        if(state.view==='month')return;
+        const task=(state.tasks||[]).find(t=>`taskcal_${t.id}`===p.dataset.id);
+        if(task){openTaskDetails(task.id);return;}
+        // Use the displayed occurrence date, including recurring events and tasks.
+        const dayDate=p.dataset.dayDate;
+        if(dayDate){openDayDetail(dayDate);return;}
         const evt=state.events.find(x=>x.id===p.dataset.id);
-        if(evt){
-          if(state.view==='day'){
-            openDayDetail(dateKey(state.currentDate));
-          }else{
-            openDayDetail(evt.start);
-          }
-        }
+        if(evt)openDayDetail(state.view==='day'?dateKey(state.currentDate):evt.start);
       });
     });
     document.querySelectorAll('.empty-day').forEach(el=>{
@@ -3059,7 +3454,77 @@
   }window.deleteIcsFile=deleteIcsFile;
   function openIcsModal(){const m=document.getElementById('icsModal');document.getElementById('icsMainPanel').classList.remove('hidden');document.getElementById('icsPreviewPanel').classList.add('hidden');renderIcsFileList();m.classList.remove('hidden');setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95')},10);}
 
+  let appSelectSource=null;
+  function appSelectTitle(select){
+    const titles={eventCategory:'選擇分類',taskCategory:'選擇任務分類',taskEditCategory:'選擇任務分類',bulkCategorySelect:'批次選擇分類',eventRepeat:'重複頻率',eventReminderUnit:'提醒單位',eventBirthMonthGregorian:'選擇月份',eventBirthDayGregorian:'選擇日期',eventLunarMonth:'選擇農曆月',eventLunarDay:'選擇農曆日',lunarConvertMonth:'選擇農曆月',lunarConvertDay:'選擇農曆日',jumpLunarMonth:'選擇農曆月',jumpLunarDay:'選擇農曆日'};
+    if(titles[select.id])return titles[select.id];
+    if(select.classList.contains('ics-cat-select'))return '選擇匯入分類';
+    return select.getAttribute('aria-label')||select.labels?.[0]?.textContent.trim()||'請選擇';
+  }
+  function closeAppSelect(){
+    const dialog=document.getElementById('appSelectDialog');
+    if(dialog.open)dialog.close();
+    appSelectSource=null;
+  }
+  function chooseAppSelectOption(index){
+    const select=appSelectSource;
+    if(!select||!select.isConnected||select.disabled){closeAppSelect();return;}
+    const option=select.options[index];
+    if(!option||option.disabled||option.parentElement?.disabled)return;
+    const changed=select.selectedIndex!==index;
+    select.selectedIndex=index;
+    closeAppSelect();
+    if(changed){select.dispatchEvent(new Event('input',{bubbles:true}));select.dispatchEvent(new Event('change',{bubbles:true}));}
+  }
+  function openAppSelect(select){
+    if(select.disabled||select.multiple||select.options.length===0)return;
+    if(select.id==='eventBirthDayGregorian')updateGregorianDayOptions();
+    const dialog=document.getElementById('appSelectDialog');
+    if(dialog.open)return;
+    appSelectSource=select;
+    document.getElementById('appSelectTitle').textContent=appSelectTitle(select);
+    const list=document.getElementById('appSelectOptions');list.replaceChildren();
+    const isCategory=/Category$/.test(select.id)||select.classList.contains('ics-cat-select');
+    let lastGroup=null;
+    Array.from(select.options).forEach((option,index)=>{
+      if(option.hidden)return;
+      const group=option.parentElement;
+      if(group?.tagName==='OPTGROUP'&&group!==lastGroup){const heading=document.createElement('div');heading.className='app-select-group';heading.textContent=group.label;list.append(heading);lastGroup=group;}
+      const button=document.createElement('button');button.type='button';button.className='app-select-option';button.setAttribute('role','radio');button.setAttribute('aria-checked',String(index===select.selectedIndex));button.disabled=option.disabled||!!group?.disabled;
+      if(isCategory){const category=state.categories.find(c=>c.id===option.value);if(category){const dot=document.createElement('span');dot.className='app-select-dot';dot.style.backgroundColor=category.color;dot.setAttribute('aria-hidden','true');button.append(dot);}}
+      const label=document.createElement('span');label.className='app-select-label';label.textContent=option.textContent;button.append(label);
+      const mark=document.createElement('span');mark.className='app-select-mark';mark.textContent='✓';mark.setAttribute('aria-hidden','true');button.append(mark);
+      button.addEventListener('click',()=>chooseAppSelectOption(index));list.append(button);
+    });
+    dialog.showModal();
+    const selected=list.querySelector('[aria-checked="true"]:not(:disabled)')||list.querySelector('button:not(:disabled)');
+    if(selected){selected.focus({preventScroll:true});list.scrollTop=Math.max(0,selected.offsetTop-list.offsetTop-list.clientHeight/2+selected.offsetHeight/2);}
+  }
+  function initAppSelect(){
+    const dialog=document.getElementById('appSelectDialog');
+    document.getElementById('appSelectClose').addEventListener('click',closeAppSelect);
+    document.getElementById('closeTaskEditBtn').addEventListener('keydown',e=>{if(e.key==='Escape'&&!dialog.open){e.preventDefault();closeTaskEditor();}});
+    document.getElementById('taskEditDialog').addEventListener('keydown',e=>{if(e.key==='Escape'&&!dialog.open){e.preventDefault();closeTaskEditor();}});
+    dialog.addEventListener('close',()=>{if(!dialog.open)appSelectSource=null;});
+    dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeAppSelect();}});
+    const findSelect=e=>e.target.closest?.('select');
+    document.addEventListener('pointerdown',e=>{const select=findSelect(e);if(!select||select.disabled||select.multiple)return;e.preventDefault();},true);
+    document.addEventListener('click',e=>{const select=findSelect(e);if(!select||select.disabled||select.multiple)return;e.preventDefault();e.stopPropagation();openAppSelect(select);},true);
+    document.addEventListener('keydown',e=>{
+      const select=findSelect(e);
+      if(select&&!select.disabled&&!select.multiple&&['Enter',' ','ArrowDown','ArrowUp','F4'].includes(e.key)){e.preventDefault();openAppSelect(select);return;}
+      if(dialog.open&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
+        const options=Array.from(dialog.querySelectorAll('.app-select-option:not(:disabled)'));if(!options.length)return;
+        const current=options.indexOf(document.activeElement);const index=e.key==='Home'?0:e.key==='End'?options.length-1:(current+(e.key==='ArrowDown'?1:-1)+options.length)%options.length;
+        e.preventDefault();options[index].focus();
+      }
+    },true);
+  }
   function initEventListeners(){
+    initAppSelect();
+    document.addEventListener('keydown',e=>{if(e.key!=='Escape'||document.getElementById('appSelectDialog').open)return;if(!document.getElementById('statDateModal').classList.contains('hidden'))closeStatDate();else if(!document.getElementById('taskReadModal').classList.contains('hidden'))closeTaskDetails();});
+    document.getElementById('eventBirthYearGregorian').addEventListener('input',updateGregorianDayOptions);
+    document.getElementById('eventBirthMonthGregorian').addEventListener('change',updateGregorianDayOptions);
     document.querySelectorAll('.bottom-nav-btn').forEach(btn=>{btn.addEventListener('click',()=>{const nav=btn.dataset.nav;if(nav==='tasks'){state.view='tasks';}else if(nav==='notes'){state.view='notes';}else if(nav==='my'){state.view='my';}else if(nav==='month'){state.view='month';}renderAll();});});
     document.getElementById('todayBtn').addEventListener('click',()=>{if(state.view!=='month'&&state.view!=='week'&&state.view!=='day'&&state.view!=='schedule')state.view='month';state.currentDate=new Date();state.miniDate=new Date();closeDateTools();closeSimpleOverlay('dateCalculatorModal');closeSimpleOverlay('dateIntervalModal');closeJumpDateModal();renderAll();});
     document.getElementById('prevBtn').addEventListener('click',()=>{if(state.view==='month')state.currentDate.setMonth(state.currentDate.getMonth()-1);else if(state.view==='week')state.currentDate.setDate(state.currentDate.getDate()-7);else state.currentDate.setDate(state.currentDate.getDate()-1);state.miniDate=new Date(state.currentDate);renderAll();});
@@ -3394,7 +3859,7 @@
 </script>
 
 <script type="module">
- import{initializeApp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import{initializeApp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
   import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
   import{getFirestore,collection,doc,setDoc,getDoc,getDocs,onSnapshot,query,where,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
@@ -3679,6 +4144,10 @@
       if(visible('noteReaderModal')){ closeNoteReader(); return true; }
       if(visible('noteModal')){ closeNoteModal(); return true; }
       if(visible('icsModal')){ closeIcsModal(); return true; }
+      if(document.getElementById('appSelectDialog')?.open){closeAppSelect();return true;}
+      if(!document.getElementById('statDateModal').classList.contains('hidden')){closeStatDate();return true;}
+      if(!document.getElementById('taskReadModal').classList.contains('hidden')){closeTaskDetails();return true;}
+      if(!document.getElementById('taskEditDialog')?.classList.contains('hidden')){closeTaskEditor();return true;}
       if(visible('viewEventModal')){ closeEventDetailModal(); return true; }
       if(visible('eventModal')){ closeEventModal(); return true; }
       if(visible('categoryModal')){ closeCategoryModal(); return true; }
