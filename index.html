@@ -998,6 +998,32 @@ select{font-family:inherit}
     }
   }
   function getLunarFestival(date){if(typeof Solar!=='undefined'){try{const lunar=Solar.fromDate(date).getLunar();const m=lunar.getMonth(),d=lunar.getDay();const key=`${m}-${d}`;if(LUNAR_FESTIVALS[key])return LUNAR_FESTIVALS[key];if(m===12&&(d===29||d===30)){const next=new Date(date);next.setDate(next.getDate()+1);const nl=Solar.fromDate(next).getLunar();if(nl.getMonth()===1&&nl.getDay()===1)return '除夕';}}catch(e){}}return null;}
+  function getLunarRangeDateLabel(date){
+    if(typeof Solar!=='undefined'){
+      const info=getLunarInfo(date);
+      if(info.full)return info.full;
+    }
+    try{
+      const parts=new Intl.DateTimeFormat('zh-TW-u-ca-chinese',{year:'numeric',month:'long',day:'numeric'}).formatToParts(date);
+      const year=parts.find(p=>p.type==='yearName')?.value;
+      const month=(parts.find(p=>p.type==='month')?.value||'').replace(/闰/g,'閏').replace(/腊/g,'臘');
+      const day=Number(parts.find(p=>p.type==='day')?.value);
+      if(year&&month&&day>=1&&day<=30)return `${year}年${month}${LUNAR_DAYS[day-1]}`;
+    }catch(e){}
+    return '';
+  }
+  function getMonthRangeSubtitle(date){
+    const first=new Date(date.getFullYear(),date.getMonth(),1);
+    const last=new Date(date.getFullYear(),date.getMonth()+1,0);
+    let start=getLunarRangeDateLabel(first),end=getLunarRangeDateLabel(last);
+    const startYear=start.match(/^(.+?年)/)?.[1];
+    const endYear=end.match(/^(.+?年)/)?.[1];
+    if(startYear&&startYear===endYear){
+      end=end.slice(endYear.length);
+    }
+    const weeks=`${getWeekNumber(first)}週至${getWeekNumber(last)}週`;
+    return start&&end?`${start}至${end} · ${weeks}`:weeks;
+  }
   function getWeekNumber(d){const s=new Date(d.getFullYear(),0,1);const days=Math.floor((d-s)/86400000);return Math.ceil((days+s.getDay()+1)/7);}
   function getLunarBirthdaySolarDate(lunarMonth,lunarDay,year){if(typeof Lunar==='undefined')return null;try{const lunar=Lunar.fromYmd(year,lunarMonth,lunarDay);const solar=lunar.getSolar();return new Date(solar.getYear(),solar.getMonth()-1,solar.getDay());}catch(e){return null;}}
   function getTheme(){try{return localStorage.getItem('calendar_theme_v1')||'system';}catch(e){return 'system';}}
@@ -3215,7 +3241,7 @@ select{font-family:inherit}
   }
   window.renderMainView=renderMainView;
   function getDayOffsetText(date){const d=new Date(date);const t=new Date();const dUtc=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());const tUtc=Date.UTC(t.getFullYear(),t.getMonth(),t.getDate());const diff=Math.round((dUtc-tUtc)/86400000);if(diff===0)return'今天';if(diff<0)return`${Math.abs(diff)}天前`;return`${diff}天後`;}
-  function updateHeaderInfo(){const d=state.currentDate;const y=d.getFullYear(),m=d.getMonth()+1;document.getElementById('currentDateTitle').textContent=`${y}年 ${m}月`;if(state.view==='month'&&state.monthDateSelected===false){document.getElementById('currentDateSubtitle').textContent='';const offset=document.getElementById('dateOffsetLabel');if(offset)offset.textContent='';return;}const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];let subtitle=`${m}月${d.getDate()}日 週${weekday}`;if(lunar.full)subtitle+=` · ${lunar.full}`;subtitle+=` · 第${weekNum}週`;document.getElementById('currentDateSubtitle').textContent=subtitle;const offsetEl=document.getElementById('dateOffsetLabel');if(offsetEl)offsetEl.textContent=getDayOffsetText(d);}
+  function updateHeaderInfo(){const d=state.currentDate;const y=d.getFullYear(),m=d.getMonth()+1;document.getElementById('currentDateTitle').textContent=`${y}年 ${m}月`;if(state.view==='month'&&state.monthDateSelected===false){document.getElementById('currentDateSubtitle').textContent=getMonthRangeSubtitle(d);const offset=document.getElementById('dateOffsetLabel');if(offset)offset.textContent='';return;}const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];let subtitle=`${m}月${d.getDate()}日 週${weekday}`;if(lunar.full)subtitle+=` · ${lunar.full}`;subtitle+=` · 第${weekNum}週`;document.getElementById('currentDateSubtitle').textContent=subtitle;const offsetEl=document.getElementById('dateOffsetLabel');if(offsetEl)offsetEl.textContent=getDayOffsetText(d);}
   function renderAll(){updateHeaderInfo();document.querySelectorAll('.view-btn').forEach(btn=>{if(btn.dataset.view===state.view)btn.className='view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm font-bold';else btn.className='view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition hover:text-ink-900 dark:hover:text-white';});renderMiniCalendar();renderStats();renderMainView();updateBottomNavHighlight();}
   window.renderAll=renderAll;
   function updateBottomNavHighlight(){document.querySelectorAll('.bottom-nav-btn').forEach(btn=>{const nav=btn.dataset.nav;let isActive=false;if(nav==='month'&&(state.view==='month'||state.view==='week'||state.view==='day'||state.view==='schedule'))isActive=true;else if(nav==='my'&&(state.view==='my'||state.view==='my-settings'||state.view==='my-categories'||state.view==='my-counter-mode'||state.view==='my-counter-select'||state.view==='my-counter-results'||state.view==='my-counter-past'))isActive=true;else if((nav==='tasks'||nav==='notes')&&state.view===nav)isActive=true;if(isActive){btn.className='bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-brand-600 transition-colors';}else{btn.className='bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-ink-500 dark:text-ink-400 transition-colors';}});}
