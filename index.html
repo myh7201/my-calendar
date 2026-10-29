@@ -472,10 +472,22 @@
 }
 html[data-native-app="true"],html[data-native-app="true"] *{scrollbar-width:none!important;scrollbar-gutter:auto!important;-ms-overflow-style:none!important}
 html[data-native-app="true"] ::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
-html[data-follow-phone-font="true"] body,html[data-follow-phone-font="true"] body *{font-family:sans-serif!important}
+html[data-follow-phone-font="true"] body,html[data-follow-phone-font="true"] body *{font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important}
 .phone-font-switch{width:36px;height:22px;flex:none;border-radius:20px;background:#d1d5db;position:relative;transition:background .15s}
 .phone-font-switch::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 1px 3px #0002;transition:transform .15s}
 [aria-checked="true"] .phone-font-switch{background:#8267db}[aria-checked="true"] .phone-font-switch::after{transform:translateX(14px)}
+</style>
+<style>
+
+.event-age-badge{display:inline-flex;align-items:center;justify-content:center;flex:none;white-space:nowrap;font-size:10px;line-height:1.5;font-weight:700;padding:2px 6px;border-radius:9999px;vertical-align:middle}
+.counter-result-name{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.counter-result-name>strong{min-width:0}
+.counter-page{display:flex;flex-direction:column;gap:0}
+.counter-page-header,.counter-tabs,.counter-result-list{flex:none}
+.counter-tabs{border-radius:9999px;padding:4px;gap:4px}
+.counter-tabs button{border-radius:9999px;min-height:38px;line-height:1.4;font-weight:500}
+.counter-add-button{border-radius:9999px;min-height:36px;padding:7px 14px;font-weight:500;line-height:1.4}
+.counter-past-link{align-self:flex-end;flex:none;margin: auto 0 0 auto;padding:24px 0 4px;min-height:44px}
 </style>
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
@@ -2565,7 +2577,7 @@ select{font-family:inherit}
     const cat=getCat(evt.category),age=getYearsLabel(evt,evt._occStart);
     const time=evt.allDay?'全日':formatTime(evt._occStart);
     const end=!evt.allDay&&!evt._isTask?formatTime(evt._occEnd):'';
-    const badge=age?`<span class="desktop-event-badge ${getTypeBadgeClass(evt.eventType)}">${escapeHtml(age)}</span>`:'';
+    const badge=age?`<span class="event-age-badge ${getTypeBadgeClass(evt.eventType)}">${escapeHtml(age)}</span>`:'';
     const taskClass=evt._isTask?` task-calendar-item${evt._taskCompleted?' completed':''}`:'';
     return `<article class="event-pill desktop-calendar-entry${taskClass}" style="--c:${cat.color}" data-id="${escapeHtml(String(evt.id))}" data-occ-start="${new Date(evt._sourceOccStart||evt._occStart).getTime()}" data-day-date="${dateKey(day)}">
       <div class="desktop-entry-time"><span>${time}</span>${end?`<small>— ${end}</small>`:evt._isTask?'<small>截止時間</small>':''}</div>
@@ -2614,7 +2626,7 @@ select{font-family:inherit}
   function agendaCard(evt,day){
     const cat=getCat(evt.category),age=getYearsLabel(evt,evt._occStart);
     const time=evt.allDay?'全日':evt._isTask?`截止 ${formatTime(evt._occStart)}`:`${formatTime(evt._occStart)} – ${formatTime(evt._occEnd)}`;
-    return `<article class="agenda-card${evt._isTask?` task-calendar-item${evt._taskCompleted?' completed':''}`:''}" style="--c:${cat.color}" role="button" tabindex="0" data-agenda-id="${escapeHtml(String(evt.id))}" data-day-date="${dateKey(day)}" data-occ-start="${new Date(evt._occStart).getTime()}"><div class="agenda-card-top"><h4 class="task-calendar-title">${evt._isTask?(evt._taskCompleted?'☑ ':'☐ '):''}${escapeHtml(evt.title)}</h4>${age?`<span class="desktop-event-badge ${getTypeBadgeClass(evt.eventType)}">${escapeHtml(age)}</span>`:''}</div><div class="agenda-card-meta">${time}${evt.location?`<span> · ${escapeHtml(evt.location)}</span>`:''}</div>${evt.description?`<p>${escapeHtml(evt.description)}</p>`:''}</article>`;
+    return `<article class="agenda-card${evt._isTask?` task-calendar-item${evt._taskCompleted?' completed':''}`:''}" style="--c:${cat.color}" role="button" tabindex="0" data-agenda-id="${escapeHtml(String(evt.id))}" data-day-date="${dateKey(day)}" data-occ-start="${new Date(evt._occStart).getTime()}"><div class="agenda-card-top"><h4 class="task-calendar-title">${evt._isTask?(evt._taskCompleted?'☑ ':'☐ '):''}${escapeHtml(evt.title)}</h4>${age?`<span class="event-age-badge ${getTypeBadgeClass(evt.eventType)}">${escapeHtml(age)}</span>`:''}</div><div class="agenda-card-meta">${time}${evt.location?`<span> · ${escapeHtml(evt.location)}</span>`:''}</div>${evt.description?`<p>${escapeHtml(evt.description)}</p>`:''}</article>`;
   }
   function agendaNowLine(now,style=''){
     return `<div class="agenda-now" ${style?`style="${style}"`:''} aria-label="現在 ${formatTime(now)}"><span>${formatTime(now)}</span></div>`;
@@ -3135,7 +3147,7 @@ select{font-family:inherit}
   }
   function counterCardHtml(info,mode){
     const cat=getCat(info.evt.category),age=getYearsLabel(info.evt,info.target);
-    return `<button type="button" class="counter-result-card" data-counter-event="${escapeHtml(String(info.evt.id))}"><span class="counter-category-dot" style="background:${cat.color}"></span><span class="counter-result-title"><strong>${escapeHtml(info.evt.title)}</strong><small>${counterEventDateText(info.target)}${age?' · '+escapeHtml(age):''}</small></span><span class="counter-result-value ${mode==='down'?'is-down':''}">${counterValueText(info,mode)}</span><span aria-hidden="true">›</span></button>`;
+    return `<button type="button" class="counter-result-card" data-counter-event="${escapeHtml(String(info.evt.id))}"><span class="counter-category-dot" style="background:${cat.color}"></span><span class="counter-result-title"><span class="counter-result-name"><strong>${escapeHtml(info.evt.title)}</strong>${age?`<span class="event-age-badge ${getTypeBadgeClass(info.evt.eventType)}">${escapeHtml(age)}</span>`:''}</span><small>${counterEventDateText(info.target)}</small></span><span class="counter-result-value ${mode==='down'?'is-down':''}">${counterValueText(info,mode)}</span><span aria-hidden="true">›</span></button>`;
   }
   function bindCounterCards(items){
     document.querySelectorAll('[data-counter-event]').forEach(btn=>btn.onclick=()=>{
@@ -3148,7 +3160,7 @@ select{font-family:inherit}
     const c=document.getElementById('calendarViewContainer'),mode=state.counterMode==='up'?'up':'down';
     state.counterMode=mode;
     const items=getCounterSelectedEvents(mode),display=items.filter(i=>mode==='up'||i.diff>=0).sort((a,b)=>a.diff-b.diff),past=mode==='down'?items.filter(i=>i.diff<0):[];
-    c.innerHTML=`<div class="counter-page"><header class="counter-page-header"><button type="button" id="counterHomeBack" aria-label="返回我的">‹</button><h2>事件計日</h2><button type="button" id="counterAddBtn" class="counter-add-button">＋ 加入事件</button></header><div class="counter-tabs">${['down','up'].map(m=>`<button type="button" data-counter-tab="${m}" class="${mode===m?'active':''}" aria-pressed="${mode===m}">${m==='down'?'倒數':'正數'}</button>`).join('')}</div><div class="counter-result-list">${display.length?display.map(i=>counterCardHtml(i,mode)).join(''):'<div class="counter-empty">尚未加入事件，點右上方「加入事件」。</div>'}</div>${mode==='down'?`<button type="button" id="counterPastBtn" class="counter-past-link">過往倒數${past.length?' · '+past.length:''} ›</button>`:''}<p class="counter-page-hint">點事件查看詳情及調整計日方式 <span id="counterSyncIndicator"></span></p></div>`;
+    c.innerHTML=`<div class="counter-page"><header class="counter-page-header"><button type="button" id="counterHomeBack" aria-label="返回我的">‹</button><h2>事件計日</h2><button type="button" id="counterAddBtn" class="counter-add-button">＋ 加入事件</button></header><div class="counter-tabs">${['down','up'].map(m=>`<button type="button" data-counter-tab="${m}" class="${mode===m?'active':''}" aria-pressed="${mode===m}">${m==='down'?'倒數':'正數'}</button>`).join('')}</div><div class="counter-result-list">${display.length?display.map(i=>counterCardHtml(i,mode)).join(''):'<div class="counter-empty">尚未加入事件，點右上方「加入事件」。</div>'}</div>${mode==='down'?`<button type="button" id="counterPastBtn" class="counter-past-link">過往倒數${past.length?' · '+past.length:''} ›</button>`:''}</div>`;
     document.getElementById('counterHomeBack').onclick=()=>{state.view='my';renderAll();};
     document.getElementById('counterAddBtn').onclick=openCounterAddSheet;
     document.querySelectorAll('[data-counter-tab]').forEach(btn=>btn.onclick=()=>{state.counterMode=btn.dataset.counterTab;saveCounterSettings();renderAll();});
