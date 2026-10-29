@@ -278,13 +278,122 @@
 .my-stat-custom input{display:block;width:100%;min-width:0;font:inherit;font-size:12px;color:inherit;padding:8px 4px;border:1px solid #e5e7eb;border-radius:8px;background:transparent}
 .my-stat-custom>span{font-size:11px;color:#9198a5;padding-top:15px}
 </style>
+<style>
+#deleteConfirmOverlay{--del-bg:#fff;--del-text:#252936;--del-sub:#858c9c;--del-line:#edf0f5;--del-muted:#f4f5f8;--del-red:#e44860;--del-soft:#fff0f2;position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(20,25,40,.3);backdrop-filter:blur(2px);font-family:inherit}
+#deleteConfirmOverlay[hidden]{display:none}
+.dark #deleteConfirmOverlay{--del-bg:#1b202b;--del-text:#eef1f8;--del-sub:#a0aabd;--del-line:#303747;--del-muted:#2b3240;--del-red:#fb7185;--del-soft:#382630}
+.delete-confirm-card{box-sizing:border-box;width:100%;max-width:340px;padding:24px;border-radius:24px;border:1px solid var(--del-line);background:var(--del-bg);color:var(--del-text);box-shadow:0 20px 70px #0f172a26;animation:delete-confirm-in .14s ease-out}
+.delete-confirm-icon{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:15px;background:var(--del-soft);color:var(--del-red)}
+#deleteConfirmTitle{margin:16px 0 8px;font-size:18px;line-height:1.4;font-weight:750;letter-spacing:-.3px}
+#deleteConfirmMessage{margin:0;color:var(--del-sub);font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;max-height:40dvh;overflow:auto}
+.delete-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
+.delete-confirm-actions button{min-height:44px;padding:11px 14px;border:0;border-radius:12px;font-family:inherit;font-size:14px;line-height:1.4;font-weight:650;cursor:pointer;transition:filter .12s,transform .12s}
+#deleteConfirmCancel{background:var(--del-muted);color:var(--del-text)}
+#deleteConfirmAccept{background:var(--del-red);color:#fff}
+.dark #deleteConfirmAccept{color:#25151c}
+.delete-confirm-actions button:active{transform:scale(.98)}
+.delete-confirm-actions button:focus-visible{outline:2px solid var(--del-sub);outline-offset:3px}
+@keyframes delete-confirm-in{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.delete-confirm-card{animation:none}.delete-confirm-actions button{transition:none}}
+</style>
+<style>
+#topHeader .date-offset-box{margin-left:0}
+.week-scroll-x{overscroll-behavior-x:contain}
+@media(min-width:1024px){
+ .desktop-calendar-page{--page-paper:#fff;--page-ink:#243047;--page-sub:#8a94a7;--page-line:#e9edf4;box-sizing:border-box;display:flex;flex-direction:column;width:100%;height:100%;max-width:1500px;margin:0 auto;padding:30px 38px 20px;color:var(--page-ink);min-height:0}
+ .dark .desktop-calendar-page{--page-paper:#141c2b;--page-ink:#e7edf7;--page-sub:#95a1b7;--page-line:#283346}
+ .desktop-view-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 0 24px;flex:none}
+ .desktop-view-eyebrow{font-size:11px;font-weight:700;color:#8270c9;letter-spacing:1px;margin-bottom:7px}
+ .desktop-view-heading h3{font-size:28px;font-weight:800;letter-spacing:-.7px;line-height:1.4;display:flex;align-items:center;gap:10px;margin:0}
+ .desktop-view-heading p{font-size:13px;line-height:1.7;margin:6px 0 0;color:var(--page-sub)}
+ .desktop-primary-action{display:flex;align-items:center;gap:7px;border:0;border-radius:12px;background:linear-gradient(115deg,#7760e5,#a756e8);padding:11px 17px;color:white;font-size:13px;font-weight:650;box-shadow:0 5px 14px #7760e521;cursor:pointer;flex:none}
+ .desktop-primary-action svg{width:16px;height:16px}
+ .desktop-today-badge,.desktop-holiday-badge{font-size:11px;font-weight:650;letter-spacing:0;padding:4px 9px;border-radius:8px;color:#7760db;background:#eee9fc}
+ .desktop-holiday-badge{color:#e05270;background:#fff0f4}
+ .desktop-day-overview{display:flex;align-items:center;gap:22px;border-top:1px solid var(--page-line);padding:17px 0;font-size:12px;color:var(--page-sub);flex:none}
+ .desktop-day-overview span:first-child{color:var(--page-ink);padding-right:22px;border-right:1px solid var(--page-line)}
+ .desktop-day-overview strong{font-size:17px;margin-left:7px}
+ .desktop-calendar-scroll{position:relative;flex:1;min-height:0;overflow-y:auto;padding:0 8px 22px 0;scrollbar-gutter:stable}
+ .desktop-entry-labels{display:grid;grid-template-columns:100px 1fr;gap:18px;color:var(--page-sub);font-size:11px;padding:12px 0;border-bottom:1px solid var(--page-line);margin-bottom:10px}
+ .desktop-calendar-entry{display:grid;grid-template-columns:100px minmax(0,1fr) 18px;gap:18px;align-items:start;padding:19px 20px 19px 0;border-bottom:1px solid var(--page-line);border-radius:10px;cursor:pointer;transition:background .15s}
+ .desktop-calendar-entry:hover{background:color-mix(in srgb,var(--page-paper) 65%,#8d79d508)}
+ .desktop-entry-time{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding-top:16px;font-size:15px;font-weight:750;font-variant-numeric:tabular-nums;color:var(--page-ink)}
+ .desktop-entry-time small{font-size:11px;font-weight:500;color:var(--page-sub)}
+ .desktop-entry-card{background:var(--page-paper);border:1px solid var(--page-line);border-left:3px solid var(--c);border-radius:13px;padding:17px 20px;box-shadow:0 2px 7px #1e293b03;min-width:0}
+ .desktop-entry-heading{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0}
+ .desktop-entry-heading h4{font-size:15px;font-weight:700;line-height:1.6;margin:0;overflow-wrap:anywhere;min-width:0}
+ .desktop-entry-category{display:flex;align-items:center;gap:6px;white-space:nowrap;margin-left:auto;color:var(--page-sub);font-size:11px;padding:3px 7px}
+ .desktop-entry-category i{height:6px;width:6px;border-radius:50%;background:var(--c)}
+ .desktop-entry-location{display:flex;align-items:center;gap:5px;margin-top:7px;font-size:12px;color:var(--page-sub);overflow-wrap:anywhere}
+ .desktop-entry-location svg{width:13px;height:13px;flex:none}
+ .desktop-entry-description{margin:9px 0 0;font-size:12px;line-height:1.7;color:var(--page-sub);white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+ .desktop-entry-repeat{display:inline-block;font-size:10px;color:var(--page-sub);margin-top:8px}
+ .desktop-event-badge{font-size:10px;font-weight:650;padding:3px 7px;border-radius:7px}
+ .desktop-entry-chevron{padding-top:26px;color:var(--page-sub);font-size:23px;opacity:.5}
+ .desktop-empty-day{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px dashed var(--page-line);min-height:260px;margin-top:20px;background:var(--page-paper);border-radius:16px;color:var(--page-sub);gap:9px}
+ .desktop-empty-day svg{width:35px;height:35px;opacity:.6}
+ .desktop-empty-day h4{font-size:15px;color:var(--page-ink);margin:4px 0 0}.desktop-empty-day p{font-size:12px;margin:0}
+ .desktop-agenda-page .desktop-view-heading{border-bottom:1px solid var(--page-line);margin-bottom:10px}
+ .desktop-agenda-group{display:grid;grid-template-columns:115px minmax(0,1fr);gap:25px;padding:22px 0;border-bottom:1px solid var(--page-line)}
+ .desktop-agenda-date{position:sticky;top:16px;align-self:start;display:flex;flex-direction:column;gap:6px;padding-top:12px;color:var(--page-sub)}
+ .desktop-agenda-date>span{font-size:11px;font-weight:600}.desktop-agenda-date strong{font-size:31px;font-weight:800;line-height:1.3;color:var(--page-ink);display:flex;gap:10px;align-items:center}
+ .desktop-agenda-date strong small{font-size:11px;font-weight:600;color:var(--page-sub)}
+ .desktop-agenda-date em{font-size:11px;font-style:normal}.desktop-agenda-date.is-holiday strong{color:#e05270}.desktop-agenda-date.is-today strong{color:#7560dc}
+ .desktop-agenda-date>b{font-size:10px;font-weight:650;color:#7560dc;background:#eee9fc;border-radius:6px;padding:3px 7px;align-self:flex-start}
+ .desktop-agenda-events .desktop-calendar-entry{grid-template-columns:82px minmax(0,1fr) 12px;padding:0 0 12px;gap:15px;border-bottom:0}
+ .desktop-agenda-events .desktop-calendar-entry:last-child{padding-bottom:0}
+ .desktop-agenda-now{display:flex;align-items:center;gap:12px;margin:0 0 14px 97px;color:#b48a44;font-size:10px;white-space:nowrap}.desktop-agenda-now i{height:1px;background:#eddfc9;flex:1}
+ .desktop-agenda-empty{padding:20px;background:var(--page-paper);border:1px dashed var(--page-line);color:var(--page-sub);font-size:12px}
+ body[data-calendar-view="schedule"] #fabAddBtn{display:none!important}
+}
+</style>
+<style>
+.mobile-week-view{--week-gutter:42px;--week-line:#e9edf4;--week-paper:#fff;--week-text:#283243;--week-muted:#99a2b2;display:flex;flex-direction:column;min-height:0;height:100%;width:100%;max-width:100%;overflow:hidden;touch-action:pan-y;color:var(--week-text);background:var(--week-paper)}
+.dark .mobile-week-view{--week-line:#263144;--week-paper:#101827;--week-text:#e7ecf5;--week-muted:#8995aa}
+.mobile-week-grid{display:grid;grid-template-columns:var(--week-gutter) repeat(7,minmax(0,1fr));width:100%;min-width:0;box-sizing:border-box}
+.mobile-week-header,.mobile-week-allday{padding-right:var(--week-scrollbar,0px);flex:none}
+.mobile-week-header{background:var(--week-paper);border-bottom:1px solid var(--week-line);align-items:stretch}
+.mobile-week-number{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--week-muted);font-size:10px;font-weight:500}
+.mobile-week-number strong{font-size:14px;font-weight:650}
+.mobile-week-date{display:flex;flex-direction:column;align-items:center;min-width:0;gap:3px;padding:8px 0 7px}
+.mobile-week-weekday{font-size:10px;font-weight:600;line-height:15px;white-space:nowrap}
+.mobile-week-date-chip{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;gap:0;min-width:0}
+.mobile-week-date-chip strong{font-size:15px;line-height:18px;font-weight:650}
+.mobile-week-date-chip span{display:block;width:100%;text-align:center;font-size:9px;line-height:11px;color:var(--week-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mobile-week-date.is-holiday .mobile-week-weekday,.mobile-week-date.is-holiday .mobile-week-date-chip strong{color:#e05270}
+.mobile-week-date.is-today .mobile-week-weekday{color:#2563eb}
+.mobile-week-date.is-today .mobile-week-date-chip{background:#2563eb;color:white}
+.mobile-week-date.is-today .mobile-week-date-chip span,.mobile-week-date.is-today .mobile-week-date-chip strong{color:white}
+.mobile-week-date.is-today.is-holiday .mobile-week-date-chip{background:#f43f5e}
+.mobile-week-allday{background:color-mix(in srgb,var(--week-paper) 94%,#a99bea);border-bottom:1px solid var(--week-line)}
+.mobile-week-allday-label{display:flex;align-items:center;justify-content:center;color:var(--week-muted);font-size:9px}
+.mobile-week-allday-cell{min-width:0;min-height:30px;max-height:94px;overflow-x:hidden;overflow-y:auto;padding:4px 1px;display:flex;flex-direction:column;gap:3px;border-right:1px solid var(--week-line);box-sizing:border-box}
+.mobile-week-allday-event{min-width:0;border:1px solid color-mix(in srgb,var(--c) 24%,transparent);border-radius:3px;padding:2px;font-size:10px;line-height:1.25;overflow-wrap:anywhere;cursor:pointer;flex:none}
+.mobile-week-allday-event span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.mobile-week-timeline{flex:1;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;position:relative}
+.mobile-week-time-grid{height:calc(var(--week-hour-height)*24);background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--week-hour-height) - 1px),var(--week-line) calc(var(--week-hour-height) - 1px),var(--week-line) var(--week-hour-height))}
+.mobile-week-time-labels{border-right:1px solid var(--week-line);color:var(--week-muted);font-variant-numeric:tabular-nums;background:var(--week-paper);z-index:1}
+.mobile-week-hour{height:var(--week-hour-height);position:relative;font-size:10px;line-height:1}
+.mobile-week-hour span{position:absolute;right:5px;top:0;transform:translateY(-50%);background:var(--week-paper)}
+.mobile-week-hour:first-child span{top:3px;transform:none}
+.mobile-week-column{position:relative;min-width:0;height:100%;border-right:1px solid var(--week-line)}
+.mobile-week-column.is-today{background-color:#facc150c}
+.dark .mobile-week-column.is-today{background-color:#facc1508}
+.mobile-week-event{position:absolute;box-sizing:border-box;min-width:0;display:flex;flex-direction:column;padding:3px 2px;border:1px solid color-mix(in srgb,var(--c) 25%,transparent);border-radius:3px;overflow:hidden;cursor:pointer}
+.mobile-week-event-title{flex:0 1 auto;min-height:0;overflow:hidden;white-space:normal;overflow-wrap:anywhere;word-break:normal;font-size:11px;line-height:1.25;font-weight:600}
+.mobile-week-event-location{flex:none;max-height:2.6em;overflow:hidden;margin-top:4px;font-size:9px;line-height:1.3;opacity:.7;overflow-wrap:anywhere}
+.mobile-week-event.is-short .mobile-week-event-location{display:none}
+.mobile-week-now{position:absolute;left:0;right:0;height:1px;background:#7c6ce7;z-index:3;pointer-events:none}
+.mobile-week-now:before{content:'';position:absolute;left:-2px;top:-2px;width:5px;height:5px;border-radius:50%;background:#7c6ce7}
+@media(max-width:359px){.mobile-week-view{--week-gutter:36px}.mobile-week-date-chip{width:30px;height:30px}.mobile-week-event-title{font-size:10px}.mobile-week-weekday{font-size:9px}.mobile-week-hour{font-size:9px}}
+</style>
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
 
 <header id="topHeader" class="glass border-b border-ink-200/70 dark:border-ink-800/70 px-3 md:px-4 py-2 md:py-3 shrink-0 shadow-soft z-30 flex flex-col gap-1.5 md:gap-2">
   <div class="flex items-center justify-between w-full gap-1.5 md:gap-4 flex-nowrap">
     <div class="flex items-center space-x-1.5 md:space-x-4 shrink-0">
-      <button id="todayBtn" class="px-2 md:px-3.5 py-1.5 text-xs md:text-sm font-semibold border border-ink-200 dark:border-ink-700 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition whitespace-nowrap shrink-0">今天</button>
+      <button id="todayBtn" class="px-2 md:px-3.5 py-1.5 text-xs md:text-sm font-semibold border border-ink-200 dark:border-ink-700 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition whitespace-nowrap shrink-0">回到今天</button>
       <button id="jumpDateBtn" class="px-1.5 md:px-2.5 py-1.5 text-xs md:text-sm font-semibold border border-ink-200 dark:border-ink-700 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition flex items-center space-x-0.5 md:space-x-1 whitespace-nowrap shrink-0" title="跳轉到指定日期">
         <i data-lucide="calendar-search" class="w-3.5 h-3.5 shrink-0"></i>
         <span class="hidden md:inline text-xs">跳轉</span>
@@ -297,10 +406,6 @@
   </div>
   <div class="flex items-center justify-between w-full gap-1.5 md:gap-2 flex-nowrap">
     <div class="flex items-center shrink-0">
-      <div class="flex items-center space-x-0.5 md:space-x-1 bg-ink-100/70 dark:bg-ink-800/60 rounded-xl p-0.5 md:p-1">
-        <button id="prevBtn" class="p-1 md:p-1.5 rounded-lg hover:bg-white dark:hover:bg-ink-700 text-ink-600 dark:text-ink-300 transition shadow-sm"><i data-lucide="chevron-left" class="w-3.5 h-3.5 md:w-4 md:h-4"></i></button>
-        <button id="nextBtn" class="p-1 md:p-1.5 rounded-lg hover:bg-white dark:hover:bg-ink-700 text-ink-600 dark:text-ink-300 transition shadow-sm"><i data-lucide="chevron-right" class="w-3.5 h-3.5 md:w-4 md:h-4"></i></button>
-      </div>
       <div class="date-offset-box">
         <span id="dateOffsetLabel" class="date-offset-label">今天</span>
       </div>
@@ -1074,7 +1179,7 @@ select{font-family:inherit}
   }
   window.normalizeSpecialEvents=normalizeSpecialEvents;
   function loadSavedEvents(){const s=localStorage.getItem(EVT_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p)){const events=p.filter(e=>e&&typeof e==='object');events.forEach(normalizeSpecialEvent);return events}}catch(e){}}return[]}
-  function saveEvents(syncCloud=true){localStorage.setItem(EVT_KEY,JSON.stringify(state.events));if(window.syncAndroidWidget)window.syncAndroidWidget();if(syncCloud&&window.currentUser&&typeof window.saveEventToCloud==='function'){state.events.forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('雲端同步事件失敗',err)))}}
+  function saveEvents(syncCloud=true){if(window.requestAndroidReminderSync)window.requestAndroidReminderSync();localStorage.setItem(EVT_KEY,JSON.stringify(state.events));if(window.syncAndroidWidget)window.syncAndroidWidget();if(syncCloud&&window.currentUser&&typeof window.saveEventToCloud==='function'){state.events.forEach(e=>window.saveEventToCloud(e).catch(err=>console.error('雲端同步事件失敗',err)))}}
   const TASK_KEY='calendar_tasks_v1';
   function loadSavedTasks(){const s=localStorage.getItem(TASK_KEY);if(s){try{const p=JSON.parse(s);if(Array.isArray(p))return p.filter(t=>t&&typeof t==='object')}catch(e){}}return[]}
   function saveTasks(){localStorage.setItem(TASK_KEY,JSON.stringify(state.tasks));if(window.currentUser&&typeof window.saveTaskToCloud==='function'){state.tasks.forEach(t=>window.saveTaskToCloud(t).catch(err=>{}))}}
@@ -1588,6 +1693,7 @@ select{font-family:inherit}
      若手勢起點位於「橫向可滾動」的容器內（例如手機週檢視），
      則不觸發換頁，交由原生橫向滾動處理。 */
   function isInScrollableX(target){
+    if(target&&target.closest&&target.closest('#weekScrollX'))return true;
     let el = target;
     while (el && el !== document.body) {
       const style = window.getComputedStyle(el);
@@ -1691,89 +1797,78 @@ select{font-family:inherit}
 
   /* ===== 週檢視：滑到左右邊緣再拖 → 換週 =====
      觸控、滑鼠拖曳、觸控板橫向滾動都支援。 */
+  // This state deliberately outlives a rendered week: trackpad inertia keeps firing
+  // wheel events after the DOM has been replaced.
+  const weekWheelGesture={lastAt:-Infinity,total:0,navigated:false};
+  let weekGestureCleanup=null,weekSuppressClickUntil=0;
+  function weekWheelStep(delta,atEdge,time=Date.now()){
+    if(time-weekWheelGesture.lastAt>260){weekWheelGesture.total=0;weekWheelGesture.navigated=false;}
+    weekWheelGesture.lastAt=time;
+    if(weekWheelGesture.navigated)return 0;
+    if(!atEdge){weekWheelGesture.total=0;return 0;}
+    weekWheelGesture.total+=delta;
+    if(Math.abs(weekWheelGesture.total)<60)return 0;
+    weekWheelGesture.navigated=true;
+    return Math.sign(weekWheelGesture.total);
+  }
+  function detachWeekSwipe(){if(weekGestureCleanup){weekGestureCleanup();weekGestureCleanup=null;}}
   function attachWeekEdgeSwipe(){
-    const el = document.getElementById('weekScrollX');
-    if(!el || el._edgeBound) return;
-    el._edgeBound = true;
-
-    const DIR_LOCK = 8;     // 判定為橫向拖曳的最小位移
-    const TRIGGER  = 60;    // 超出邊緣多少 px 才觸發換週
-    let startX=0, startY=0, startScroll=0, active=false, locked=false, dragMouse=false;
-
-    function begin(x,y){ startX=x; startY=y; startScroll=el.scrollLeft; active=true; locked=false; }
-    function cancel(){ active=false; locked=false; dragMouse=false; el.classList.remove('swipe-dragging'); }
-
-    function move(x,y,evt){
-      if(!active) return;
-      const dx=x-startX, dy=y-startY;
-
-      if(!locked){
-        if(Math.abs(dx) < DIR_LOCK && Math.abs(dy) < DIR_LOCK) return;
-        if(Math.abs(dy) >= Math.abs(dx)){ active=false; return; }
-        locked = true;
-        el.classList.add('swipe-dragging');
-        try{ const s=window.getSelection(); if(s&&s.removeAllRanges) s.removeAllRanges(); }catch(e){}
-      }
-
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      // 「虛擬 scrollLeft」：若把這次拖曳全反映成滾動，會落在哪
-      const virtual = startScroll - dx;
-
-      if(dragMouse){
-        // 滑鼠沒有原生橫向滾動，手動設定 scrollLeft
-        el.scrollLeft = Math.max(0, Math.min(maxScroll, virtual));
-        if(evt && evt.cancelable) evt.preventDefault();
-      }
-
-      if(virtual < -TRIGGER){
-        active=false; el.classList.remove('swipe-dragging');
-        goToPrevWeek();
-        return;
-      }
-      if(virtual > maxScroll + TRIGGER){
-        active=false; el.classList.remove('swipe-dragging');
-        goToNextWeek();
-        return;
-      }
+    detachWeekSwipe();
+    const el=document.getElementById('weekScrollX');if(!el)return;
+    const controller=new AbortController(),signal=controller.signal;
+    let startX=0,startY=0,startScroll=0,active=false,locked=false,dragMouse=false,pendingDirection=0;
+    const root=document.getElementById('calendarViewContainer');
+    if(root&&!root._weekClickGuard){
+      root._weekClickGuard=true;
+      root.addEventListener('click',e=>{if(Date.now()<weekSuppressClickUntil){e.preventDefault();e.stopImmediatePropagation();}},true);
     }
-
-    // ---- 觸控 ----
-    el.addEventListener('touchstart', function(e){
-      if(e.touches.length !== 1){ active=false; return; }
-      const t=e.touches[0]; begin(t.clientX, t.clientY);
-    }, {passive:true});
-    el.addEventListener('touchmove', function(e){
-      if(e.touches.length !== 1){ active=false; return; }
-      const t=e.touches[0]; move(t.clientX, t.clientY, e);
-    }, {passive:true});
-    el.addEventListener('touchend', cancel, {passive:true});
-    el.addEventListener('touchcancel', cancel, {passive:true});
-
-    // ---- 滑鼠拖曳 ----
-    el.addEventListener('mousedown', function(e){
-      if(e.button !== 0) return;
-      if(e.target.closest('input,textarea,select,button,a,label,[contenteditable="true"]')) return;
-      dragMouse = true;
-      begin(e.clientX, e.clientY);
-      e.preventDefault();
-    });
-    el.addEventListener('mousemove', function(e){
-      if(!dragMouse) return;
-      move(e.clientX, e.clientY, e);
-    });
-    el.addEventListener('mouseup', cancel);
-    el.addEventListener('mouseleave', cancel);
-
-    // ---- 觸控板橫向滾動 ----
-    el.addEventListener('wheel', function(e){
-      if(Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      if(e.deltaX < 0 && el.scrollLeft <= 2){
-        e.preventDefault(); goToPrevWeek();
-      } else if(e.deltaX > 0 && el.scrollLeft >= maxScroll - 2){
-        e.preventDefault(); goToNextWeek();
+    function cancel(){active=false;locked=false;dragMouse=false;pendingDirection=0;el.classList.remove('swipe-dragging');}
+    function begin(x,y){startX=x;startY=y;startScroll=el.scrollLeft;active=true;locked=false;pendingDirection=0;}
+    function move(x,y,e){
+      if(!active)return;
+      const dx=x-startX,dy=y-startY;
+      if(!locked){
+        if(Math.abs(dx)<8&&Math.abs(dy)<8)return;
+        if(Math.abs(dy)>=Math.abs(dx)){cancel();return;}
+        locked=true;el.classList.add('swipe-dragging');
+        const selection=window.getSelection();if(selection)selection.removeAllRanges();
       }
-    }, {passive:false});
+      const maxScroll=Math.max(0,el.scrollWidth-el.clientWidth),virtual=startScroll-dx;
+      if(dragMouse){el.scrollLeft=Math.max(0,Math.min(maxScroll,virtual));if(e.cancelable)e.preventDefault();}
+      pendingDirection=virtual < -60 ? -1 : virtual > maxScroll+60 ? 1 : 0;
+      if((virtual<0||virtual>maxScroll)&&e.cancelable)e.preventDefault();
+    }
+    function finish(){
+      if(!active)return;
+      const direction=pendingDirection,wasDragging=locked;
+      cancel();
+      if(wasDragging)weekSuppressClickUntil=Date.now()+350;
+      if(direction<0)goToPrevWeek();else if(direction>0)goToNextWeek();
+    }
+    el.addEventListener('touchstart',e=>{if(e.touches.length!==1){cancel();return;}begin(e.touches[0].clientX,e.touches[0].clientY);},{passive:true,signal});
+    el.addEventListener('touchmove',e=>{if(e.touches.length!==1){cancel();return;}move(e.touches[0].clientX,e.touches[0].clientY,e);},{passive:false,signal});
+    el.addEventListener('touchend',finish,{passive:true,signal});
+    el.addEventListener('touchcancel',cancel,{passive:true,signal});
+    el.addEventListener('mousedown',e=>{
+      if(e.button!==0||e.target.closest('input,textarea,select,button,a,label,[contenteditable="true"]'))return;
+      dragMouse=true;begin(e.clientX,e.clientY);e.preventDefault();
+    },{signal});
+    document.addEventListener('mousemove',e=>{if(dragMouse)move(e.clientX,e.clientY,e);},{signal});
+    document.addEventListener('mouseup',()=>{if(dragMouse)finish();},{signal});
+    window.addEventListener('blur',cancel,{signal});
+    el.addEventListener('wheel',e=>{
+      if(e.ctrlKey)return;
+      const dx=e.shiftKey&&!e.deltaX?e.deltaY:e.deltaX,dy=e.shiftKey?0:e.deltaY;
+      if(!dx||Math.abs(dx)<=Math.abs(dy))return;
+      const delta=dx*(e.deltaMode===1?16:e.deltaMode===2?el.clientWidth:1);
+      const maxScroll=Math.max(0,el.scrollWidth-el.clientWidth);
+      const atEdge=delta<0?el.scrollLeft<=2:el.scrollLeft>=maxScroll-2;
+      const time=Date.now(),inertia=weekWheelGesture.navigated&&time-weekWheelGesture.lastAt<=260;
+      const direction=weekWheelStep(delta,atEdge,time);
+      if(atEdge||inertia)e.preventDefault();
+      if(direction){weekSuppressClickUntil=time+350;if(direction<0)goToPrevWeek();else goToNextWeek();}
+    },{passive:false,signal});
+    weekGestureCleanup=()=>{cancel();controller.abort();};
   }
 
   function goToPrevWeek(){ state.currentDate.setDate(state.currentDate.getDate()-7); state.miniDate=new Date(state.currentDate); renderAll(); }
@@ -1792,6 +1887,47 @@ select{font-family:inherit}
   }
 
   /* ===== 第三級：事件詳情彈窗 (唯讀查看) ===== */
+  let activeDeleteConfirmation=null;
+  function closeDeleteConfirmation(accepted=false){
+    if(!activeDeleteConfirmation)return false;
+    const pending=activeDeleteConfirmation;activeDeleteConfirmation=null;
+    const overlay=document.getElementById('deleteConfirmOverlay');
+    overlay.hidden=true;document.body.style.overflow=pending.overflow;
+    document.removeEventListener('keydown',pending.keydown,true);
+    if(pending.focus&&pending.focus.isConnected)pending.focus.focus({preventScroll:true});
+    pending.resolve(accepted===true);return true;
+  }
+  function confirmDelete(message,options={}){
+    // Repeated taps must never launch a second deletion behind the same sheet.
+    if(activeDeleteConfirmation)return Promise.resolve(false);
+    return new Promise(resolve=>{
+      const overlay=document.getElementById('deleteConfirmOverlay');
+      const cancel=document.getElementById('deleteConfirmCancel'),accept=document.getElementById('deleteConfirmAccept');
+      document.getElementById('deleteConfirmTitle').textContent=options.title||'確認刪除';
+      document.getElementById('deleteConfirmMessage').textContent=message;
+      accept.textContent=options.confirmLabel||'刪除';
+      const keydown=e=>{
+        if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closeDeleteConfirmation(false);}
+        else if(e.key==='Tab'){
+          e.preventDefault();e.stopImmediatePropagation();
+          (document.activeElement===cancel?accept:cancel).focus({preventScroll:true});
+        }
+      };
+      activeDeleteConfirmation={resolve,focus:document.activeElement,overflow:document.body.style.overflow,keydown};
+      cancel.onclick=()=>closeDeleteConfirmation(false);accept.onclick=()=>closeDeleteConfirmation(true);
+      overlay.onclick=e=>{if(e.target===overlay)closeDeleteConfirmation(false);};
+      overlay.hidden=false;document.body.style.overflow='hidden';
+      document.addEventListener('keydown',keydown,true);cancel.focus({preventScroll:true});
+    });
+  }
+  function confirmEventDeletion(evt){
+    let message=`確定要刪除「${evt?.title||'這個日程'}」嗎？`;
+    if(evt&&(evt.eventType==='birthday'||evt.eventType==='anniversary'))message+='\n刪除後，每年的生日或紀念日都不會再出現。';
+    else if(evt?.recurrence?.freq&&evt.recurrence.freq!=='none')message+='\n這是重複日程，刪除後整個系列都會被移除。';
+    return confirmDelete(message,{title:'刪除日程'});
+  }
+  window.closeDeleteConfirmation=closeDeleteConfirmation;
+
   function openEventDetailModal(evt) {
     const modal = document.getElementById('viewEventModal');
     const content = document.getElementById('viewEventContent');
@@ -1834,7 +1970,7 @@ select{font-family:inherit}
       setTimeout(() => openEventModal(evt), 220);
     };
     document.getElementById('deleteViewEventBtn').onclick = async () => {
-      if (!confirm('確定要刪除這個日程嗎？')) return;
+      if (!(await confirmEventDeletion(evt))) return;
       if (window.currentUser && typeof window.deleteEventFromCloud === 'function') {
         try { await window.deleteEventFromCloud(evt.id); } catch (e) { console.error(e); }
       }
@@ -2031,7 +2167,7 @@ select{font-family:inherit}
   function renderCategories(){const c=document.getElementById('categoryFilters');c.innerHTML=state.categories.map(cat=>{const checked=state.activeCategories.includes(cat.id);return `<div class="group flex items-center justify-between rounded-xl hover:bg-white/80 dark:hover:bg-ink-800/60 border border-transparent hover:border-ink-100 dark:hover:border-ink-800 transition"><label class="flex items-center space-x-2.5 flex-1 min-w-0 p-2 cursor-pointer"><input type="checkbox" data-cat="${cat.id}" ${checked?'checked':''} class="category-checkbox rounded border-ink-300 text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer shrink-0"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><span class="text-xs font-medium text-ink-700 dark:text-ink-300 truncate">${escapeHtml(cat.name)}</span></label><div class="flex items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition shrink-0 mr-1"><button class="cat-edit-btn p-1.5 rounded-lg text-ink-300 hover:text-brand-600 hover:bg-brand-50" data-cat="${cat.id}"><i data-lucide="pencil" class="w-3.5 h-3.5 pointer-events-none"></i></button><button class="cat-del-btn p-1.5 rounded-lg text-ink-300 hover:text-rose-500 hover:bg-rose-50" data-cat="${cat.id}"><i data-lucide="x" class="w-3.5 h-3.5 pointer-events-none"></i></button></div></div>`}).join('');c.querySelectorAll('.category-checkbox').forEach(cb=>cb.addEventListener('change',e=>{const id=e.target.dataset.cat;if(e.target.checked){if(!state.activeCategories.includes(id))state.activeCategories.push(id)}else{state.activeCategories=state.activeCategories.filter(x=>x!==id)}saveActiveCats();renderMainView()}));c.querySelectorAll('.cat-edit-btn').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openCategoryModal(btn.dataset.cat)}));c.querySelectorAll('.cat-del-btn').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();deleteCategory(btn.dataset.cat)}));const select=document.getElementById('eventCategory');if(select){const cv=select.value;select.innerHTML=state.categories.map(cat=>`<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');if(cv&&state.categories.some(c=>c.id===cv))select.value=cv;}lucide.createIcons();}
   window.renderCategories=renderCategories;
 
-  async function deleteCategory(id){if(state.categories.length<=1){showToast('至少需要保留一個分類');return}const cat=state.categories.find(c=>c.id===id);if(!cat)return;const count=state.events.filter(e=>e.category===id).length;const msg=count>0?`分類「${cat.name}」下有 ${count} 個日程，刪除後將歸入其他分類，確定要刪除嗎？`:`確定要刪除分類「${cat.name}」嗎？`;if(!confirm(msg))return;const remaining=state.categories.filter(c=>c.id!==id);const fallbackId=remaining[0].id;let moved=0;state.events.forEach(e=>{if(e.category===id){e.category=fallbackId;moved++}});if(moved)saveEvents();state.categories=remaining;state.activeCategories=state.activeCategories.filter(x=>x!==id);saveCategories();saveActiveCats();renderCategories();renderAll();showToast(moved>0?`分類已刪除，${moved} 個日程已歸入「${remaining[0].name}」`:'分類已刪除');}
+  async function deleteCategory(id){if(state.categories.length<=1){showToast('至少需要保留一個分類');return}const cat=state.categories.find(c=>c.id===id);if(!cat)return;const count=state.events.filter(e=>e.category===id).length;const msg=count>0?`分類「${cat.name}」下有 ${count} 個日程，刪除後將歸入其他分類，確定要刪除嗎？`:`確定要刪除分類「${cat.name}」嗎？`;if(!(await confirmDelete(msg,{title:'刪除分類'})))return;const remaining=state.categories.filter(c=>c.id!==id);const fallbackId=remaining[0].id;let moved=0;state.events.forEach(e=>{if(e.category===id){e.category=fallbackId;moved++}});if(moved)saveEvents();state.categories=remaining;state.activeCategories=state.activeCategories.filter(x=>x!==id);saveCategories();saveActiveCats();renderCategories();renderAll();showToast(moved>0?`分類已刪除，${moved} 個日程已歸入「${remaining[0].name}」`:'分類已刪除');}
   function openCategoryModal(catId=null){editingCategoryId=catId;const modal=document.getElementById('categoryModal');const titleEl=document.getElementById('categoryModalTitle');const confirmBtn=document.getElementById('confirmCategoryBtn');const nameInput=document.getElementById('newCatName');if(catId){const cat=state.categories.find(c=>c.id===catId);if(!cat)return;titleEl.textContent='編輯分類';confirmBtn.textContent='儲存';nameInput.value=cat.name;newCatColor=cat.color;}else{titleEl.textContent='新增分類';confirmBtn.textContent='新增';nameInput.value='';newCatColor=COLOR_PALETTE[Math.floor(Math.random()*COLOR_PALETTE.length)];}renderPalette();modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0');modal.querySelector('div').classList.remove('scale-95');nameInput.focus();nameInput.select()},10);}
   function closeCategoryModal(){const m=document.getElementById('categoryModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>{m.classList.add('hidden');editingCategoryId=null},200)}
   function renderPalette(){const p=document.getElementById('colorPalette');p.innerHTML=COLOR_PALETTE.map(c=>`<button type="button" class="color-swatch ${c===newCatColor?'on':''}" style="background:${c}; color:${c}" data-color="${c}"></button>`).join('');p.querySelectorAll('.color-swatch').forEach(b=>b.addEventListener('click',()=>{newCatColor=b.dataset.color;renderPalette()}))}
@@ -2225,6 +2361,67 @@ select{font-family:inherit}
   c.innerHTML=html;
 }
   /* ===== 週檢視：手機橫向滾動 + 合理欄寬 ===== */
+  let mobileWeekPosition=null;
+  function mobileWeekInitialHour(days,events,now=new Date()){
+    if(days.some(d=>isSameDay(d,now)))return Math.max(0,now.getHours()-1);
+    const hours=events.filter(e=>!e.allDay).map(e=>{const d=new Date(e._occStart);return d.getHours()+d.getMinutes()/60;});
+    return hours.length?Math.max(0,Math.floor(Math.min(...hours))-1):8;
+  }
+  function weekSlotDate(day,y,hourHeight=56){
+    const minutes=Math.max(0,Math.min(23*60+45,Math.floor(Math.max(0,y)/hourHeight*4)*15));
+    const d=parseDateKey(day);d.setHours(Math.floor(minutes/60),minutes%60,0,0);return d;
+  }
+  function mobileWeekOverlapLayout(events){
+    const sorted=events.map(e=>({...e})).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));
+    const groups=[];let group=null;
+    sorted.forEach(e=>{const start=new Date(e._occStart).getTime(),end=new Date(e._occEnd).getTime();if(!group||start>=group.end){group={items:[e],end};groups.push(group);}else{group.items.push(e);group.end=Math.max(group.end,end);}});
+    groups.forEach(g=>{
+      const ends=[];
+      g.items.forEach(e=>{const start=new Date(e._occStart).getTime();let index=ends.findIndex(end=>end<=start);if(index<0)index=ends.length;ends[index]=new Date(e._occEnd).getTime();e._col=index;});
+      g.items.forEach(e=>e._colCount=ends.length);
+    });
+    return sorted;
+  }
+  function renderMobileWeekView(){
+    const c=document.getElementById('calendarViewContainer'),today=new Date(),first=new Date(state.currentDate);
+    first.setDate(first.getDate()-first.getDay());first.setHours(0,0,0,0);
+    const days=Array.from({length:7},(_,i)=>{const d=new Date(first);d.setDate(d.getDate()+i);return d;});
+    const end=new Date(days[6]);end.setHours(23,59,59,999);
+    const events=getOccurrencesInRange(first,end),HOUR_H=48;
+    const daily=days.map(d=>{
+      const start=new Date(d),end=new Date(d);end.setHours(23,59,59,999);
+      const items=events.filter(e=>{const from=new Date(e._occStart),to=new Date(e._occEnd);return from<=end&&(to>start||(from.getTime()===to.getTime()&&from>=start));});
+      return {allDay:items.filter(e=>e.allDay),timed:mobileWeekOverlapLayout(items.filter(e=>!e.allDay).map(e=>({...e,_occStart:new Date(Math.max(new Date(e._occStart).getTime(),start.getTime())),_occEnd:new Date(Math.min(new Date(e._occEnd).getTime(),end.getTime()))})))};
+    });
+    const header=days.map(d=>{
+      const current=isSameDay(d,today),holiday=hasHolidayEvent(d),sub=getDaySubText(d);
+      return `<div class="mobile-week-date${current?' is-today':''}${holiday?' is-holiday':''}"><div class="mobile-week-weekday">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="mobile-week-date-chip"><strong>${d.getDate()}</strong><span>${escapeHtml(sub.text||'')}</span></div></div>`;
+    }).join('');
+    const allDay=days.map((d,i)=>`<div class="cell-allday mobile-week-allday-cell" data-date="${dateKey(d)}">${daily[i].allDay.map(evt=>{
+      const cat=getCat(evt.category),age=getYearsLabel(evt,evt._occStart);
+      return `<div class="event-pill cat-chip mobile-week-allday-event${evt._isTask?` task-calendar-item${evt._taskCompleted?' completed':''}`:''}" style="--c:${cat.color}" data-id="${escapeHtml(String(evt.id))}" data-day-date="${dateKey(d)}" title="${escapeHtml(evt.title)}"><span class="task-calendar-title">${evt._isTask?(evt._taskCompleted?'☑ ':'☐ '):''}${escapeHtml(evt.title)}${age?` · ${escapeHtml(age)}`:''}</span></div>`;
+    }).join('')}</div>`).join('');
+    let labels='';for(let hour=0;hour<24;hour++)labels+=`<div class="mobile-week-hour"><span>${String(hour).padStart(2,'0')}:00</span></div>`;
+    const columns=days.map((d,i)=>{
+      const blocks=daily[i].timed.map(evt=>{
+        const start=new Date(evt._occStart),finish=new Date(evt._occEnd),duration=Math.max(0,(finish-start)/3600000);
+        const {top,height}=weekEventBounds(start.getHours()+start.getMinutes()/60,duration,HOUR_H,evt._isTask?32:22);
+        const count=evt._colCount||1,index=evt._col||0,cat=getCat(evt.category),age=getYearsLabel(evt,evt._occStart);
+        const label=evt._isTask?formatTime(start):`${formatTime(start)} - ${formatTime(finish)}`;
+        return `<div class="timed-event cat-chip mobile-week-event${height<52?' is-short':''}${evt._isTask?` task-calendar-item${evt._taskCompleted?' completed':''}`:''}" style="--c:${cat.color};top:${top}px;height:${height}px;left:calc(${index*100/count}% + 1px);width:calc(${100/count}% - 2px)" data-id="${escapeHtml(String(evt.id))}" data-day-date="${dateKey(d)}" title="${escapeHtml(evt.title)} · ${label}${evt.location?' · '+escapeHtml(evt.location):''}"><div class="mobile-week-event-title task-calendar-title">${evt._isTask?(evt._taskCompleted?'☑ ':'☐ '):''}${escapeHtml(evt.title)}${age?` · ${escapeHtml(age)}`:''}</div>${evt.location?`<div class="mobile-week-event-location">${escapeHtml(evt.location)}</div>`:''}</div>`;
+      }).join('');
+      const now=isSameDay(d,today)?`<div class="mobile-week-now" style="top:${(today.getHours()+today.getMinutes()/60)*HOUR_H}px" aria-hidden="true"></div>`:'';
+      return `<div class="week-col mobile-week-column${isSameDay(d,today)?' is-today':''}" data-date="${dateKey(d)}">${blocks}${now}</div>`;
+    }).join('');
+    c.innerHTML=`<div id="weekScrollX" class="mobile-week-view week-scroll-x" data-hour-height="${HOUR_H}" style="--week-hour-height:${HOUR_H}px"><div class="mobile-week-header mobile-week-grid"><div class="mobile-week-number"><span>週</span><strong>${getWeekNumber(state.currentDate)}</strong></div>${header}</div><div class="mobile-week-allday mobile-week-grid"><div class="mobile-week-allday-label">全日</div>${allDay}</div><div id="mobileWeekTimeline" class="mobile-week-timeline"><div class="mobile-week-grid mobile-week-time-grid"><div class="mobile-week-time-labels">${labels}</div>${columns}</div></div></div>`;
+    const timeline=document.getElementById('mobileWeekTimeline'),surface=document.getElementById('weekScrollX'),key=dateKey(first);
+    surface.style.setProperty('--week-scrollbar',`${Math.max(0,timeline.offsetWidth-timeline.clientWidth)}px`);
+    timeline.scrollTop=mobileWeekPosition?.week===key?mobileWeekPosition.top:mobileWeekInitialHour(days,daily.flatMap(day=>day.timed),today)*HOUR_H;
+    mobileWeekPosition={week:key,top:timeline.scrollTop};
+    timeline.addEventListener('scroll',()=>{mobileWeekPosition={week:key,top:timeline.scrollTop};},{passive:true});
+    attachWeekEdgeSwipe();
+  }
+
   function weekEventBounds(startHour, durationHours, hourHeight, minHeight=22){
     const dayHeight=24*hourHeight;
     const height=Math.min(dayHeight, Math.max(durationHours*hourHeight-2, minHeight));
@@ -2232,6 +2429,7 @@ select{font-family:inherit}
     return {top,height};
   }
   function renderWeekView(){
+    if(window.innerWidth<768){renderMobileWeekView();return;}
     const c=document.getElementById('calendarViewContainer');
     const curr=new Date(state.currentDate);
     const first=curr.getDate()-curr.getDay();
@@ -2304,9 +2502,57 @@ select{font-family:inherit}
     attachWeekEdgeSwipe();
   }
 
-  function renderDayView(){const c=document.getElementById('calendarViewContainer');const d=state.currentDate;const ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const today=new Date();const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const sub=getDaySubText(d);let subLine=`週${['日','一','二','三','四','五','六'][d.getDay()]}`;if(lunar.full)subLine+=` · ${escapeHtml(lunar.full)}`;if(sub.type==='term'||sub.type==='festival')subLine+=` · ${escapeHtml(sub.text)}`;subLine+=` · 第${weekNum}週`;let dateCls='text-2xl font-extrabold tracking-tight ';if(isHoliday)dateCls+='text-rose-600 dark:text-rose-400';let html=`<div class="h-full flex flex-col p-5 max-w-3xl mx-auto w-full anim-in"><div class="flex items-center justify-between pb-5 border-b border-ink-200/70 dark:border-ink-800/70 mb-5"><div><h3 class="${dateCls} flex items-center space-x-2"><span>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>${isToday?'<span class="text-[10px] px-2 py-1 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-full font-bold">今天</span>':''}${isHoliday?'<span class="text-[10px] px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full font-bold">節假日</span>':''}</h3><p class="text-xs text-ink-500 mt-1.5">${subLine}</p><p class="text-xs text-ink-400 mt-0.5">共 ${events.length} 個日程</p></div><button id="addDayEventBtn" class="px-4 py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl text-xs font-semibold shadow-glow">+ 新建</button></div><div class="flex-1 overflow-y-auto space-y-3 pr-2">`;if(events.length===0){html+=`<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="calendar-x" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">今日尚無規劃日程</p></div>`}else{html+=events.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-2 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold shrink-0">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3.5 h-3.5 opacity-50 shrink-0"></i>':'';return`<div class="event-pill cat-chip p-4 rounded-2xl border cursor-pointer flex items-start justify-between${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="space-y-1.5 min-w-0"><div class="flex items-center space-x-2 flex-wrap gap-y-1"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><h4 class="font-bold text-base truncate task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}</h4>${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs opacity-80"><span class="flex items-center space-x-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="tabular-nums">${evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`)}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<p class="text-xs opacity-90 pt-1">${escapeHtml(evt.description)}</p>`:''}</div><i data-lucide="chevron-right" class="w-5 h-5 opacity-40 shrink-0"></i></div>`}).join('')}html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();const addBtn=document.getElementById('addDayEventBtn');if(addBtn)addBtn.addEventListener('click',()=>openEventModal(null,d));}
+  function desktopCalendarCard(evt,day){
+    const cat=getCat(evt.category),age=getYearsLabel(evt,evt._occStart);
+    const time=evt.allDay?'全日':formatTime(evt._occStart);
+    const end=!evt.allDay&&!evt._isTask?formatTime(evt._occEnd):'';
+    const badge=age?`<span class="desktop-event-badge ${getTypeBadgeClass(evt.eventType)}">${escapeHtml(age)}</span>`:'';
+    const taskClass=evt._isTask?` task-calendar-item${evt._taskCompleted?' completed':''}`:'';
+    return `<article class="event-pill desktop-calendar-entry${taskClass}" style="--c:${cat.color}" data-id="${escapeHtml(String(evt.id))}" data-day-date="${dateKey(day)}">
+      <div class="desktop-entry-time"><span>${time}</span>${end?`<small>— ${end}</small>`:evt._isTask?'<small>截止時間</small>':''}</div>
+      <div class="desktop-entry-card"><div class="desktop-entry-heading"><h4 class="task-calendar-title">${evt._isTask?(evt._taskCompleted?'☑ ':'☐ '):''}${escapeHtml(evt.title)}</h4>${badge}<span class="desktop-entry-category"><i></i>${escapeHtml(cat.name)}</span></div>
+        ${evt.location?`<div class="desktop-entry-location"><i data-lucide="map-pin"></i>${escapeHtml(evt.location)}</div>`:''}
+        ${evt.description?`<p class="desktop-entry-description">${escapeHtml(evt.description)}</p>`:''}
+        ${evt._isRecurring&&!age?'<span class="desktop-entry-repeat">重複日程</span>':''}
+      </div><span class="desktop-entry-chevron" aria-hidden="true">›</span>
+    </article>`;
+  }
+  function renderDesktopDayView(){
+    const c=document.getElementById('calendarViewContainer'),d=new Date(state.currentDate),ds=new Date(d),de=new Date(d);
+    ds.setHours(0,0,0,0);de.setHours(23,59,59,999);
+    const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));
+    const today=isSameDay(d,new Date()),holiday=hasHolidayEvent(d),lunar=getLunarInfo(d);
+    c.innerHTML=`<div class="desktop-calendar-page desktop-day-page anim-in">
+      <header class="desktop-view-heading"><div><div class="desktop-view-eyebrow">每日安排</div><h3>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${today?'<span class="desktop-today-badge">今天</span>':''}${holiday?'<span class="desktop-holiday-badge">節假日</span>':''}</h3><p>週${['日','一','二','三','四','五','六'][d.getDay()]}${lunar.full?' · '+escapeHtml(lunar.full):''} · 第${getWeekNumber(d)}週</p></div><button id="addDayEventBtn" class="desktop-primary-action"><i data-lucide="plus"></i>新增日程</button></header>
+      <div class="desktop-day-overview"><span>當日安排 <strong>${events.length}</strong></span><span>全日 ${events.filter(e=>e.allDay).length}</span><span>定時 ${events.filter(e=>!e.allDay).length}</span></div>
+      <div class="desktop-calendar-scroll"><div class="desktop-entry-labels"><span>時間</span><span>日程內容</span></div><div class="desktop-day-entries">${events.length?events.map(evt=>desktopCalendarCard(evt,d)).join(''):`<div class="empty-day desktop-empty-day" data-date="${dateKey(d)}"><i data-lucide="calendar-days"></i><h4>這一天暫無安排</h4><p>點擊這裡，建立第一個日程。</p></div>`}</div></div>
+    </div>`;
+    document.getElementById('addDayEventBtn').addEventListener('click',()=>openEventModal(null,d));
+  }
+  function renderDesktopScheduleView(){
+    const c=document.getElementById('calendarViewContainer'),base=new Date();base.setHours(0,0,0,0);
+    let earliest=new Date(base);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d)&&d<earliest)earliest=new Date(d);});earliest.setDate(earliest.getDate()-7);
+    const end=new Date(base);end.setDate(end.getDate()+180);end.setHours(23,59,59,999);
+    const events=getOccurrencesInRange(earliest,end).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart)),groups=new Map();
+    events.forEach(evt=>{const day=new Date(evt._occStart),key=dateKey(day);if(!groups.has(key))groups.set(key,{day,events:[]});groups.get(key).events.push(evt);});
+    const todayKey=dateKey(base);if(!groups.has(todayKey))groups.set(todayKey,{day:base,events:[]});
+    const now=new Date(),nowTime=now.getTime(),nowLine=`<div class="desktop-agenda-now"><span>現在 ${formatTime(now)}</span><i></i></div>`;
+    const content=Array.from(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([key,group])=>{
+      const today=key===todayKey,d=group.day,sub=getDaySubText(d),holiday=hasHolidayEvent(d);let inserted=false,cards='';
+      group.events.forEach(evt=>{if(today&&!inserted&&new Date(evt._occStart).getTime()>nowTime){cards+=nowLine;inserted=true;}cards+=desktopCalendarCard(evt,d);});
+      if(today&&!inserted)cards+=nowLine;
+      if(!group.events.length)cards+=`<div class="empty-day desktop-agenda-empty" data-date="${key}">今天沒有安排，點擊建立日程。</div>`;
+      return `<section class="desktop-agenda-group"${today?' id="todayScheduleItem"':''}><div class="desktop-agenda-date${today?' is-today':''}${holiday?' is-holiday':''}"><span>${d.getFullYear()}年${d.getMonth()+1}月</span><strong>${d.getDate()}<small>週${['日','一','二','三','四','五','六'][d.getDay()]}</small></strong>${sub.text?`<em>${escapeHtml(sub.text)}</em>`:''}${today?'<b>今天</b>':''}</div><div class="desktop-agenda-events">${cards}</div></section>`;
+    }).join('');
+    c.innerHTML=`<div class="desktop-calendar-page desktop-agenda-page anim-in"><header class="desktop-view-heading"><div><div class="desktop-view-eyebrow">日程</div><h3>日程總覽</h3><p>按日期查看安排 · 共 ${events.length} 項日程</p></div><button id="desktopAgendaAdd" class="desktop-primary-action"><i data-lucide="plus"></i>新增日程</button></header><div class="desktop-calendar-scroll">${content}</div></div>`;
+    document.getElementById('desktopAgendaAdd').addEventListener('click',()=>openEventModal(null,state.currentDate));
+    const list=c.querySelector('.desktop-calendar-scroll'),target=document.getElementById('todayScheduleItem');
+    if(list&&target)list.scrollTop=target.getBoundingClientRect().top-list.getBoundingClientRect().top+list.scrollTop-12;
+  }
 
-  function renderScheduleView(){const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3 opacity-50"><path d="m17 2 4 4-4 4M3 11V8a2 2 0 0 1 2-2h16M7 22l-4-4 4-4m14-1v3a2 2 0 0 1-2 2H3"/></svg>':'';const timeStr=evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`);return `<div class="schedule-card${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;const list=c.firstElementChild;const el=document.getElementById('todayScheduleItem');if(list&&el)list.scrollTop=el.getBoundingClientRect().top-list.getBoundingClientRect().top+list.scrollTop;}
+  function renderDayView(){if(window.innerWidth>=1024){renderDesktopDayView();return;}const c=document.getElementById('calendarViewContainer');const d=state.currentDate;const ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const today=new Date();const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const sub=getDaySubText(d);let subLine=`週${['日','一','二','三','四','五','六'][d.getDay()]}`;if(lunar.full)subLine+=` · ${escapeHtml(lunar.full)}`;if(sub.type==='term'||sub.type==='festival')subLine+=` · ${escapeHtml(sub.text)}`;subLine+=` · 第${weekNum}週`;let dateCls='text-2xl font-extrabold tracking-tight ';if(isHoliday)dateCls+='text-rose-600 dark:text-rose-400';let html=`<div class="h-full flex flex-col p-5 max-w-3xl mx-auto w-full anim-in"><div class="flex items-center justify-between pb-5 border-b border-ink-200/70 dark:border-ink-800/70 mb-5"><div><h3 class="${dateCls} flex items-center space-x-2"><span>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>${isToday?'<span class="text-[10px] px-2 py-1 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-full font-bold">今天</span>':''}${isHoliday?'<span class="text-[10px] px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full font-bold">節假日</span>':''}</h3><p class="text-xs text-ink-500 mt-1.5">${subLine}</p><p class="text-xs text-ink-400 mt-0.5">共 ${events.length} 個日程</p></div><button id="addDayEventBtn" class="px-4 py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl text-xs font-semibold shadow-glow">+ 新建</button></div><div class="flex-1 overflow-y-auto space-y-3 pr-2">`;if(events.length===0){html+=`<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="calendar-x" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">今日尚無規劃日程</p></div>`}else{html+=events.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-2 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold shrink-0">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3.5 h-3.5 opacity-50 shrink-0"></i>':'';return`<div class="event-pill cat-chip p-4 rounded-2xl border cursor-pointer flex items-start justify-between${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="space-y-1.5 min-w-0"><div class="flex items-center space-x-2 flex-wrap gap-y-1"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><h4 class="font-bold text-base truncate task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}</h4>${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs opacity-80"><span class="flex items-center space-x-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="tabular-nums">${evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`)}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<p class="text-xs opacity-90 pt-1">${escapeHtml(evt.description)}</p>`:''}</div><i data-lucide="chevron-right" class="w-5 h-5 opacity-40 shrink-0"></i></div>`}).join('')}html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();const addBtn=document.getElementById('addDayEventBtn');if(addBtn)addBtn.addEventListener('click',()=>openEventModal(null,d));}
+
+  function renderScheduleView(){if(window.innerWidth>=1024){renderDesktopScheduleView();return;}const c=document.getElementById('calendarViewContainer');const base=new Date();base.setHours(0,0,0,0);let earliestDate=new Date();earliestDate.setHours(0,0,0,0);state.events.forEach(e=>{const d=new Date(e.start);if(!isNaN(d.getTime())&&d<earliestDate)earliestDate=new Date(d);});earliestDate.setDate(earliestDate.getDate()-7);const rangeStart=earliestDate;const rangeEnd=new Date(base);rangeEnd.setDate(rangeEnd.getDate()+180);rangeEnd.setHours(23,59,59,999);const events=getOccurrencesInRange(rangeStart,rangeEnd).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const groups={};events.forEach(evt=>{const d=new Date(evt._occStart);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!groups[key])groups[key]={date:d,events:[]};groups[key].events.push(evt);});const tm=new Date();tm.setHours(0,0,0,0);const tk=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;if(!groups[tk])groups[tk]={date:tm,events:[]};const sortedKeys=Object.keys(groups).sort();const today=new Date();const now=new Date();const nowStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});const nowTime=now.getTime();const renderCard=(evt)=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3 opacity-50"><path d="m17 2 4 4-4 4M3 11V8a2 2 0 0 1 2-2h16M7 22l-4-4 4-4m14-1v3a2 2 0 0 1-2 2H3"/></svg>':'';const timeStr=evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`);return `<div class="schedule-card${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-day-date="${dateKey(evt._occStart)}"><div class="font-bold text-sm leading-snug flex items-center gap-1.5 flex-wrap task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500 dark:text-ink-400 mt-1.5"><span class="flex items-center space-x-1 tabular-nums"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>${timeStr}</span></span>${evt.location?`<span class="flex items-center space-x-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<div class="text-xs text-ink-500 dark:text-ink-400 mt-1.5 line-clamp-2">${escapeHtml(evt.description)}</div>`:''}</div>`};const nowLineHtml=`<div class="now-line"><span class="now-badge">${nowStr}</span></div>`;let html=`<div class="h-full p-5 max-w-3xl mx-auto w-full overflow-y-auto anim-in"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold flex items-center space-x-2"><i data-lucide="list-todo" class="w-5 h-5 text-brand-500"></i><span>日程總覽</span></h3><span class="text-xs text-ink-400 font-medium">${events.length} 項日程</span></div><div class="space-y-6">`;sortedKeys.forEach(key=>{const group=groups[key];const d=group.date;const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const weekday=['日','一','二','三','四','五','六'][d.getDay()];const sub=getDaySubText(d);let daynumCls='';if(isToday)daynumCls='text-brand-600 dark:text-brand-400';else if(isHoliday)daynumCls='text-rose-600 dark:text-rose-400';html+=`<div class="schedule-item"${isToday?' id="todayScheduleItem"':''}><div class="schedule-date-col ${isToday?'today':''}"><div class="weekday">週${weekday}</div><div class="daynum ${daynumCls}">${d.getDate()}</div>${sub.text?`<div class="lunar">${escapeHtml(sub.text)}</div>`:''}</div><div class="flex-1 min-w-0 space-y-2">`;if(isToday){let nowInserted=false;if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">今天沒有計劃。點擊建立。</span></div>`;html+=nowLineHtml;nowInserted=true;}else{group.events.forEach(evt=>{const evtStart=new Date(evt._occStart).getTime();if(!nowInserted&&nowTime<evtStart){html+=nowLineHtml;nowInserted=true;}html+=renderCard(evt);});if(!nowInserted){html+=nowLineHtml;}}}else{if(group.events.length===0){html+=`<div class="empty-day" data-date="${dateKey(d)}"><span class="empty-text">沒有計劃。點擊建立。</span></div>`;}else{group.events.forEach(evt=>{html+=renderCard(evt);});}}html+=`</div></div>`;});html+=`</div></div>`;c.innerHTML=html;const list=c.firstElementChild;const el=document.getElementById('todayScheduleItem');if(list&&el)list.scrollTop=el.getBoundingClientRect().top-list.getBoundingClientRect().top+list.scrollTop;}
 
 
   // 事件計日設定：獨立使用 counterSettings/{uid} Firestore 文件。
@@ -2746,7 +2992,7 @@ select{font-family:inherit}
           value=`${info.diff} 日`;sub=`距離事件還有 ${info.diff} 日 · ${counterEventDateText(info.target)}`;
         }
         const age=getYearsLabel(info.evt,info.target);const badge=age?`<span class="text-[10px] px-1.5 py-0.5 rounded-full ${getTypeBadgeClass(info.evt.eventType)} font-bold">${age}</span>`:'';
-        return `<div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${getCat(info.evt.category).color}"></span><h3 class="font-bold text-sm truncate">${escapeHtml(info.evt.title)}</h3>${badge}</div><p class="text-[10px] text-ink-400 mt-1.5">${escapeHtml(sub)}</p></div><div class="text-xl font-extrabold tabular-nums text-brand-600 dark:text-brand-300 shrink-0">${value}</div></div></div>`;
+        return `<div class="bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${getCat(info.evt.category).color}"></span><h3 class="font-bold text-sm truncate">${escapeHtml(info.evt.title)}</h3>${badge}</div><p class="text-[10px] text-ink-400 mt-1.5">${escapeHtml(sub)}</p></div><div class="text-xl font-extrabold tabular-nums ${isDown?'text-rose-600 dark:text-rose-400':'text-brand-600 dark:text-brand-300'} shrink-0">${value}</div></div></div>`;
       }).join(''):'<div class="text-center py-16 text-sm text-ink-400">目前沒有需要顯示的事件</div>'}</div>
     </div>`;
     html+=`<button id="myCounterOpenSelectBtn" class="fixed bottom-24 right-6 md:right-8 z-40 px-5 py-3 rounded-2xl bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white text-sm font-bold shadow-glow active:scale-95 transition flex items-center gap-2"><i data-lucide="list-plus" class="w-4 h-4"></i><span>選擇事件</span></button>`;
@@ -2920,14 +3166,15 @@ select{font-family:inherit}
     let themeLabel='跟隨系統',themeIcon='monitor-smartphone',themeStatusText='自動';
     if(currentTheme==='dark'){themeLabel='深色模式';themeIcon='moon';themeStatusText='開';}
     else if(currentTheme==='light'){themeLabel='淺色模式';themeIcon='sun';themeStatusText='關';}
+    const nativeNotif=!!(window.hasAndroidReminders&&window.hasAndroidReminders());
     const notifPerm=('Notification'in window)?Notification.permission:'unsupported';
-    const notifLabel=notifPerm==='granted'?'已開啟':(notifPerm==='denied'?'已封鎖':'未開啟');
+    const notifLabel=nativeNotif?window.getAndroidReminderLabel():(notifPerm==='granted'?'已開啟':(notifPerm==='denied'?'已封鎖':'未開啟'));
     const isLoggedIn=!!window.currentUser;
     let html=`<div class="h-full overflow-y-auto p-5 max-w-2xl mx-auto w-full anim-in">
       <div class="flex items-center gap-3 mb-6"><button id="mySettingsBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div><h2 class="text-2xl font-extrabold tracking-tight">設定</h2><p class="text-[11px] text-ink-400 mt-0.5">管理日曆與應用程式設定</p></div></div>
       <div class="space-y-3">
         <button id="myThemeBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300"><i data-lucide="${themeIcon}" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">外觀</span><span class="block text-[10px] text-ink-400 mt-0.5">${themeLabel}</span></span></span><span class="text-xs text-ink-400">${themeStatusText}</span></button>
-        <button id="myNotifBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">通知提醒</span><span class="block text-[10px] text-ink-400 mt-0.5">日程提醒與瀏覽器通知</span></span></span><span class="text-xs text-ink-400">${notifLabel}</span></button>
+        <button id="myNotifBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">通知提醒</span><span class="block text-[10px] text-ink-400 mt-0.5 native-notif-detail">${nativeNotif?'Android 系統後台提醒':'日程提醒與瀏覽器通知'}</span></span></span><span class="text-xs text-ink-400 native-notif-status">${notifLabel}</span></button>
         <button id="myDataBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="database" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">資料備份與還原</span><span class="block text-[10px] text-ink-400 mt-0.5">匯出、匯入與資料管理</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
         <button id="myIcsBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-down" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">ICS 匯入匯出</span><span class="block text-[10px] text-ink-400 mt-0.5">與其他日曆交換資料</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
         <button id="myCalendarCategoryBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><i data-lucide="calendar-cog" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">日曆與分類</span><span class="block text-[10px] text-ink-400 mt-0.5">查看目前的日曆與分類</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
@@ -2937,7 +3184,8 @@ select{font-family:inherit}
     c.innerHTML=html;lucide.createIcons();
     document.getElementById('mySettingsBackBtn').addEventListener('click',()=>{state.view='my';renderAll();});
     document.getElementById('myThemeBtn').addEventListener('click',()=>{const current=getTheme();let next='system';if(current==='system')next='light';else if(current==='light')next='dark';else next='system';setTheme(next);renderMySettingsView();});
-    document.getElementById('myNotifBtn').addEventListener('click',async()=>{if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}if(Notification.permission==='denied'){alert('通知已被封鎖。請到瀏覽器設定允許。');return}const perm=await Notification.requestPermission();if(perm==='granted')showToast('通知已開啟 ✓');else showToast('未開啟通知');renderMySettingsView();});
+    if(nativeNotif)window.refreshAndroidReminderStatus();
+    document.getElementById('myNotifBtn').addEventListener('click',async()=>{if(nativeNotif){await window.configureAndroidReminders();return;}if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}if(Notification.permission==='denied'){alert('通知已被封鎖。請到瀏覽器設定允許。');return}const perm=await Notification.requestPermission();if(perm==='granted')showToast('通知已開啟 ✓');else showToast('未開啟通知');renderMySettingsView();});
     document.getElementById('myDataBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.remove('hidden');});
     document.getElementById('myIcsBtn').addEventListener('click',()=>openIcsModal());
     document.getElementById('myCalendarCategoryBtn').addEventListener('click',()=>{state.view='my-categories';renderAll();});
@@ -2981,7 +3229,7 @@ select{font-family:inherit}
     el('taskReadX').onclick=el('taskReadClose').onclick=closeTaskDetails;
     el('taskReadEdit').onclick=()=>{closeTaskDetails();openTaskEditor(id);};
     el('taskReadDelete').onclick=async()=>{
-      if(!confirm('確定要刪除這項任務嗎？'))return;
+      if(!(await confirmDelete('確定要刪除這項任務嗎？',{title:'刪除任務'})))return;
       try{if(window.currentUser&&typeof window.deleteTaskFromCloud==='function')await window.deleteTaskFromCloud(id);
         state.tasks=state.tasks.filter(t=>t.id!==id);saveTasks();closeTaskDetails();renderAll();showToast('任務已刪除');
       }catch(err){showToast('刪除失敗，請稍後再試');}
@@ -3185,9 +3433,9 @@ select{font-family:inherit}
       if(list.includes(trimName)||trimName==='全部'||trimName==='未分類'){showToast('該資料夾已存在或名稱無效');return;}
       setFolderList(type,[...list,trimName]);saveFolders();state.noteFolder=trimName;renderNotesView();showToast(`已新增${typeLabel}資料夾`);
     });
-    document.querySelectorAll('.delete-folder-btn').forEach(btn=>btn.addEventListener('click',(e)=>{
+    document.querySelectorAll('.delete-folder-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{
       e.stopPropagation();const folder=btn.dataset.folder;
-      if(confirm(`確定要刪除「${folder}」資料夾嗎？該資料夾內的${typeLabel}將移至「未分類」。`)){
+      if(await confirmDelete(`確定要刪除「${folder}」資料夾嗎？該資料夾內的${typeLabel}將移至「未分類」。`,{title:'刪除資料夾'})){
         setFolderList(type,currentFolderList(type).filter(f=>f!==folder));saveFolders();
         let moved=0;state.notes.forEach(n=>{if(n.type===type&&n.folder===folder){n.folder='';moved++;}});
         if(moved>0)saveNotes();if(state.noteFolder===folder)state.noteFolder='all';renderNotesView();
@@ -3208,7 +3456,7 @@ select{font-family:inherit}
   async function saveNote(){const id=document.getElementById('noteId').value||`note_${Date.now()}`;const type=document.getElementById('noteType').value;const title=document.getElementById('noteTitle').value.trim();const content=document.getElementById('noteContent').value.trim();const folder=document.getElementById('noteFolder').value.trim();if(folder&&!currentFolderList(type).includes(folder)){setFolderList(type,[...currentFolderList(type),folder]);saveFolders();}if(!title&&!content){showToast('請至少填寫標題或內容');return;}const existingIndex=state.notes.findIndex(n=>n.id===id);const newNote={id,type,title,content,folder,createdAt:existingIndex>=0?state.notes[existingIndex].createdAt:Date.now(),updatedAt:Date.now()};if(existingIndex>=0){state.notes[existingIndex]=newNote}else{state.notes.push(newNote)}saveNotes();closeNoteModal();showToast(type==='diary'?'日記已儲存':'筆記已儲存');renderNotesView();}
   async function deleteNote(){
     const id=document.getElementById('noteId').value;if(!id)return;
-    if(!confirm('確定要刪除這則筆記嗎？'))return;
+    if(!(await confirmDelete('確定要刪除這則筆記嗎？',{title:'刪除筆記'})))return;
     if(window.currentUser && typeof window.deleteNoteFromCloud === 'function'){
       try{ await window.deleteNoteFromCloud(id); }catch(e){ console.error(e); }
     }
@@ -3220,6 +3468,8 @@ select{font-family:inherit}
   window.updateTopHeaderVisibility = updateTopHeaderVisibility;
 
   function renderMainView(animationDir){
+    detachWeekSwipe();
+    document.body.dataset.calendarView=state.view;
     updateTopHeaderVisibility();
     if(state.view==='my'){document.getElementById('sidebar').classList.add('hidden');renderMyView();return}
     if(state.view==='my-counter-mode'){document.getElementById('sidebar').classList.add('hidden');renderMyCounterModeView();return}
@@ -3401,11 +3651,11 @@ select{font-family:inherit}
       col.addEventListener('click',e=>{
         if(e.target.closest('.timed-event'))return;
         const rect=col.getBoundingClientRect();
-        const y=e.clientY-rect.top+col.parentElement.parentElement.scrollTop;
-        let h=Math.floor(y/56);
-        let m=Math.floor((y-h*56)/56*60/15)*15;
-        if(h<0)h=0;if(h>23)h=23;if(m<0)m=0;if(m>45)m=45;
-        const d=parseDateKey(col.dataset.date);d.setHours(h,m,0,0);
+        // rect.top already includes vertical scrolling; adding scrollTop again
+        // would select the wrong time after the timeline has scrolled.
+        const y=e.clientY-rect.top;
+        const hourHeight=Number(col.closest('#weekScrollX')?.dataset.hourHeight)||56;
+        const d=weekSlotDate(col.dataset.date,y,hourHeight);
         openEventModal(null,d);
       });
     });
@@ -3442,7 +3692,7 @@ select{font-family:inherit}
   let reminded=loadReminded();
   function sendNotification(title,body){try{if('Notification'in window&&Notification.permission==='granted'){const n=new Notification(title,{body,icon:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%236366f1"/></svg>')});setTimeout(()=>{try{n.close()}catch(e){}},8000);}}catch(e){}}
   window.sendNotification=sendNotification;
-  function checkReminders(){if(!window.state||!Array.isArray(window.state.events))return;if(!('Notification'in window)||Notification.permission!=='granted')return;const now=Date.now();const TOL=300000;const rs=new Date(now);const re=new Date(now+TOL+3600000);const occs=[];window.state.events.forEach(evt=>expandEvent(evt,rs,re,occs));occs.forEach(evt=>{const rm=parseInt(evt.reminder,10);if(isNaN(rm)||rm<=0)return;const st=new Date(evt._occStart).getTime();if(isNaN(st))return;const rt=st-rm*60000;const key=`${evt.id}:${evt._occStart}:${rm}`;if(now>=rt&&now<rt+TOL&&!reminded.has(key)){let label;if(rm>=1440)label=`${Math.round(rm/1440)} 天後`;else if(rm>=60)label=`${Math.round(rm/60)} 小時後`;else label=`${rm} 分鐘後`;const age=getYearsLabel(evt,evt._occStart);sendNotification(`📅 ${evt.title}${age?' · '+age:''}`,`${label}開始${evt.location?' · '+evt.location:''}`);reminded.add(key);saveReminded(reminded);}});}
+  function checkReminders(){if(window.hasAndroidReminders&&window.hasAndroidReminders())return;if(!window.state||!Array.isArray(window.state.events))return;if(!('Notification'in window)||Notification.permission!=='granted')return;const now=Date.now();const TOL=300000;const rs=new Date(now);const re=new Date(now+TOL+3600000);const occs=[];window.state.events.forEach(evt=>expandEvent(evt,rs,re,occs));occs.forEach(evt=>{const rm=parseInt(evt.reminder,10);if(isNaN(rm)||rm<=0)return;const st=new Date(evt._occStart).getTime();if(isNaN(st))return;const rt=st-rm*60000;const key=`${evt.id}:${evt._occStart}:${rm}`;if(now>=rt&&now<rt+TOL&&!reminded.has(key)){let label;if(rm>=1440)label=`${Math.round(rm/1440)} 天後`;else if(rm>=60)label=`${Math.round(rm/60)} 小時後`;else label=`${rm} 分鐘後`;const age=getYearsLabel(evt,evt._occStart);sendNotification(`📅 ${evt.title}${age?' · '+age:''}`,`${label}開始${evt.location?' · '+evt.location:''}`);reminded.add(key);saveReminded(reminded);}});}
   setInterval(checkReminders,30000);setTimeout(checkReminders,5000);
 
   /* ===== ICS ===== */
@@ -3456,7 +3706,7 @@ select{font-family:inherit}
   function formatIcsPreviewDate(evt){const st=new Date(evt.start);const wd=['日','一','二','三','四','五','六'][st.getDay()];const pad=n=>String(n).padStart(2,'0');if(evt.allDay)return`${st.getFullYear()}/${pad(st.getMonth()+1)}/${pad(st.getDate())} 週${wd} · 全天`;return`${st.getFullYear()}/${pad(st.getMonth()+1)}/${pad(st.getDate())} 週${wd} · ${pad(st.getHours())}:${pad(st.getMinutes())}`;}
   function openIcsImportPreview(icsEvents,fileName){state.pendingIcsEvents=icsEvents.map(evt=>({title:evt.title,start:evt.start,end:evt.end,allDay:!!evt.allDay,location:evt.location||'',description:evt.description||'',recurrence:evt.recurrence||null,eventType:evt.eventType||'normal',isLunar:!!evt.isLunar,lunarMonth:evt.lunarMonth||null,lunarDay:evt.lunarDay||null,userCategory:evt.suggestedCategory||state.categories[0].id}));state.pendingIcsFileName=fileName||'未命名.ics';const bs=document.getElementById('bulkCategorySelect');bs.innerHTML=state.categories.map(cat=>`<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');renderIcsPreviewList();document.getElementById('icsImportCount').textContent=`共 ${state.pendingIcsEvents.length} 個日程（${state.pendingIcsFileName}）`;document.getElementById('icsMainPanel').classList.add('hidden');document.getElementById('icsPreviewPanel').classList.remove('hidden');}
   function renderIcsPreviewList(){const list=document.getElementById('icsPreviewList');if(!state.pendingIcsEvents||state.pendingIcsEvents.length===0){list.innerHTML='<div class="text-center py-8 text-ink-400 text-xs">沒有日程</div>';return}list.innerHTML=state.pendingIcsEvents.map((evt,idx)=>{const cat=getCat(evt.userCategory);const r=evt.recurrence?`<span class="text-[10px] text-brand-500">· ↻ 重複</span>`:'';const t=evt.eventType==='birthday'?'🎂':(evt.eventType==='anniversary'?'💝':'');const lunarTag=evt.isLunar?' <span class="text-[10px] text-brand-500">🌙</span>':'';return `<div class="ics-preview-item"><span class="w-1 self-stretch rounded-full shrink-0" style="background:${cat.color}"></span><div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">${t?t+' ':''}${escapeHtml(evt.title)}${lunarTag}</div><div class="text-[10px] text-ink-400 mt-0.5">${formatIcsPreviewDate(evt)} ${r}</div></div><select class="ics-cat-select px-2 py-1.5 text-xs rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950" data-idx="${idx}">${state.categories.map(c=>`<option value="${c.id}" ${c.id===evt.userCategory?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}</select></div>`}).join('');list.querySelectorAll('.ics-cat-select').forEach(sel=>sel.addEventListener('change',e=>{const idx=parseInt(e.target.dataset.idx);state.pendingIcsEvents[idx].userCategory=e.target.value;const cat=getCat(e.target.value);const bar=e.target.closest('.ics-preview-item').querySelector('span');if(bar)bar.style.background=cat.color;}));}
-  async function confirmIcsImport(){if(!state.pendingIcsEvents||state.pendingIcsEvents.length===0)return;const count=state.pendingIcsEvents.length;const fileName=state.pendingIcsFileName||'未命名.ics';const oldEvents = state.events.filter(e => e._icsFile === fileName);if (oldEvents.length > 0) {if (!confirm(`檢測到您之前已經匯入過「${fileName}」，是否要先刪除舊的 ${oldEvents.length} 個事件，然後再匯入新的事件？`)) return;const oldIds = new Set(oldEvents.map(e=>e.id));state.events = state.events.filter(e => !oldIds.has(e.id));}state.pendingIcsEvents.forEach(evt=>{const ne={id:`evt-ics-${Date.now()}-${Math.random().toString(36).substr(2,5)}`,title:evt.title,start:evt.start,end:evt.end,allDay:evt.allDay,category:evt.userCategory||state.categories[0].id,location:evt.location,description:evt.description,reminder:'10',recurrence:evt.recurrence||null,eventType:evt.eventType||'normal',_icsFile:fileName};if(evt.isLunar){ne.isLunar=true;ne.lunarMonth=evt.lunarMonth;ne.lunarDay=evt.lunarDay}ensureCategoryActive(ne.category);state.events.push(ne);});saveEvents();renderAll();showToast(`已成功匯入 ${count} 個日程`);state.pendingIcsEvents=[];closeIcsModal();}
+  async function confirmIcsImport(){if(!state.pendingIcsEvents||state.pendingIcsEvents.length===0)return;const count=state.pendingIcsEvents.length;const fileName=state.pendingIcsFileName||'未命名.ics';const oldEvents = state.events.filter(e => e._icsFile === fileName);if (oldEvents.length > 0) {if (!(await confirmDelete(`檢測到您之前已經匯入過「${fileName}」，是否要先刪除舊的 ${oldEvents.length} 個事件，然後再匯入新的事件？`,{title:'取代已匯入日程',confirmLabel:'刪除並匯入'}))) return;const oldIds = new Set(oldEvents.map(e=>e.id));state.events = state.events.filter(e => !oldIds.has(e.id));}state.pendingIcsEvents.forEach(evt=>{const ne={id:`evt-ics-${Date.now()}-${Math.random().toString(36).substr(2,5)}`,title:evt.title,start:evt.start,end:evt.end,allDay:evt.allDay,category:evt.userCategory||state.categories[0].id,location:evt.location,description:evt.description,reminder:'10',recurrence:evt.recurrence||null,eventType:evt.eventType||'normal',_icsFile:fileName};if(evt.isLunar){ne.isLunar=true;ne.lunarMonth=evt.lunarMonth;ne.lunarDay=evt.lunarDay}ensureCategoryActive(ne.category);state.events.push(ne);});saveEvents();renderAll();showToast(`已成功匯入 ${count} 個日程`);state.pendingIcsEvents=[];closeIcsModal();}
   function closeIcsModal(){const m=document.getElementById('icsModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>{m.classList.add('hidden');document.getElementById('icsMainPanel').classList.remove('hidden');document.getElementById('icsPreviewPanel').classList.add('hidden');state.pendingIcsEvents=[]},200);}
   function renderIcsFileList(){const section=document.getElementById('icsFileListSection');const list=document.getElementById('icsFileList');if(!section||!list)return;const groups={};state.events.forEach(e=>{let name=null;if(e._icsFile)name=e._icsFile;else if(e.id&&String(e.id).startsWith('evt-ics-'))name='__legacy__';if(name){if(!groups[name])groups[name]={count:0,label:name==='__legacy__'?'（早期匯入，無檔名）':name};groups[name].count++;}});const keys=Object.keys(groups);if(keys.length===0){section.classList.add('hidden');return;}section.classList.remove('hidden');list.innerHTML=keys.map(k=>{const g=groups[k];return `<div class="flex items-center justify-between px-3 py-2 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950"><div class="flex items-center gap-2 min-w-0"><i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-500 shrink-0"></i><span class="text-xs font-medium truncate">${escapeHtml(g.label)}</span><span class="text-[10px] text-ink-400 shrink-0">${g.count} 個</span></div><button class="delete-ics-file-btn p-1.5 rounded-lg text-ink-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition" data-file="${escapeHtml(k)}"><i data-lucide="trash-2" class="w-3.5 h-3.5 pointer-events-none"></i></button></div>`;}).join('');lucide.createIcons();list.querySelectorAll('.delete-ics-file-btn').forEach(btn=>{btn.addEventListener('click',()=>deleteIcsFile(btn.dataset.file));});}
   window.renderIcsFileList=renderIcsFileList;
@@ -3468,7 +3718,7 @@ select{font-family:inherit}
     });
     if(targets.length===0){showToast('沒有可刪除的日程');return;}
     const displayName = isLegacy?'（早期匯入，無檔名）':fileName;
-    if(!confirm(`確定要刪除「${displayName}」中的 ${targets.length} 個日程嗎？`)) return;
+    if(!(await confirmDelete(`確定要刪除「${displayName}」中的 ${targets.length} 個日程嗎？`,{title:'刪除已匯入日程'}))) return;
     if(window.currentUser && typeof window.deleteEventFromCloud === 'function'){
       for(const t of targets){
         try{ await window.deleteEventFromCloud(t.id); }catch(e){ console.error(e); }
@@ -3555,9 +3805,7 @@ select{font-family:inherit}
     document.getElementById('eventBirthYearGregorian').addEventListener('input',updateGregorianDayOptions);
     document.getElementById('eventBirthMonthGregorian').addEventListener('change',updateGregorianDayOptions);
     document.querySelectorAll('.bottom-nav-btn').forEach(btn=>{btn.addEventListener('click',()=>{const nav=btn.dataset.nav;if(nav==='tasks'){state.view='tasks';}else if(nav==='notes'){state.view='notes';}else if(nav==='my'){state.view='my';}else if(nav==='month'){state.view='month';}renderAll();});});
-    document.getElementById('todayBtn').addEventListener('click',()=>{if(state.view!=='month'&&state.view!=='week'&&state.view!=='day'&&state.view!=='schedule')state.view='month';state.monthDateSelected=true;state.currentDate=new Date();state.miniDate=new Date();closeDateTools();closeSimpleOverlay('dateCalculatorModal');closeSimpleOverlay('dateIntervalModal');closeJumpDateModal();renderAll();});
-    document.getElementById('prevBtn').addEventListener('click',()=>{if(state.view==='month'){goToPrevMonth();return;}else if(state.view==='week')state.currentDate.setDate(state.currentDate.getDate()-7);else state.currentDate.setDate(state.currentDate.getDate()-1);state.miniDate=new Date(state.currentDate);renderAll();});
-    document.getElementById('nextBtn').addEventListener('click',()=>{if(state.view==='month'){goToNextMonth();return;}else if(state.view==='week')state.currentDate.setDate(state.currentDate.getDate()+7);else state.currentDate.setDate(state.currentDate.getDate()+1);state.miniDate=new Date(state.currentDate);renderAll();});
+    document.getElementById('todayBtn').addEventListener('click',()=>{mobileWeekPosition=null;if(state.view!=='month'&&state.view!=='week'&&state.view!=='day'&&state.view!=='schedule')state.view='month';state.monthDateSelected=true;state.currentDate=new Date();state.miniDate=new Date();closeDateTools();closeSimpleOverlay('dateCalculatorModal');closeSimpleOverlay('dateIntervalModal');closeJumpDateModal();renderAll();});
     document.getElementById('miniPrevBtn').addEventListener('click',()=>{state.miniDate.setMonth(state.miniDate.getMonth()-1);renderMiniCalendar()});
     document.getElementById('miniNextBtn').addEventListener('click',()=>{state.miniDate.setMonth(state.miniDate.getMonth()+1);renderMiniCalendar()});
     document.querySelectorAll('.view-btn').forEach(btn=>btn.addEventListener('click',()=>{state.view=btn.dataset.view;renderAll()}));
@@ -3633,6 +3881,9 @@ select{font-family:inherit}
     const enRem = document.getElementById('enableReminder');
     if (enRem) enRem.addEventListener('change', async function() {
       document.getElementById('reminderSettings').style.display = this.checked ? 'flex' : 'none';
+      if(this.checked && window.hasAndroidReminders&&window.hasAndroidReminders()){
+        await window.configureAndroidReminders();return;
+      }
       if(this.checked && 'Notification' in window && Notification.permission==='default'){
         try{
           const perm=await Notification.requestPermission();
@@ -3776,11 +4027,7 @@ select{font-family:inherit}
     document.getElementById('deleteEventBtn').addEventListener('click',async()=>{
     const id=document.getElementById('eventId').value;if(!id)return;
     const master=state.events.find(x=>x.id===id);
-    if(master&&master.recurrence&&master.recurrence.freq&&master.recurrence.freq!=='none'){
-      if(!confirm('這是重複日程，刪除後整個系列都會被移除。確定嗎？'))return;
-    }else if(master&&(master.eventType==='birthday'||master.eventType==='anniversary')){
-      if(!confirm('這是生日/紀念日，刪除後每年將不再出現。確定嗎？'))return;
-    }
+    if(!(await confirmEventDeletion(master)))return;
     if(window.currentUser && typeof window.deleteEventFromCloud === 'function'){
       try{ await window.deleteEventFromCloud(id); }catch(e){ console.error('云端删除失败:', e); }
     }
@@ -3798,7 +4045,7 @@ select{font-family:inherit}
           state.folders=[...new Set([...state.noteFolders,...state.diaryFolders])];
         }if(data&&(data.counterMode==='up'||data.counterMode==='down'))state.counterMode=data.counterMode;if(data&&data.selectedIdsByMode&&typeof data.selectedIdsByMode==='object')state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(data.selectedIdsByMode);else if(data&&Array.isArray(data.counterSelectedIds)){state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);if(state.counterMode)state.counterSelectedIdsByMode[state.counterMode]=Array.from(new Set(data.counterSelectedIds.map(String)));}state.counterSelectedIds=getCounterSelectedIds(state.counterMode);saveCounterSettings();saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value='';});
     document.getElementById('resetDemoBtn').addEventListener('click',async()=>{
-    if(!confirm('確定要清空所有日程嗎？此操作無法復原。分類會保留。'))return;
+    if(!(await confirmDelete('確定要清空所有日程嗎？此操作無法復原。分類會保留。',{title:'清空日程',confirmLabel:'清空'})))return;
     if(window.currentUser && typeof window.deleteEventFromCloud === 'function'){
       for(const e of state.events){
         try{ await window.deleteEventFromCloud(e.id); }catch(err){ console.error(err); }
@@ -3820,7 +4067,12 @@ select{font-family:inherit}
     document.getElementById('closeViewEventModalBtn').addEventListener('click',closeEventDetailModal);
     document.getElementById('cancelViewEventBtn').addEventListener('click',closeEventDetailModal);
     document.getElementById('viewEventModal').addEventListener('click',(e)=>{if(e.target.id==='viewEventModal')closeEventDetailModal()});
-    window.addEventListener('resize', () => {if (typeof updateTopHeaderVisibility === 'function') updateTopHeaderVisibility();});
+    let desktopLayout=window.innerWidth>=1024,compactWeekLayout=window.innerWidth<768;
+    window.addEventListener('resize', () => {
+      updateTopHeaderVisibility();const next=window.innerWidth>=1024;
+      if(next!==desktopLayout){desktopLayout=next;if(state.view==='day'||state.view==='schedule')renderMainView();}
+      const compact=window.innerWidth<768;if(compact!==compactWeekLayout){compactWeekLayout=compact;if(state.view==='week')renderMainView();}
+    });
 
     attachSwipeNavigation(document.getElementById('calendarViewContainer'), {
       onLeft: function(){ handleSwipe(-1); },
@@ -3878,6 +4130,7 @@ select{font-family:inherit}
       if(window.syncAndroidWidget)setTimeout(()=>window.syncAndroidWidget(),200);
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(getTheme()==='system'){applyTheme();if(window.state&&window.state.view==='my'&&typeof window.renderMyView==='function'){window.renderMyView();}}});
       window.__calendarInitialized=true;
+      window.dispatchEvent(new Event('calendarReady'));
       console.log('[CalendarApp] 初始化完成');
     }catch(err){
       __showCalendarInitError(err,stage);
@@ -4155,6 +4408,7 @@ select{font-family:inherit}
     }
 
     function closeTopOverlay(){
+      if(window.closeDeleteConfirmation&&window.closeDeleteConfirmation(false))return true;
       // 最高層／目前正在操作中的視窗優先關閉，不改變 state.view。
       const icsPreview=document.getElementById('icsPreviewPanel');
       if(visible('icsModal') && icsPreview && !icsPreview.classList.contains('hidden')){
@@ -4294,6 +4548,26 @@ select{font-family:inherit}
     return out;
   }
 
+  function widgetMarkerPriority(evt){
+    const cat=getCat(evt.category),key=`${evt.category||''} ${cat?.name||''}`;
+    if(evt.category===HOLIDAY_CAT_ID||/節假日|节假日|假期|公眾假期|公众假期|holiday/i.test(key))return 6;
+    if(evt.eventType==='birthday'||evt.eventType==='anniversary')return 2;
+    if(/學習|学习|學業|学业|課程|课程|讀書|读书|study|school|education|learning/i.test(key))return 0;
+    if(/工作|職業|职业|work/i.test(key))return 1;
+    if(/生日|紀念|纪念|birthday|anniversary/i.test(key))return 2;
+    if(/聚會|聚会|家庭|party|gather|family/i.test(key))return 3;
+    if(/個人|个人|生活|personal/i.test(key))return 4;
+    return 5;
+  }
+  function widgetMarkerColors(events,tasks=[]){
+    const seen=new Set();
+    return [...events,...tasks.map(t=>({category:t.category||state.categories[0]?.id||'personal'}))]
+      .map((evt,index)=>({evt,index,priority:widgetMarkerPriority(evt)}))
+      .sort((a,b)=>a.priority-b.priority||a.index-b.index)
+      .filter(({evt})=>{const cat=getCat(evt.category),key=String(cat?.id||evt.category||'personal');if(seen.has(key))return false;seen.add(key);return true;})
+      .slice(0,3).map(({evt})=>getCat(evt.category)?.color||'#6366f1');
+  }
+
   function buildMonthData(y,m){
     const fullDays=getMonthGridDays(y,m);
     const firstDay=new Date(y,m,1).getDay();
@@ -4321,11 +4595,7 @@ select{font-family:inherit}
         if(state.categories.some(c=>c.id===catId)&&!state.activeCategories.includes(catId))return false;
         return true;
       });
-      const colors=[];
-      [...dayEvents,...dayTasks.map(t=>({category:t.category}))].forEach(e=>{
-        const c=getCat(e.category);
-        if(c&&c.color&&!colors.includes(c.color)) colors.push(c.color);
-      });
+      const colors=widgetMarkerColors(dayEvents,dayTasks);
       const items=[];
       dayEvents.forEach(e=>{
         const c=getCat(e.category), st=new Date(e._occStart||e.start), et=new Date(e._occEnd||e.end||e._occStart||e.start);
@@ -4470,6 +4740,7 @@ select{font-family:inherit}
   }
 
   window.syncAndroidWidget=function(){
+    if(window.requestAndroidReminderSync)window.requestAndroidReminderSync();
     if(window.__widgetBackgroundSync){
       if(!window.__widgetAuthReady)return;
       if(window.currentUser && !window.__widgetCloudReady)return;
@@ -4508,6 +4779,173 @@ select{font-family:inherit}
 </script>
 
 
+
+<script>
+/* Android reminders are owned by AlarmManager through the installed Capacitor plugin.
+   The browser path remains separate; no background WebView timer is required. */
+(function(){
+  const OWNER='calendar-event-reminder-v1',CHANNEL='calendar_events_v1',MAX_PENDING=450;
+  let timer=null,activeSync=null,dirty=false,listening=false,pendingOpen=null;
+  const status={display:'unknown',exact:'unknown',channelBlocked:false,count:0,through:null,limited:false,error:''};
+  function plugin(){
+    const cap=window.Capacitor;
+    if(!cap||typeof cap.getPlatform!=='function'||cap.getPlatform()!=='android')return null;
+    return cap.Plugins&&cap.Plugins.LocalNotifications||null;
+  }
+  function label(){
+    if(status.error)return '排程失敗，請重試';
+    if(status.display==='unknown')return '檢查中';
+    if(status.display!=='granted')return '未允許通知';
+    if(status.channelBlocked)return '提醒頻道已關閉';
+    if(status.exact!=='granted')return '已開啟，可能延遲';
+    return status.limited?'已開啟，請續排':'已開啟';
+  }
+  function paint(){
+    const el=document.querySelector('#myNotifBtn .native-notif-status');
+    if(el)el.textContent=label();
+    const detail=document.querySelector('#myNotifBtn .native-notif-detail');
+    if(detail){
+      const range=status.through?`；已預排至 ${status.through}`:'';
+      detail.textContent=status.error?'排程未完成，點此重試':status.display!=='granted'?'允許通知後才能在後台提醒':status.channelBlocked?'日程提醒頻道已關閉，點此設定':status.exact!=='granted'?'尚未允許準時提醒，點此設定':`Android 系統提醒${range}${status.limited?'，請在此前開啟 App 續排':''}`;
+    }
+  }
+  async function permissions(){
+    const p=plugin();if(!p)return;
+    const display=await p.checkPermissions();status.display=display.display;
+    const exact=await p.checkExactNotificationSetting();status.exact=exact.exact_alarm;
+    const channels=await p.listChannels();
+    status.channelBlocked=(channels.channels||[]).some(c=>c.id===CHANNEL&&Number(c.importance)===0);
+    paint();
+  }
+  function hashId(key){let hash=2166136261;for(let i=0;i<key.length;i++){hash^=key.charCodeAt(i);hash=Math.imul(hash,16777619);}return 500000000+(hash>>>0)%1000000000;}
+  function buildPlan(events,now=Date.now(),reserved=new Set()){
+    const horizon=new Date(now);horizon.setFullYear(horizon.getFullYear()+1);
+    const valid=events.filter(e=>Number.isFinite(Number(e.reminder))&&Number(e.reminder)>0);
+    const maxLead=valid.reduce((max,e)=>Math.max(max,Number(e.reminder)*60000),0);
+    const occurrences=[];
+    valid.forEach(e=>expandEvent(e,new Date(now),new Date(horizon.getTime()+maxLead),occurrences));
+    const seen=new Set(),items=[];
+    occurrences.forEach(e=>{
+      const start=new Date(e._occStart),rm=Number(e.reminder),at=start.getTime()-rm*60000;
+      if(!Number.isFinite(at)||at<=now||at>horizon.getTime())return;
+      const key=`${e.id}:${start.getTime()}:${rm}`;
+      if(seen.has(key))return;seen.add(key);
+      const age=getYearsLabel(e,e._occStart);
+      const lead=rm>=1440?`${rm/1440} 天`:rm>=60?`${rm/60} 小時`:`${rm} 分鐘`;
+      items.push({key,at,eventId:String(e.id),eventDate:dateKey(start),title:`📅 ${e.title||'未命名日程'}${age?' · '+age:''}`,body:`${lead}後開始${e.location?' · '+e.location:''}`});
+    });
+    items.sort((a,b)=>a.at-b.at||a.key.localeCompare(b.key));
+    const selected=items.slice(0,MAX_PENDING),used=new Set(reserved);
+    selected.forEach(item=>{
+      let id=hashId(item.key);while(used.has(id)){id++;if(id>=1500000000)id=500000000;}
+      used.add(id);item.id=id;
+    });
+    const through=items.length>MAX_PENDING?new Date(items[MAX_PENDING].at-1):horizon;
+    return {items:selected,limited:items.length>MAX_PENDING,through:dateKey(through)};
+  }
+  async function reconcile(){
+    const p=plugin();if(!p||!window.__calendarInitialized)return;
+    if(window.__widgetBackgroundSync&&(!window.__widgetAuthReady||(window.currentUser&&!window.__widgetCloudReady)))return;
+    await permissions();
+    await p.createChannel({id:CHANNEL,name:'日程提醒',description:'你設定的日曆事件提醒',importance:5,visibility:1,vibration:true});
+    const pending=(await p.getPending()).notifications||[];
+    const owned=pending.filter(n=>n.extra&&n.extra.owner===OWNER);
+    const reserved=new Set(pending.filter(n=>!n.extra||n.extra.owner!==OWNER).map(n=>n.id));
+    const plan=buildPlan(window.state.events||[],Date.now(),reserved);
+    const desired=plan.items.map(item=>{
+      const signature=JSON.stringify([item.key,item.title,item.body,status.exact]);
+      return {id:item.id,title:item.title,body:item.body,channelId:CHANNEL,smallIcon:'ic_stat_calendar',iconColor:'#6366f1',
+        isExactNotification:status.exact==='granted',schedule:{at:new Date(item.at),allowWhileIdle:true},
+        extra:{owner:OWNER,key:item.key,signature,eventId:item.eventId,eventDate:item.eventDate}};
+    });
+    const byId=new Map(desired.map(n=>[n.id,n]));
+    const obsolete=owned.filter(n=>!byId.has(n.id)||n.extra.signature!==byId.get(n.id).extra.signature);
+    for(let i=0;i<obsolete.length;i+=50)await p.cancel({notifications:obsolete.slice(i,i+50).map(n=>({id:n.id}))});
+    if(status.display!=='granted'){status.count=0;status.through=null;status.error='';paint();return;}
+    const existing=new Map(owned.filter(n=>!obsolete.includes(n)).map(n=>[n.id,n]));
+    const added=desired.filter(n=>!existing.has(n.id));
+    for(let i=0;i<added.length;i+=25){
+      const batch=added.slice(i,i+25).filter(n=>n.schedule.at.getTime()>Date.now());
+      if(batch.length)await p.schedule({notifications:batch});
+    }
+    Object.assign(status,{count:desired.length,through:plan.through,limited:plan.limited,error:''});
+    paint();
+  }
+  function sync(){
+    if(!plugin())return Promise.resolve();
+    dirty=true;if(activeSync)return activeSync;
+    activeSync=(async()=>{
+      try{while(dirty){dirty=false;await reconcile();}}
+      catch(e){status.error=String(e&&e.message||e);console.error('Android 提醒排程失敗',e);paint();}
+      finally{activeSync=null;}
+    })();
+    return activeSync;
+  }
+  function requestSync(){clearTimeout(timer);timer=setTimeout(sync,200);}
+  async function configure(){
+    const p=plugin();if(!p)return false;
+    try{
+      const result=await p.requestPermissions();status.display=result.display;
+      if(status.display!=='granted'){
+        showToast('尚未允許日曆通知，請在手機設定中開啟');
+        if(window.AndroidCalendarBridge&&window.AndroidCalendarBridge.openNotificationSettings)window.AndroidCalendarBridge.openNotificationSettings();
+        paint();return true;
+      }
+      await permissions();
+      if(status.channelBlocked){
+        showToast('請在手機通知設定中開啟「日程提醒」頻道');
+        if(window.AndroidCalendarBridge&&window.AndroidCalendarBridge.openNotificationSettings)window.AndroidCalendarBridge.openNotificationSettings();
+        return true;
+      }
+      if(status.exact!=='granted'){
+        alert('為了讓日程在鎖屏和後台時準時提醒，請在下一頁允許日曆設定「鬧鐘與提醒」。');
+        await p.changeExactNotificationSetting();
+      }
+      await sync();
+      if(status.error)showToast('提醒排程未完成，請再次點擊重試');
+      else showToast(status.exact==='granted'?'Android 後台提醒已開啟':'已允許通知，但準時提醒尚未授權');
+    }catch(e){status.error=String(e&&e.message||e);showToast('無法設定通知，請重試');paint();}
+    return true;
+  }
+  function openPending(){
+    if(!pendingOpen||!window.__calendarInitialized||typeof window.openAndroidEvent!=='function')return;
+    const data=pendingOpen;pendingOpen=null;window.openAndroidEvent(data.eventId,data.eventDate);
+  }
+  async function init(){
+    const p=plugin();if(!p)return;
+    if(!listening){
+      listening=true;
+      try{await p.addListener('localNotificationActionPerformed',action=>{
+        const extra=action.notification&&action.notification.extra;
+        if(extra&&extra.owner===OWNER){pendingOpen=extra;openPending();}
+      });}catch(e){listening=false;console.warn('通知點擊監聽失敗',e);}
+    }
+    openPending();requestSync();
+  }
+  window.hasAndroidReminders=()=>!!plugin();
+  window.getAndroidReminderLabel=label;
+  window.refreshAndroidReminderStatus=async()=>{if(plugin()){try{await permissions();}catch(e){status.error=String(e);paint();}}};
+  window.configureAndroidReminders=configure;
+  window.syncAndroidReminders=sync;
+  window.requestAndroidReminderSync=requestSync;
+  // Exposed pure builder also makes date/recurrence behavior independently verifiable.
+  window.buildAndroidReminderPlan=buildPlan;
+  document.addEventListener('DOMContentLoaded',()=>{init();setTimeout(()=>{openPending();requestSync();},1500);});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){openPending();requestSync();}});
+  window.addEventListener('focus',()=>{openPending();requestSync();});
+  document.addEventListener('resume',()=>{openPending();requestSync();});
+  window.addEventListener('calendarReady',()=>{openPending();requestSync();});
+})();
+
+</script>
+<div id="deleteConfirmOverlay" hidden>
+  <section class="delete-confirm-card" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmMessage">
+    <span class="delete-confirm-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M5 6l1 14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1l1-14M10 10v7M14 10v7"/></svg></span>
+    <h2 id="deleteConfirmTitle">確認刪除</h2>
+    <p id="deleteConfirmMessage"></p>
+    <div class="delete-confirm-actions"><button type="button" id="deleteConfirmCancel">取消</button><button type="button" id="deleteConfirmAccept">刪除</button></div>
+  </section>
+</div>
 
 </body>
 </html>
