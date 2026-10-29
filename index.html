@@ -405,7 +405,7 @@
 <style>.agenda-page{height:100%;min-height:0;display:flex;flex-direction:column;width:100%;max-width:1480px;margin:auto;padding:24px 32px 0;box-sizing:border-box}
 .agenda-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:20px;flex:none}.agenda-heading h3{font-size:24px;font-weight:800}.agenda-heading>span{font-size:12px;color:#94a3b8}
 .agenda-scroll{flex:1;min-height:0;overflow-y:auto;overflow-anchor:none;padding-bottom:24px}
-.agenda-day{display:grid;grid-template-columns:100px minmax(0,1fr);gap:24px;border-top:1px solid #94a3b822;padding:24px 0}
+.agenda-day{display:grid;grid-template-columns:100px minmax(0,1fr);gap:24px;padding:24px 0}
 .agenda-date{display:flex;flex-direction:column;align-items:flex-start;align-self:start;text-align:left;gap:3px;color:#64748b;cursor:pointer}.agenda-date small{font-size:10px}.agenda-date>span{font-size:12px}.agenda-date strong{font-size:32px;line-height:1.3;color:#273449;font-weight:800}.agenda-date em{font-size:11px;font-style:normal;color:#94a3b8}.agenda-date.is-today strong{color:#7160db}.agenda-date.is-holiday strong{color:#e11d48}
 .agenda-day-events{min-width:0;display:flex;flex-direction:column;gap:12px;position:relative}
 .agenda-card{box-sizing:border-box;min-width:0;border:1px solid #94a3b824;border-left:3px solid var(--c);border-radius:12px;background:color-mix(in srgb,var(--c) 7%,white);padding:16px 18px;cursor:pointer;overflow:hidden}
@@ -442,13 +442,41 @@
 <style>body[data-calendar-view="week"] #calendarViewContainer,body[data-calendar-view="schedule"] #calendarViewContainer{overflow:hidden}@media(max-width:767px){body[data-calendar-view="week"] #calendarViewContainer{scrollbar-width:none}body[data-calendar-view="week"] #calendarViewContainer::-webkit-scrollbar{display:none}}</style>
 <style>
 #eventTypeGroup{grid-template-columns:repeat(3,minmax(0,1fr))!important}
-.counter-editor-row{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-top:1px solid #94a3b826;font-size:14px;font-weight:600;text-align:left;background:transparent}.counter-editor-row>span:last-child{font-size:12px;font-weight:400;color:#94a3b8}
+
 .counter-page{height:100%;overflow-y:auto;width:100%;max-width:1100px;margin:auto;padding:24px;box-sizing:border-box}.counter-page-header{display:flex;align-items:center;gap:12px;margin-bottom:24px}.counter-page-header h2{font-size:24px;font-weight:800}.counter-page-header>button:first-child{font-size:30px;width:30px;line-height:36px}.counter-add-button{margin-left:auto;color:#7861d6;border:1px solid #b4a6ec;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600}.counter-tabs{display:flex;background:#94a3b811;border-radius:12px;padding:4px;margin-bottom:20px}.counter-tabs button{flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:9px;color:#758195}.counter-tabs button.active{background:#8267db;color:white}.counter-result-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.counter-result-card{display:flex;align-items:center;gap:12px;padding:18px;text-align:left;width:100%;min-width:0;border:1px solid #94a3b828;border-radius:14px;background:white;box-shadow:0 3px 10px #1e293b04}.counter-result-card:hover{border-color:#b7a9ec}.counter-category-dot{width:9px;height:9px;border-radius:50%;flex:none}.counter-result-title{flex:1;min-width:0}.counter-result-title strong{display:block;font-size:14px;overflow-wrap:anywhere}.counter-result-title small{display:block;font-size:11px;color:#94a3b8;margin-top:6px}.counter-result-value{font-size:17px;font-weight:750;color:#7861d6;white-space:nowrap}.is-down{color:#e11d48!important}.counter-result-card>span:last-child{font-size:22px;color:#94a3b8}.counter-page-hint{font-size:11px;color:#94a3b8;text-align:center;margin-top:24px}.counter-past-link{display:block;margin:20px 0 0 auto;font-size:12px;color:#8792a5}.counter-empty{padding:40px 12px;text-align:center;font-size:13px;color:#94a3b8;grid-column:1/-1}
 #counterSheet{padding:0;border:1px solid #94a3b828;border-radius:22px;background:#fff;color:#253247;width:min(520px,calc(100% - 32px));max-height:85dvh;overflow:hidden;margin:auto;box-shadow:0 20px 70px #18233c30}#counterSheet::backdrop{background:#10182766;backdrop-filter:blur(3px)}#counterSheet[open]{display:flex;flex-direction:column}#counterSheet header{display:flex;align-items:center;justify-content:space-between;padding:22px 22px 10px;flex:none}#counterSheet h3{font-size:20px;font-weight:800}#counterSheet header button{font-size:26px;color:#8792a5;line-height:30px;width:32px}#counterSheet .counter-sheet-body{min-height:0;overflow:auto;padding:0 22px 18px}#counterSheet footer{padding:16px 22px;border-top:1px solid #94a3b822;display:flex;align-items:center;gap:16px;flex:none}#counterSheet footer>span{font-size:12px;color:#94a3b8;white-space:nowrap}.counter-primary{background:#8267db;color:white;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:700;flex:1}.counter-primary:disabled{opacity:.45;cursor:default}.counter-sheet-hint{font-size:12px;color:#8792a5;margin-bottom:18px}.counter-mode-choice{display:flex;align-items:center;gap:12px;padding:16px 0;cursor:pointer}.counter-mode-choice strong,.counter-add-row strong{display:block;font-size:14px;font-weight:650}.counter-mode-choice small,.counter-add-row small{display:block;font-size:11px;color:#8792a5;margin-top:5px}.counter-mode-choice input,.counter-add-row input{width:19px;height:19px;accent-color:#8267db;flex:none}.counter-mode-preview,.counter-detail-box{padding:16px;background:#8b73df0e;border-radius:12px;margin-top:16px}.counter-mode-preview small{font-size:11px;color:#8d7ac9}.counter-mode-preview strong{display:block;font-size:14px;margin-top:6px}.counter-mode-preview p,.counter-detail-box p{font-size:19px;font-weight:750;color:#8267db;margin-top:8px}.counter-detail-box>div{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px}.counter-detail-box button{color:#8267db;font-size:12px}.counter-search{width:100%;border:1px solid #94a3b835;border-radius:10px;padding:11px 12px;font-size:13px;margin-bottom:12px;background:transparent}.counter-add-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #94a3b81c;cursor:pointer}.counter-add-row>span{flex:1;min-width:0;overflow-wrap:anywhere}.counter-add-row em{font-size:10px;font-style:normal;color:#8792a5;background:#94a3b812;padding:5px 7px;border-radius:6px}.counter-add-row.already-added{opacity:.65;cursor:default}
 .dark #counterSheet{background:#151e2d;color:#e2e8f0}.dark .counter-result-card{background:#151e2d}.counter-result-card:focus-visible,.counter-editor-row:focus-visible{outline:2px solid #9c85e7;outline-offset:2px}
 @media(max-width:767px){.counter-page{padding:20px 16px}.counter-page-header h2{font-size:22px}.counter-result-list{grid-template-columns:minmax(0,1fr)}.counter-result-card{padding:16px 14px}.counter-result-value{font-size:16px}#counterSheet{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:85dvh}#counterSheet footer{padding-bottom:calc(16px + env(safe-area-inset-bottom))}}
 </style>
 <style>.agenda-load-older{display:block;margin:0 auto 16px;padding:8px 16px;color:#8c7aca;font-size:12px}.agenda-load-older[hidden]{display:none}body[data-calendar-view="week"] #currentDateTitle{font-size:clamp(14px,3.5vw,20px);overflow-wrap:anywhere}</style>
+<style>
+
+#eventModal .counter-editor-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:64px;padding:12px 4px;border:0;border-bottom:1px solid var(--ed-line);border-radius:0;font-size:16px;font-weight:400;text-align:left;color:var(--ed-text);background:transparent}
+#eventModal .counter-editor-label{display:flex;align-items:center;gap:14px;min-width:0}
+#eventModal .counter-editor-label>svg{width:20px;height:20px;flex:none;color:#686d74}
+#eventModal .counter-editor-value{display:flex;align-items:center;gap:8px;color:var(--ed-sub);font-size:15px;font-weight:400;white-space:nowrap}
+#eventModal .counter-editor-value>svg{width:16px;height:16px;flex:none}
+#eventModal .event-editor-footer[hidden]{display:none!important}
+.desktop-week-grid{display:grid;grid-template-columns:40px repeat(7,minmax(0,1fr));box-sizing:border-box;min-width:0;width:100%}
+.desktop-week-grid>*{min-width:0}
+.desktop-week-header,.desktop-week-allday{padding-right:var(--desktop-week-scrollbar,0px)}
+.desktop-week-number{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px;font-weight:500;color:#94a3b8;padding:6px 0}
+.desktop-week-number strong{font-size:14px;font-weight:650}
+</style>
+<style>
+/* Cover every nested scroll surface, including dialogs, inputs and textareas.
+   Do not change overflow/touch-action: scrolling remains available. */
+@media(max-width:767px),(pointer:coarse){
+ html,body,*,*::before,*::after{scrollbar-width:none!important;scrollbar-gutter:auto!important;-ms-overflow-style:none!important}
+ ::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+}
+html[data-native-app="true"],html[data-native-app="true"] *{scrollbar-width:none!important;scrollbar-gutter:auto!important;-ms-overflow-style:none!important}
+html[data-native-app="true"] ::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+html[data-follow-phone-font="true"] body,html[data-follow-phone-font="true"] body *{font-family:sans-serif!important}
+.phone-font-switch{width:36px;height:22px;flex:none;border-radius:20px;background:#d1d5db;position:relative;transition:background .15s}
+.phone-font-switch::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 1px 3px #0002;transition:transform .15s}
+[aria-checked="true"] .phone-font-switch{background:#8267db}[aria-checked="true"] .phone-font-switch::after{transform:translateX(14px)}
+</style>
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
 
@@ -803,7 +831,7 @@
 </div>
 </div>
 </div>
-<button type="button" id="eventCounterBtn" class="counter-editor-row"><span>事件計日</span><span><span id="eventCounterSummary">未加入</span> ›</span></button>
+<button type="button" id="eventCounterBtn" class="counter-editor-row"><span class="counter-editor-label"><i data-lucide="hourglass" aria-hidden="true"></i><span>事件計日</span></span><span class="counter-editor-value"><span id="eventCounterSummary">未加入</span><i data-lucide="chevron-right" aria-hidden="true"></i></span></button>
 <!-- 地点、备注（特殊事件隐藏） -->
 <div class="editor-detail-row" id="locationWrapper">
 <label class="block text-[11px] font-bold text-ink-500 uppercase tracking-widest mb-1.5"><i aria-hidden="true" data-lucide="map-pin"></i>地點</label>
@@ -817,9 +845,7 @@
 </div>
 </div><div class="event-editor-footer">
 <button class="px-3.5 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition hidden" id="deleteEventBtn" type="button"><i class="w-4 h-4 inline -mt-0.5 mr-1" data-lucide="trash-2"></i>刪除</button>
-<div class="flex space-x-2 ml-auto">
-<button class="px-4 py-2 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 rounded-xl transition" id="cancelModalBtn" type="button">取消</button>
-</div>
+
 </div></form>
 </div>
 </div>
@@ -1176,6 +1202,21 @@ select{font-family:inherit}
   }
   function getWeekNumber(d){const s=new Date(d.getFullYear(),0,1);const days=Math.floor((d-s)/86400000);return Math.ceil((days+s.getDay()+1)/7);}
   function getLunarBirthdaySolarDate(lunarMonth,lunarDay,year){if(typeof Lunar==='undefined')return null;try{const lunar=Lunar.fromYmd(year,lunarMonth,lunarDay);const solar=lunar.getSolar();return new Date(solar.getYear(),solar.getMonth()-1,solar.getDay());}catch(e){return null;}}
+  const PHONE_FONT_KEY='calendar_follow_phone_font_v1';
+  function followsPhoneFont(){try{return localStorage.getItem(PHONE_FONT_KEY)==='true';}catch(e){return false;}}
+  function applyPhoneFont(){
+    const enabled=followsPhoneFont();
+    document.documentElement.dataset.followPhoneFont=String(enabled);
+    if(window.AndroidAppearance){
+      document.documentElement.dataset.nativeApp='true';
+      try{window.AndroidAppearance.setFollowPhoneFont(enabled);}catch(e){}
+    }
+  }
+  function setFollowPhoneFont(enabled){
+    try{localStorage.setItem(PHONE_FONT_KEY,String(!!enabled));}catch(e){}
+    applyPhoneFont();
+  }
+
   function getTheme(){try{return localStorage.getItem('calendar_theme_v1')||'system';}catch(e){return 'system';}}
   function setTheme(theme){try{localStorage.setItem('calendar_theme_v1',theme);}catch(e){}applyTheme();}
   function applyTheme(){const theme=getTheme();const isDark=theme==='dark'||(theme==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(isDark)document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');}
@@ -2508,9 +2549,16 @@ select{font-family:inherit}
     }).join('');
     const gridBg=`background-image:repeating-linear-gradient(to bottom, transparent 0px, transparent ${HOUR_H-1}px, rgba(148,163,184,.18) ${HOUR_H-1}px, rgba(148,163,184,.18) ${HOUR_H}px);`;
     // 手機：橫向可滾動容器，內層 min-width 660px 保證每欄有足夠寬度；電腦：佔滿寬度
-    let html=`<div id="weekScrollX" class="h-full overflow-x-auto overflow-y-hidden anim-in week-scroll-x"><div class="h-full flex flex-col" style="min-width:max(100%,660px);"><div class="grid grid-cols-[40px_repeat(7,1fr)] border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center text-[11px] font-bold shrink-0"><div class="text-ink-400 py-2 flex items-center justify-center">時間</div>${headerHtml}</div><div class="grid grid-cols-[40px_repeat(7,1fr)] border-b-2 border-ink-200/70 dark:border-ink-800/70 bg-ink-50/30 dark:bg-ink-900/20 shrink-0"><div class="text-[10px] text-ink-400 p-1.5 text-center border-r border-ink-200/70 dark:border-ink-800/70 leading-tight flex items-center justify-center">全日</div>${allDayRow}</div><div class="flex-1 overflow-y-auto relative"><div class="grid grid-cols-[40px_repeat(7,1fr)]" style="${gridBg}"><div>${timeLabelsHtml}</div>${colsHtml}</div></div></div></div>`;
+    let html=`<div id="weekScrollX" class="h-full overflow-x-auto overflow-y-hidden anim-in week-scroll-x desktop-week-view"><div class="h-full flex flex-col" style="min-width:max(100%,660px);"><div class="desktop-week-grid desktop-week-header border-b border-ink-200/70 dark:border-ink-800/70 bg-ink-50/60 dark:bg-ink-900/40 text-center text-[11px] font-bold shrink-0"><div class="desktop-week-number"><span>週</span><strong>${getWeekNumber(weekStart)}</strong></div>${headerHtml}</div><div class="desktop-week-grid desktop-week-allday border-b-2 border-ink-200/70 dark:border-ink-800/70 bg-ink-50/30 dark:bg-ink-900/20 shrink-0"><div class="text-[10px] text-ink-400 p-1.5 text-center border-r border-ink-200/70 dark:border-ink-800/70 leading-tight flex items-center justify-center">全日</div>${allDayRow}</div><div id="desktopWeekTimeline" class="flex-1 min-h-0 overflow-y-auto relative"><div class="desktop-week-grid desktop-week-time-grid" style="${gridBg}"><div>${timeLabelsHtml}</div>${colsHtml}</div></div></div></div>`;
     c.innerHTML=html;
     attachWeekEdgeSwipe();
+    const surface=document.getElementById('weekScrollX'),timeline=document.getElementById('desktopWeekTimeline');
+    const align=()=>surface.style.setProperty('--desktop-week-scrollbar',`${Math.max(0,timeline.offsetWidth-timeline.clientWidth)}px`);
+    align();
+    if(typeof ResizeObserver!=='undefined'){
+      const observer=new ResizeObserver(align);observer.observe(timeline);
+      const cleanup=weekGestureCleanup;weekGestureCleanup=()=>{observer.disconnect();if(cleanup)cleanup();};
+    }
   }
 
   function desktopCalendarCard(evt,day){
@@ -3293,6 +3341,7 @@ select{font-family:inherit}
       <div class="flex items-center gap-3 mb-6"><button id="mySettingsBackBtn" class="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><div><h2 class="text-2xl font-extrabold tracking-tight">設定</h2><p class="text-[11px] text-ink-400 mt-0.5">管理日曆與應用程式設定</p></div></div>
       <div class="space-y-3">
         <button id="myThemeBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300"><i data-lucide="${themeIcon}" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">外觀</span><span class="block text-[10px] text-ink-400 mt-0.5">${themeLabel}</span></span></span><span class="text-xs text-ink-400">${themeStatusText}</span></button>
+        <button id="myPhoneFontBtn" type="button" role="switch" aria-checked="${followsPhoneFont()}" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left gap-3"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-300"><i data-lucide="type" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">跟隨手機字體</span><span class="block text-[10px] text-ink-400 mt-0.5">使用系統字型與字體大小</span></span></span><span class="phone-font-switch" aria-hidden="true"></span></button>
         <button id="myNotifBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">通知提醒</span><span class="block text-[10px] text-ink-400 mt-0.5 native-notif-detail">${nativeNotif?'Android 系統後台提醒':'日程提醒與瀏覽器通知'}</span></span></span><span class="text-xs text-ink-400 native-notif-status">${notifLabel}</span></button>
         <button id="myDataBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="database" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">資料備份與還原</span><span class="block text-[10px] text-ink-400 mt-0.5">匯出、匯入與資料管理</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
         <button id="myIcsBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-down" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">ICS 匯入匯出</span><span class="block text-[10px] text-ink-400 mt-0.5">與其他日曆交換資料</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
@@ -3303,6 +3352,7 @@ select{font-family:inherit}
     c.innerHTML=html;lucide.createIcons();
     document.getElementById('mySettingsBackBtn').addEventListener('click',()=>{state.view='my';renderAll();});
     document.getElementById('myThemeBtn').addEventListener('click',()=>{const current=getTheme();let next='system';if(current==='system')next='light';else if(current==='light')next='dark';else next='system';setTheme(next);renderMySettingsView();});
+    document.getElementById('myPhoneFontBtn').addEventListener('click',()=>{setFollowPhoneFont(!followsPhoneFont());renderMySettingsView();});
     if(nativeNotif)window.refreshAndroidReminderStatus();
     document.getElementById('myNotifBtn').addEventListener('click',async()=>{if(nativeNotif){await window.configureAndroidReminders();return;}if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}if(Notification.permission==='denied'){alert('通知已被封鎖。請到瀏覽器設定允許。');return}const perm=await Notification.requestPermission();if(perm==='granted')showToast('通知已開啟 ✓');else showToast('未開啟通知');renderMySettingsView();});
     document.getElementById('myDataBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.remove('hidden');});
@@ -3651,6 +3701,8 @@ select{font-family:inherit}
 
   function renderAll(){updateHeaderInfo();document.querySelectorAll('.view-btn').forEach(btn=>{if(btn.dataset.view===state.view)btn.className='view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm font-bold';else btn.className='view-btn px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition hover:text-ink-900 dark:hover:text-white';});renderMiniCalendar();renderStats();renderMainView();updateBottomNavHighlight();}
   window.renderAll=renderAll;
+  window.addEventListener('focus',applyPhoneFont);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)applyPhoneFont();});
   function updateBottomNavHighlight(){document.querySelectorAll('.bottom-nav-btn').forEach(btn=>{const nav=btn.dataset.nav;let isActive=false;if(nav==='month'&&(state.view==='month'||state.view==='week'||state.view==='day'||state.view==='schedule'))isActive=true;else if(nav==='my'&&(state.view==='my'||state.view==='my-settings'||state.view==='my-categories'||state.view==='my-counter-mode'||state.view==='my-counter-select'||state.view==='my-counter-results'||state.view==='my-counter-past'))isActive=true;else if((nav==='tasks'||nav==='notes')&&state.view===nav)isActive=true;if(isActive){btn.className='bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-brand-600 transition-colors';}else{btn.className='bottom-nav-btn flex flex-col items-center justify-center space-y-1 w-full h-full text-ink-500 dark:text-ink-400 transition-colors';}});}
 
   function openEventModal(eventObj=null,defaultDate=null,preserveTime=false){
@@ -3665,6 +3717,7 @@ select{font-family:inherit}
     const typeEl=document.getElementById('eventType');
     const lunar=document.getElementById('eventIsLunar');
     if(!modal||!form||!title)return;
+    const footer=modal.querySelector('.event-editor-footer');if(footer)footer.hidden=!eventObj;
 
     if(category){
       if(eventObj && (eventObj.eventType==='birthday'||eventObj.eventType==='anniversary')) ensureAnniversaryCategory();
@@ -3973,7 +4026,6 @@ select{font-family:inherit}
     document.querySelectorAll('.view-btn').forEach(btn=>btn.addEventListener('click',()=>{if(btn.dataset.view==='schedule')agendaPosition=null;state.view=btn.dataset.view;renderAll()}));
     document.getElementById('addEventBtn').addEventListener('click',()=>openEventModal());
     document.getElementById('closeModalBtn').addEventListener('click',closeEventModal);
-    document.getElementById('cancelModalBtn').addEventListener('click',closeEventModal);
     document.getElementById('addCategoryBtn').addEventListener('click',()=>openCategoryModal(null));
     document.getElementById('closeCategoryModalBtn').addEventListener('click',closeCategoryModal);
     document.getElementById('cancelCategoryBtn').addEventListener('click',closeCategoryModal);
@@ -4261,7 +4313,7 @@ select{font-family:inherit}
     var stage='start';
     try{
       stage='theme';
-      applyTheme();
+      applyTheme();applyPhoneFont();
       updateFavicon();
       setInterval(()=>{const today=new Date().getDate();if(today!==window._lastFaviconDay){window._lastFaviconDay=today;updateFavicon();}},60000);
       window._lastFaviconDay=new Date().getDate();
