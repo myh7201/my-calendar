@@ -1750,6 +1750,7 @@ select{font-family:inherit}
     });
     return out;
   }
+  function isRedCalendarDate(date){return date.getDay()===0||hasHolidayEvent(date);}
   function hasHolidayEvent(date){const ds=new Date(date);ds.setHours(0,0,0,0);const de=new Date(date);de.setHours(23,59,59,999);for(const e of state.events){if(!e||e.category!==HOLIDAY_CAT_ID)continue;const out=[];expandEvent(e,ds,de,out);if(out.length)return true;}return false;}
   function updateRepeatUI(){const freq=document.getElementById('eventRepeat').value;const iw=document.getElementById('repeatIntervalWrap');const uw=document.getElementById('repeatUntilWrap');const unit=document.getElementById('repeatIntervalUnit');const isRepeat=freq!=='none';uw.style.display=isRepeat?'':'none';if(!isRepeat){iw.style.display='none';return}if(freq==='weekdays'){iw.style.display='none';return}iw.style.display='flex';unit.textContent={daily:'天',weekly:'週',monthly:'個月',yearly:'年'}[freq]||'天';if(typeof lucide!=='undefined')lucide.createIcons();}
   function readRecurrenceFromForm(){const freq=document.getElementById('eventRepeat').value;if(freq==='none')return null;const interval=Math.max(1,parseInt(document.getElementById('eventRepeatInterval').value,10)||1);const until=document.getElementById('eventRepeatUntil').value||null;return {freq,interval:(freq==='weekdays'?1:interval),until};}
@@ -2072,6 +2073,7 @@ select{font-family:inherit}
     state.drawerDate = date;
     const wd = ['日','一','二','三','四','五','六'][date.getDay()];
     const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+    document.getElementById('drawerDateTitle').classList.toggle('calendar-red-date',isRedCalendarDate(date));
     document.getElementById('drawerDateTitle').textContent = `${y}年${m}月${d}日 週${wd}`;
     const drawerOffsetEl = document.getElementById('drawerDateOffset');
     if (drawerOffsetEl) drawerOffsetEl.textContent = getDayOffsetText(date);
@@ -2241,7 +2243,7 @@ select{font-family:inherit}
   function renderPalette(){const p=document.getElementById('colorPalette');p.innerHTML=COLOR_PALETTE.map(c=>`<button type="button" class="color-swatch ${c===newCatColor?'on':''}" style="background:${c}; color:${c}" data-color="${c}"></button>`).join('');p.querySelectorAll('.color-swatch').forEach(b=>b.addEventListener('click',()=>{newCatColor=b.dataset.color;renderPalette()}))}
   function saveCategory(){const nameEl=document.getElementById('newCatName');const name=nameEl.value.trim();if(!name){showToast('請輸入分類名稱');nameEl.focus();return}const dup=state.categories.some(c=>c.name===name&&c.id!==editingCategoryId);if(dup){showToast('已有同名分類');nameEl.focus();return}if(editingCategoryId){const cat=state.categories.find(c=>c.id===editingCategoryId);if(!cat)return;cat.name=name;cat.color=newCatColor;saveCategories();renderCategories();renderAll();closeCategoryModal();showToast('分類已更新');}else{const id='cat_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);state.categories.push({id,name,color:newCatColor});state.activeCategories.push(id);saveCategories();saveActiveCats();renderCategories();renderAll();closeCategoryModal();showToast('已新增分類');}}
 
-  function renderMiniCalendar(){const y=state.miniDate.getFullYear(),m=state.miniDate.getMonth();document.getElementById('miniMonthTitle').textContent=`${y}年 ${m+1}月`;const days=getMonthGridDays(y,m);const today=new Date();const grid=document.getElementById('miniCalendarGrid');grid.innerHTML=days.slice(0,35).map(item=>{const isToday=isSameDay(item.date,today);const isSel=state.monthDateSelected!==false&&isSameDay(item.date,state.currentDate);const isHoliday=hasHolidayEvent(item.date);let eventColors=[];if(item.isCurrentMonth){const ds=new Date(item.date);ds.setHours(0,0,0,0);const de=new Date(item.date);de.setHours(23,59,59,999);const dayEvents=getOccurrencesInRange(ds,de);eventColors=[...new Set(dayEvents.map(e=>getCat(e.category).color))].slice(0,3);}let cls='py-1 rounded-lg transition text-[11px] cursor-pointer font-medium flex flex-col items-center justify-center leading-none ';if(isSel)cls+='bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white font-bold shadow-glow';else if(isToday)cls+='bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300 font-bold';else if(!item.isCurrentMonth)cls+='text-ink-300 dark:text-ink-600';else if(isHoliday)cls+='text-rose-600 dark:text-rose-400 font-bold';else cls+='text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800';let barsHtml='';if(eventColors.length>0){barsHtml=`<div class="flex justify-center gap-[2px] mt-[2px] w-full h-[3px]">`;eventColors.forEach(c=>{barsHtml+=`<span class="w-1.5 h-[3px] rounded-full" style="background:${c}"></span>`;});barsHtml+=`</div>`;}else{barsHtml=`<div class="h-[3px] mt-[2px]"></div>`;}return `<button class="mini-day-btn ${cls}" data-date="${dateKey(item.date)}"><span>${item.date.getDate()}</span>${barsHtml}</button>`;}).join('');document.querySelectorAll('.mini-day-btn').forEach(btn=>btn.addEventListener('click',()=>{state.monthDateSelected=true;state.currentDate=parseDateKey(btn.dataset.date);state.miniDate=parseDateKey(btn.dataset.date);renderAll()}));}
+  function renderMiniCalendar(){const y=state.miniDate.getFullYear(),m=state.miniDate.getMonth();document.getElementById('miniMonthTitle').textContent=`${y}年 ${m+1}月`;const days=getMonthGridDays(y,m);const today=new Date();const grid=document.getElementById('miniCalendarGrid');grid.innerHTML=days.slice(0,35).map(item=>{const isToday=isSameDay(item.date,today);const isSel=state.monthDateSelected!==false&&isSameDay(item.date,state.currentDate);const isRedDate=isRedCalendarDate(item.date);let eventColors=[];if(item.isCurrentMonth){const ds=new Date(item.date);ds.setHours(0,0,0,0);const de=new Date(item.date);de.setHours(23,59,59,999);const dayEvents=getOccurrencesInRange(ds,de);eventColors=[...new Set(dayEvents.map(e=>getCat(e.category).color))].slice(0,3);}let cls='py-1 rounded-lg transition text-[11px] cursor-pointer font-medium flex flex-col items-center justify-center leading-none ';if(isRedDate&&(isSel||isToday))cls+='bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 font-bold';else if(isSel)cls+='bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white font-bold shadow-glow';else if(isToday)cls+='bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300 font-bold';else if(isRedDate)cls+=item.isCurrentMonth?'text-rose-600 dark:text-rose-400 font-bold':'text-rose-300 dark:text-rose-500';else if(!item.isCurrentMonth)cls+='text-ink-300 dark:text-ink-600';else cls+='text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800';let barsHtml='';if(eventColors.length>0){barsHtml=`<div class="flex justify-center gap-[2px] mt-[2px] w-full h-[3px]">`;eventColors.forEach(c=>{barsHtml+=`<span class="w-1.5 h-[3px] rounded-full" style="background:${c}"></span>`;});barsHtml+=`</div>`;}else{barsHtml=`<div class="h-[3px] mt-[2px]"></div>`;}return `<button class="mini-day-btn ${cls}" data-date="${dateKey(item.date)}"><span>${item.date.getDate()}</span>${barsHtml}</button>`;}).join('');document.querySelectorAll('.mini-day-btn').forEach(btn=>btn.addEventListener('click',()=>{state.monthDateSelected=true;state.currentDate=parseDateKey(btn.dataset.date);state.miniDate=parseDateKey(btn.dataset.date);renderAll()}));}
   function renderStats(){const y=state.currentDate.getFullYear(),m=state.currentDate.getMonth();const today=new Date();const ms=new Date(y,m,1),me=new Date(y,m+1,0,23,59,59,999);const mc=getOccurrencesInRange(ms,me).length;const ts=new Date(today);ts.setHours(0,0,0,0);const te=new Date(today);te.setHours(23,59,59,999);const tc=getOccurrencesInRange(ts,te).length;document.getElementById('statMonthCount').textContent=mc;document.getElementById('statTodayCount').textContent=tc;}
   function navigateMonthSelection(date,delta,today=new Date()){
     const target=new Date(date.getFullYear(),date.getMonth()+delta,1);
@@ -2319,12 +2321,12 @@ select{font-family:inherit}
     });
 
     const sub=getDaySubText(item.date);
-    const isHoliday=hasHolidayEvent(item.date);
+    const isRedDate=isRedCalendarDate(item.date);
 
     /*
      * 日期顏色／圓圈
      *
-     * 節假日 + 今天／選中
+     * 星期日／節假日 + 今天／選中
      * → 紅色圓圈
      *
      * 普通選中
@@ -2333,12 +2335,12 @@ select{font-family:inherit}
      * 普通今天
      * → 藍色圓圈
      *
-     * 節假日但沒有選中
+     * 星期日／節假日但沒有選中
      * → 紅色文字
      */
     let numClass='text-xs font-semibold ';
 
-    if(isHoliday&&item.isCurrentMonth&&(isSelected||isToday))
+    if(isRedDate&&(isSelected||isToday))
       numClass+='day-circle w-5 h-5 md:w-5 md:h-5 rounded-full bg-rose-500 text-white flex items-center justify-center';
 
     else if(isSelected&&!isToday)
@@ -2347,8 +2349,11 @@ select{font-family:inherit}
     else if(isToday)
       numClass+='day-circle w-5 h-5 md:w-5 md:h-5 rounded-full bg-blue-600 text-white flex items-center justify-center';
 
-    else if(isHoliday&&item.isCurrentMonth)
+    else if(isRedDate&&item.isCurrentMonth)
       numClass+='text-rose-600 dark:text-rose-400 font-extrabold';
+
+    else if(isRedDate)
+      numClass+='text-rose-300 dark:text-rose-500';
 
     else if(item.isCurrentMonth)
       numClass+='text-ink-700 dark:text-ink-200';
@@ -2462,7 +2467,7 @@ select{font-family:inherit}
       return {allDay:items.filter(e=>e.allDay),timed:mobileWeekOverlapLayout(items.filter(e=>!e.allDay).map(e=>({...e,_sourceOccStart:e._occStart,_occStart:new Date(Math.max(new Date(e._occStart).getTime(),start.getTime())),_occEnd:new Date(Math.min(new Date(e._occEnd).getTime(),end.getTime()))})))};
     });
     const header=days.map(d=>{
-      const current=isSameDay(d,today),holiday=hasHolidayEvent(d),sub=getDaySubText(d);
+      const current=isSameDay(d,today),holiday=isRedCalendarDate(d),sub=getDaySubText(d);
       return `<div data-week-date="${dateKey(d)}" role="button" tabindex="0" class="mobile-week-date${current?' is-today':''}${holiday?' is-holiday':''}"><div class="mobile-week-weekday">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="mobile-week-date-chip"><strong>${d.getDate()}</strong><span>${escapeHtml(sub.text||'')}</span></div></div>`;
     }).join('');
     const allDay=days.map((d,i)=>`<div class="cell-allday mobile-week-allday-cell" data-date="${dateKey(d)}">${daily[i].allDay.map(evt=>{
@@ -2535,12 +2540,12 @@ select{font-family:inherit}
     });
     const headerHtml=weekDays.map(d=>{
       const isToday=isSameDay(d,today);
-      const isHoliday=hasHolidayEvent(d);
+      const isRedDate=isRedCalendarDate(d);
       const sub=getDaySubText(d);
       let dateCls='text-base ';
-      if(isToday)dateCls+='font-extrabold text-brand-600 dark:text-brand-400';
-      else if(isHoliday)dateCls+='font-extrabold text-rose-600 dark:text-rose-400';
-      return `<div class="py-2" data-week-date="${dateKey(d)}" role="button" tabindex="0"><div class="text-[10px] font-semibold">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="${dateCls}">${d.getDate()}</div>${sub.text?`<div class="${subTextClass(sub.type,'text-[9px]')}">${escapeHtml(sub.text)}</div>`:''}</div>`;
+      if(isRedDate)dateCls+='font-extrabold text-rose-600 dark:text-rose-400';
+      else if(isToday)dateCls+='font-extrabold text-brand-600 dark:text-brand-400';
+      return `<div class="py-2" data-week-date="${dateKey(d)}" role="button" tabindex="0"><div class="text-[10px] font-semibold ${isRedDate?'calendar-red-date':''}">週${['日','一','二','三','四','五','六'][d.getDay()]}</div><div class="${dateCls}">${d.getDate()}</div>${sub.text?`<div class="${subTextClass(sub.type,'text-[9px]')}">${escapeHtml(sub.text)}</div>`:''}</div>`;
     }).join('');
     const allDayRow=weekDays.map((d,i)=>{
       const items=allDayByDay[i];
@@ -2598,14 +2603,14 @@ select{font-family:inherit}
     const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));
     const today=isSameDay(d,new Date()),holiday=hasHolidayEvent(d),lunar=getLunarInfo(d);
     c.innerHTML=`<div class="desktop-calendar-page desktop-day-page anim-in">
-      <header class="desktop-view-heading"><div><div class="desktop-view-eyebrow">每日安排</div><h3>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${today?'<span class="desktop-today-badge">今天</span>':''}${holiday?'<span class="desktop-holiday-badge">節假日</span>':''}</h3><p>週${['日','一','二','三','四','五','六'][d.getDay()]}${lunar.full?' · '+escapeHtml(lunar.full):''} · 第${getWeekNumber(d)}週</p></div><button id="addDayEventBtn" class="desktop-primary-action"><i data-lucide="plus"></i>新增日程</button></header>
+      <header class="desktop-view-heading"><div><div class="desktop-view-eyebrow">每日安排</div><h3 class="${isRedCalendarDate(d)?'calendar-red-date':''}">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${today?'<span class="desktop-today-badge">今天</span>':''}${holiday?'<span class="desktop-holiday-badge">節假日</span>':''}</h3><p class="${isRedCalendarDate(d)?'calendar-red-date':''}">週${['日','一','二','三','四','五','六'][d.getDay()]}${lunar.full?' · '+escapeHtml(lunar.full):''} · 第${getWeekNumber(d)}週</p></div><button id="addDayEventBtn" class="desktop-primary-action"><i data-lucide="plus"></i>新增日程</button></header>
       <div class="desktop-day-overview"><span>當日安排 <strong>${events.length}</strong></span><span>全日 ${events.filter(e=>e.allDay).length}</span><span>定時 ${events.filter(e=>!e.allDay).length}</span></div>
       <div class="desktop-calendar-scroll"><div class="desktop-entry-labels"><span>時間</span><span>日程內容</span></div><div class="desktop-day-entries">${events.length?events.map(evt=>desktopCalendarCard(evt,d)).join(''):`<div class="empty-day desktop-empty-day" data-date="${dateKey(d)}"><i data-lucide="calendar-days"></i><h4>這一天暫無安排</h4><p>點擊這裡，建立第一個日程。</p></div>`}</div></div>
     </div>`;
     document.getElementById('addDayEventBtn').addEventListener('click',()=>openEventModal(null,d));
   }
   function renderDesktopScheduleView(){renderAgendaView();}
-  function renderDayView(){if(window.innerWidth>=1024){renderDesktopDayView();return;}const c=document.getElementById('calendarViewContainer');const d=state.currentDate;const ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const today=new Date();const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const sub=getDaySubText(d);let subLine=`週${['日','一','二','三','四','五','六'][d.getDay()]}`;if(lunar.full)subLine+=` · ${escapeHtml(lunar.full)}`;if(sub.type==='term'||sub.type==='festival')subLine+=` · ${escapeHtml(sub.text)}`;subLine+=` · 第${weekNum}週`;let dateCls='text-2xl font-extrabold tracking-tight ';if(isHoliday)dateCls+='text-rose-600 dark:text-rose-400';let html=`<div class="h-full flex flex-col p-5 max-w-3xl mx-auto w-full anim-in"><div class="flex items-center justify-between pb-5 border-b border-ink-200/70 dark:border-ink-800/70 mb-5"><div><h3 class="${dateCls} flex items-center space-x-2"><span>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>${isToday?'<span class="text-[10px] px-2 py-1 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-full font-bold">今天</span>':''}${isHoliday?'<span class="text-[10px] px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full font-bold">節假日</span>':''}</h3><p class="text-xs text-ink-500 mt-1.5">${subLine}</p><p class="text-xs text-ink-400 mt-0.5">共 ${events.length} 個日程</p></div><button id="addDayEventBtn" class="px-4 py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl text-xs font-semibold shadow-glow">+ 新建</button></div><div class="flex-1 overflow-y-auto space-y-3 pr-2">`;if(events.length===0){html+=`<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="calendar-x" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">今日尚無規劃日程</p></div>`}else{html+=events.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-2 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold shrink-0">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3.5 h-3.5 opacity-50 shrink-0"></i>':'';return`<div class="event-pill cat-chip p-4 rounded-2xl border cursor-pointer flex items-start justify-between${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-occ-start="${new Date(evt._sourceOccStart||evt._occStart).getTime()}" data-day-date="${dateKey(evt._occStart)}"><div class="space-y-1.5 min-w-0"><div class="flex items-center space-x-2 flex-wrap gap-y-1"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><h4 class="font-bold text-base truncate task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}</h4>${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs opacity-80"><span class="flex items-center space-x-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="tabular-nums">${evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`)}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<p class="text-xs opacity-90 pt-1">${escapeHtml(evt.description)}</p>`:''}</div><i data-lucide="chevron-right" class="w-5 h-5 opacity-40 shrink-0"></i></div>`}).join('')}html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();const addBtn=document.getElementById('addDayEventBtn');if(addBtn)addBtn.addEventListener('click',()=>openEventModal(null,d));}
+  function renderDayView(){if(window.innerWidth>=1024){renderDesktopDayView();return;}const c=document.getElementById('calendarViewContainer');const d=state.currentDate;const ds=new Date(d);ds.setHours(0,0,0,0);const de=new Date(d);de.setHours(23,59,59,999);const events=getOccurrencesInRange(ds,de).sort((a,b)=>new Date(a._occStart)-new Date(b._occStart));const today=new Date();const isToday=isSameDay(d,today);const isHoliday=hasHolidayEvent(d);const lunar=getLunarInfo(d);const weekNum=getWeekNumber(d);const sub=getDaySubText(d);let subLine=`週${['日','一','二','三','四','五','六'][d.getDay()]}`;if(lunar.full)subLine+=` · ${escapeHtml(lunar.full)}`;if(sub.type==='term'||sub.type==='festival')subLine+=` · ${escapeHtml(sub.text)}`;subLine+=` · 第${weekNum}週`;let dateCls='text-2xl font-extrabold tracking-tight ';if(isRedCalendarDate(d))dateCls+='text-rose-600 dark:text-rose-400';let html=`<div class="h-full flex flex-col p-5 max-w-3xl mx-auto w-full anim-in"><div class="flex items-center justify-between pb-5 border-b border-ink-200/70 dark:border-ink-800/70 mb-5"><div><h3 class="${dateCls} flex items-center space-x-2"><span>${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>${isToday?'<span class="text-[10px] px-2 py-1 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-full font-bold">今天</span>':''}${isHoliday?'<span class="text-[10px] px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full font-bold">節假日</span>':''}</h3><p class="text-xs text-ink-500 mt-1.5 ${isRedCalendarDate(d)?'calendar-red-date':''}">${subLine}</p><p class="text-xs text-ink-400 mt-0.5">共 ${events.length} 個日程</p></div><button id="addDayEventBtn" class="px-4 py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 text-white rounded-xl text-xs font-semibold shadow-glow">+ 新建</button></div><div class="flex-1 overflow-y-auto space-y-3 pr-2">`;if(events.length===0){html+=`<div class="text-center py-20 text-ink-400 fade-in"><i data-lucide="calendar-x" class="w-14 h-14 mx-auto mb-3 opacity-40"></i><p class="text-sm font-medium">今日尚無規劃日程</p></div>`}else{html+=events.map(evt=>{const cat=getCat(evt.category);const age=getYearsLabel(evt,evt._occStart);const badge=age?`<span class="text-[10px] px-2 py-0.5 rounded-full ${getTypeBadgeClass(evt.eventType)} font-bold shrink-0">${age}</span>`:'';const repIcon=evt._isRecurring&&!age?'<i data-lucide="repeat" class="w-3.5 h-3.5 opacity-50 shrink-0"></i>':'';return`<div class="event-pill cat-chip p-4 rounded-2xl border cursor-pointer flex items-start justify-between${evt._isTask?` task-calendar-item${evt._taskCompleted?" completed":""}`:""}" style="--c:${cat.color}" data-id="${evt.id}" data-occ-start="${new Date(evt._sourceOccStart||evt._occStart).getTime()}" data-day-date="${dateKey(evt._occStart)}"><div class="space-y-1.5 min-w-0"><div class="flex items-center space-x-2 flex-wrap gap-y-1"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${cat.color}"></span><h4 class="font-bold text-base truncate task-calendar-title">${evt._isTask?(evt._taskCompleted?"☑ ":"☐ "):""}${escapeHtml(evt.title)}</h4>${badge}${repIcon}</div><div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs opacity-80"><span class="flex items-center space-x-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="tabular-nums">${evt.allDay?'全天':(evt._isTask?formatTime(evt._occStart):`${formatTime(evt._occStart)} - ${formatTime(evt._occEnd)}`)}</span></span>${evt.location?`<span class="flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${escapeHtml(evt.location)}</span></span>`:''}</div>${evt.description?`<p class="text-xs opacity-90 pt-1">${escapeHtml(evt.description)}</p>`:''}</div><i data-lucide="chevron-right" class="w-5 h-5 opacity-40 shrink-0"></i></div>`}).join('')}html+=`</div></div>`;c.innerHTML=html;lucide.createIcons();const addBtn=document.getElementById('addDayEventBtn');if(addBtn)addBtn.addEventListener('click',()=>openEventModal(null,d));}
 
   // Agenda stays compact outside the active interval. Only concurrently active
   // timed items share columns; every ended item returns to the completed stack.
@@ -2676,7 +2681,7 @@ select{font-family:inherit}
   function agendaGroupsHtml(groups,todayKey,now){
     return Array.from(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([key,{day,events:items}])=>{
       const today=key===todayKey,sub=getDaySubText(day);
-      return `<section class="agenda-day" data-agenda-group="${key}"${today?' id="todayScheduleItem"':''}><button class="agenda-date${today?' is-today':''}${hasHolidayEvent(day)?' is-holiday':''}" data-agenda-date="${key}"><small>${day.getFullYear()}年${day.getMonth()+1}月</small><span>週${['日','一','二','三','四','五','六'][day.getDay()]}</span><strong>${day.getDate()}</strong><em>${escapeHtml(sub.text||'')}</em></button><div class="agenda-day-events"${today?' id="agendaTodayContent"':''}>${today?agendaTodayContent(items,day,now):items.map(e=>agendaCard(e,day)).join('')}</div></section>`;
+      return `<section class="agenda-day" data-agenda-group="${key}"${today?' id="todayScheduleItem"':''}><button class="agenda-date${today?' is-today':''}${isRedCalendarDate(day)?' is-holiday':''}" data-agenda-date="${key}"><small>${day.getFullYear()}年${day.getMonth()+1}月</small><span>週${['日','一','二','三','四','五','六'][day.getDay()]}</span><strong>${day.getDate()}</strong><em>${escapeHtml(sub.text||'')}</em></button><div class="agenda-day-events"${today?' id="agendaTodayContent"':''}>${today?agendaTodayContent(items,day,now):items.map(e=>agendaCard(e,day)).join('')}</div></section>`;
     }).join('');
   }
   function agendaVisibleGroup(groups,top){
@@ -3421,7 +3426,7 @@ select{font-family:inherit}
     document.getElementById('statDateYear').value=y;document.getElementById('statDateMonth').value=m;
     document.getElementById('statDatePrev').disabled=y===1900&&m===1;
     document.getElementById('statDateNext').disabled=y===2100&&m===12;
-    const grid=document.getElementById('statDateGrid');grid.innerHTML=dateGridCells(y,m).map(d=>d===null?'<span></span>':`<button type="button" data-stat-day="${d}" aria-label="${y}年${m}月${d}日" aria-pressed="${draft.selected===`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`}">${d}</button>`).join('');
+    const grid=document.getElementById('statDateGrid');grid.innerHTML=dateGridCells(y,m).map(d=>d===null?'<span></span>':`<button type="button" data-stat-day="${d}" class="${new Date(y,m-1,d).getDay()===0?'calendar-sunday':''}" aria-label="${y}年${m}月${d}日" aria-pressed="${draft.selected===`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`}">${d}</button>`).join('');
     grid.querySelectorAll('[data-stat-day]').forEach(button=>button.onclick=()=>{draft.selected=`${y}-${String(m).padStart(2,'0')}-${button.dataset.statDay.padStart(2,'0')}`;renderStatDate();document.querySelector('#statDateGrid [aria-pressed=true]')?.focus({preventScroll:true});});
   }
   function openStatDate(key,bound){
@@ -3701,6 +3706,7 @@ select{font-family:inherit}
   function updateHeaderInfo(){
     const d=state.currentDate,y=d.getFullYear(),m=d.getMonth()+1;
     const title=document.getElementById('currentDateTitle'),subtitle=document.getElementById('currentDateSubtitle'),offset=document.getElementById('dateOffsetLabel');
+    subtitle.classList.remove('calendar-red-date');
     if(state.view==='week'){
       const [first,last]=weekRangeDates(d);title.textContent=solarMonthRange(first,last);
       const lunar=lunarMonthRange(first,last);subtitle.textContent=`${lunar?lunar+' · ':''}第${getWeekNumber(first)}週`;
@@ -3708,6 +3714,7 @@ select{font-family:inherit}
     }
     title.textContent=`${y}年 ${m}月`;
     if(state.view==='month'&&state.monthDateSelected===false){subtitle.textContent=getMonthRangeSubtitle(d);if(offset)offset.textContent='';return;}
+    subtitle.classList.toggle('calendar-red-date',isRedCalendarDate(d));
     const lunar=getLunarInfo(d),weekday=['日','一','二','三','四','五','六'][d.getDay()];
     subtitle.textContent=`${m}月${d.getDate()}日 週${weekday}${lunar.full?' · '+lunar.full:''} · 第${getWeekNumber(d)}週`;
     if(offset)offset.textContent=getDayOffsetText(d);
@@ -4833,7 +4840,7 @@ select{font-family:inherit}
       return {
         date:dk,day:item.date.getDate(),currentMonth:!!item.isCurrentMonth,
         isToday:dk===todayKey,lunar:lunar,sub:sub,subType:subType,
-        holiday:hasHolidayEvent(item.date),colors:colors.slice(0,3),events:events
+        holiday:hasHolidayEvent(item.date),sunday:item.date.getDay()===0,colors:colors.slice(0,3),events:events
       };
     });
     return {monthTitle:y+'年 '+(m+1)+'月',grid:grid};
@@ -5148,5 +5155,13 @@ select{font-family:inherit}
 </div>
 
 <dialog id="counterSheet" aria-label="事件計日設定"></dialog>
+<style id="sunday-colors-v41">
+.calendar-red-date{color:#e11d48!important}
+.dark .calendar-red-date{color:#fb7185!important}
+.mobile-week-date.is-holiday .mobile-week-weekday,.agenda-date.is-holiday>span,.agenda-date.is-holiday strong,.stat-date-weekdays>span:last-child,.stat-date-grid button.calendar-sunday{color:#e11d48}
+.dark .mobile-week-date.is-holiday .mobile-week-weekday,.dark .agenda-date.is-holiday>span,.dark .agenda-date.is-holiday strong,.dark .stat-date-weekdays>span:last-child,.dark .stat-date-grid button.calendar-sunday{color:#fb7185}
+.stat-date-grid button.calendar-sunday[aria-pressed=true]{background:#ffe4e6;color:#e11d48}
+.dark .stat-date-grid button.calendar-sunday[aria-pressed=true]{background:#4c0519;color:#fb7185}
+</style>
 </body>
 </html>
