@@ -2,3 +2,5 @@
 body.calendar-notes-active #topHeader,body.calendar-notes-active #sidebar,body.calendar-notes-active #mobileBottomNav{display:none!important}
 body.calendar-notes-active #appViewport,body.calendar-notes-active #mainContent,body.calendar-notes-active #calendarViewContainer{height:100%;min-height:0;padding:0;margin:0;border:0}
 body.calendar-notes-active #calendarViewContainer{overflow:hidden}
+
+@media(max-width:720px){body.calendar-notes-active,body.calendar-notes-active *{scrollbar-width:none!important}body.calendar-notes-active::-webkit-scrollbar,body.calendar-notes-active *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}}

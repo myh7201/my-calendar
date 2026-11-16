@@ -1,12 +1,11 @@
 {
-  "versionName": "2.0.45",
-  "versionCode": 30,
-  "baseVersion": "2.0.43",
+  "versionName": "2.0.45.2",
+  "versionCode": 32,
+  "baseVersion": "2.0.45.1",
   "auth": "github-app",
   "sync": "private-github-repository",
-  "notes": "liubai-v1-integrated",
-  "productionPagesVersion": "2.0.45",
+  "notes": "full-pages-mobile-editor-draft-journal-native-location",
+  "productionPagesVersion": "2.0.45.2",
   "runtimeGoogleFirebase": false,
-  "realAccountSyncValidation": "pending",
-  "webIndexSHA256": "8c71e8f9491fad08e1db55dd26a5cd013ec3c79ec494b5912eab84bf17d3a810"
+  "physicalAndroidValidation": "not-run-no-device-connected"
 }
