@@ -136,6 +136,7 @@
     run = task; return task;
   }
   function recoveryValues(source) {
+    if(source.startsWith('account:')){const owner=source.slice(8);if(!owner.startsWith('user:')||owner.startsWith('user:github_'))throw Error('無效的舊帳號');const values={};for(const name of dataKeys){const value=raw.getItem(key(name,owner));if(value!==null)values[name]=value;}return values;}
     if (source === 'legacy') {
       const saved = parse(raw.getItem(legacyKey), {})?.values;
       if (saved) return saved;
@@ -157,7 +158,10 @@
   root.CalendarData = {
     saveCollection, queuePut, queueDelete, queueSettings, overlay, pendingSettings,
     pending(collection) { return entries().filter(([, op]) => !collection || op.collection === collection).length; },
+    hasPending(collection,id) { return entries().some(([,op])=>op.collection===collection&&String(op.id)===String(id)); },
+    discardPending(collection,id,revision) {const k=operationKey(collection,id),op=parse(raw.getItem(k),null);if(op?.rev!==revision)return false;raw.removeItem(k);emit();return true;},
     connect(send) { writer = send; schedule(); }, flush, hasRecovery, recoveryData,
+    legacyAccounts(){const owners=new Set();for(let i=0;i<raw.length;i++){const k=raw.key(i),match=k?.match(/^calendar_v40:(user:[^:]+):calendar_(events|tasks|notes)_v1$/);if(match&&!match[1].startsWith('user:github_'))owners.add(match[1]);}return [...owners].map(owner=>({source:'account:'+owner,count:Object.values(recoveryValues('account:'+owner)).reduce((n,v)=>{const a=parse(v,null);return n+(Array.isArray(a)?a.filter(x=>x&&x.id).length:0);},0)})).filter(x=>x.count);},
     markRecovered(source) { raw.setItem(prefix + 'recovered:' + source, JSON.stringify({uid,at:Date.now()})); },
     get uid() { return uid; }, get error() { return lastError; }
   };

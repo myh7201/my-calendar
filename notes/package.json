@@ -1,0 +1,30 @@
+{
+  "name": "calendar-notes-editor",
+  "version": "1.0.0",
+  "description": "Calendar v45 notes integration, derived from the supplied liubai notes source.",
+  "main": "app.js",
+  "scripts": {
+    "build": "esbuild core-entry.js --bundle --format=iife --minify --outfile=vendor/editor.js",
+    "test": "node --check app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tiptap/core": "^3.34.0",
+    "@tiptap/extension-highlight": "^3.34.0",
+    "@tiptap/extension-image": "^3.34.0",
+    "@tiptap/extension-table": "^3.34.0",
+    "@tiptap/extension-task-item": "^3.34.0",
+    "@tiptap/extension-task-list": "^3.34.0",
+    "@tiptap/extension-text-style": "^3.34.0",
+    "@tiptap/starter-kit": "^3.34.0",
+    "acorn": "^8.19.0",
+    "docx": "^9.15.4",
+    "dompurify": "^3.4.18",
+    "esbuild": "^0.28.2",
+    "html-to-image": "^1.11.13",
+    "jszip": "^3.10.2"
+  }
+}

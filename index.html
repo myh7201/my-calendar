@@ -3,17 +3,11 @@
 <head>
   <link id="dynamicFavicon" rel="icon" type="image/png" sizes="128x128">
   <script>
-    window.FIREBASE_CONFIG={apiKey: "AIzaSyDcfb4xVxLHx0LfBrlQeOQObSUhbCx26Y0",
-      authDomain: "my-calendar-app-9a3c8.firebaseapp.com",
-      projectId: "my-calendar-app-9a3c8",
-      storageBucket: "my-calendar-app-9a3c8.firebasestorage.app",
-      messagingSenderId: "83579238529",
-      appId: "1:83579238529:web:51fb1a9f84fe6158ccb580"};
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
   <title>日曆</title>
-  <script src="./calendar-storage.js?v=43"></script>
+  <script src="./calendar-storage.js?v=45"></script>
   <script>
     (function(){
       try {
@@ -23,7 +17,7 @@
       } catch(e){}
     })();
   </script>
- <script src="./tailwind.js?v=43"></script>
+ <script src="./tailwind.js?v=45"></script>
   <script>
     window.tailwind=window.tailwind||{};
     tailwind.config={darkMode:'class',theme:{extend:{
@@ -32,7 +26,7 @@
     boxShadow:{soft:'0 1px 2px rgba(15,23,42,.04),0 4px 16px rgba(15,23,42,.06)',pop:'0 8px 24px rgba(15,23,42,.1)',glow:'0 8px 24px -8px rgba(99,102,241,.5)'},
     borderRadius:{'2xl':'1.15rem','3xl':'1.5rem'}}}};
   </script>
- <script src="./lucide.js?v=43"></script>
+ <script src="./lucide.js?v=45"></script>
  <script>
  window.lucide=window.lucide||{createIcons:function(){}};
  const renderNewIcons=window.lucide.createIcons;
@@ -43,7 +37,7 @@
    return result;
  };
  </script>
- <script src="./lunar.js?v=43"></script>
+ <script src="./lunar.js?v=45"></script>
   <style>
 
 .stat-summary-button{width:100%;text-align:left;border-radius:12px;padding:6px;margin:-6px;min-height:64px}
@@ -530,6 +524,7 @@ html[data-follow-phone-font="true"] body,html[data-follow-phone-font="true"] bod
 .counter-add-button{border-radius:9999px;min-height:36px;padding:7px 14px;font-weight:500;line-height:1.4}
 .counter-past-link{align-self:flex-end;flex:none;margin: auto 0 0 auto;padding:24px 0 4px;min-height:44px}
 </style>
+<link rel="stylesheet" href="./assistant-ui.css">
 </head>
 <body class="h-full text-ink-800 dark:text-ink-100 flex flex-col font-sans transition-colors duration-300">
 
@@ -563,9 +558,9 @@ html[data-follow-phone-font="true"] body,html[data-follow-phone-font="true"] bod
       <button id="addEventBtn" class="flex items-center space-x-0.5 px-2 md:px-3.5 py-1.5 md:py-2 bg-gradient-to-tr from-brand-600 to-fuchsia-500 hover:from-brand-700 hover:to-fuchsia-600 text-white rounded-xl text-xs md:text-sm font-semibold shadow-glow active:scale-95 transition shrink-0">
         <i data-lucide="plus" class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0"></i><span class="hidden sm:inline">新增</span>
       </button>
-      <button id="loginBtn" onclick="signInWithGoogle()" class="flex items-center space-x-1 px-2 md:px-3.5 py-1.5 md:py-2 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-xl text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700 active:scale-95 transition shadow-sm shrink-0">
-        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        <span class="hidden sm:inline whitespace-nowrap">Google 登入</span>
+      <button id="loginBtn" onclick="signInWithGitHub()" class="flex items-center space-x-1 px-2 md:px-3.5 py-1.5 md:py-2 bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-xl text-xs md:text-sm font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-700 active:scale-95 transition shadow-sm shrink-0">
+        <i data-lucide="github" class="w-4 h-4 shrink-0"></i>
+        <span class="hidden sm:inline whitespace-nowrap">GitHub 登入</span>
       </button>
       <div id="userInfo" class="hidden items-center space-x-1.5 md:space-x-2 pl-1 md:pl-2 border-l border-ink-200 dark:border-ink-700 shrink-0">
         <img id="userAvatar" class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-ink-200 dark:border-ink-700 shrink-0" src="" referrerpolicy="no-referrer">
@@ -612,7 +607,7 @@ html[data-follow-phone-font="true"] body,html[data-follow-phone-font="true"] bod
         </div>
         <p class="text-[10px] text-ink-400 mt-3 leading-relaxed flex items-start gap-1.5">
           <i data-lucide="info" class="w-3 h-3 mt-0.5 shrink-0"></i>
-          <span id="storageHint">資料儲存在此瀏覽器本地。點擊右上角「Google 登入」即可跨裝置同步。</span>
+          <span id="storageHint">資料儲存在此瀏覽器本地。點擊右上角「GitHub 登入」即可跨裝置同步。</span>
         </p>
       </div>
     </div>
@@ -2044,6 +2039,10 @@ select{font-family:inherit}
   function openEventDetailModal(evt) {
     const modal = document.getElementById('viewEventModal');
     const content = document.getElementById('viewEventContent');
+    queueMicrotask(()=>{
+      const source=evt.emailAssistant?.source;if(!source?.mailbox||!source?.messageId)return;
+      const link=document.createElement('a');link.textContent='查看來源電郵：'+(source.subject||'電郵');link.href='https://mail.google.com/mail/u/?authuser='+encodeURIComponent(source.mailbox)+'#all/'+encodeURIComponent(source.messageId);link.target='_blank';link.rel='noopener noreferrer';link.className='ai-source';content.append(link);
+    });
     const cat = getCat(evt.category);
     const start = new Date(evt._occStart || evt.start);
     const end = new Date(evt._occEnd || evt.end);
@@ -3272,7 +3271,7 @@ select{font-family:inherit}
     return (state.tasks||[]).filter(task=>range===null||range.length===2&&new Date(task.dueAt)>=range[0]&&new Date(task.dueAt)<=range[1]);
   }
   function statNoteItems(range){
-    return (state.notes||[]).filter(note=>note&&note.type==='note'&&(range===null||range.length===2&&new Date(note.createdAt)>=range[0]&&new Date(note.createdAt)<=range[1]));
+    return (state.notes||[]).filter(note=>note&&!note.trashed&&note.type==='note'&&(range===null||range.length===2&&new Date(note.createdAt)>=range[0]&&new Date(note.createdAt)<=range[1]));
   }
   function statDetailItems(detail){
     if(detail.type==='tasks')return statTaskItems(detail.range).slice().sort((a,b)=>(Date.parse(a.dueAt)||Infinity)-(Date.parse(b.dueAt)||Infinity));
@@ -3342,8 +3341,8 @@ select{font-family:inherit}
     const visibleToday=summaryRange===null||summaryRange.length===2&&ts<=summaryRange[1]&&te>=summaryRange[0]?todayEvents.length:0;
     const totalEvents=summaryEvents.length;
     const taskCount=(state.tasks||[]).filter(task=>{if(summaryRange===null)return true;if(summaryRange.length!==2)return false;const due=new Date(task.dueAt);return due>=summaryRange[0]&&due<=summaryRange[1];}).length;
-    const noteCount=(state.notes||[]).filter(n=>{if(!n||n.type!=='note')return false;if(summaryRange===null)return true;if(summaryRange.length!==2)return false;const created=new Date(n.createdAt);return created>=summaryRange[0]&&created<=summaryRange[1];}).length;
-    const diaryCount=(state.notes||[]).filter(n=>n&&n.type==='diary').length;
+    const noteCount=(state.notes||[]).filter(n=>{if(!n||n.trashed||n.type!=='note')return false;if(summaryRange===null)return true;if(summaryRange.length!==2)return false;const created=new Date(n.createdAt);return created>=summaryRange[0]&&created<=summaryRange[1];}).length;
+    const diaryCount=(state.notes||[]).filter(n=>n&&!n.trashed&&n.type==='diary').length;
     const categoryChartMap=new Map();
     chartEvents.forEach(e=>{
       const cat=getCat(e.category);
@@ -3399,6 +3398,7 @@ select{font-family:inherit}
         <div class="flex-1 overflow-hidden"><p class="font-bold text-sm truncate">${escapeHtml(displayName)}</p><p class="text-[11px] text-ink-400 truncate">${escapeHtml(displayEmail)}</p></div>
       </div>
 
+      ${window.githubAccountControlsHTML?.()||''}
       <div class="my-summary bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-5 mb-5 shadow-soft">
         <div class="my-stat-header"><h3 class="text-sm font-bold text-ink-700 dark:text-ink-200">摘要</h3>${myStatFilterHtml('summary')}</div>${myStatCustomHtml('summary')}
         <div class="grid grid-cols-2 gap-4">
@@ -3461,6 +3461,7 @@ select{font-family:inherit}
         <button id="myNotifBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"><i data-lucide="bell" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">通知提醒</span><span class="block text-[10px] text-ink-400 mt-0.5 native-notif-detail">${nativeNotif?'Android 系統後台提醒':'日程提醒與瀏覽器通知'}</span></span></span><span class="text-xs text-ink-400 native-notif-status">${notifLabel}</span></button>
         ${CalendarData.hasRecovery('legacy')?'<button id="myRecoverLegacyBtn" type="button" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left gap-3"><span class="flex items-center space-x-3 min-w-0"><span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 shrink-0"><i data-lucide="history" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">復原舊版本機資料</span><span class="block text-[10px] text-ink-400 mt-0.5">找回升級前保留的日程、任務與筆記</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400 shrink-0"></i></button>':''}
         ${isLoggedIn&&CalendarData.hasRecovery('guest')?'<button id="myImportGuestBtn" type="button" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left gap-3"><span class="flex items-center space-x-3 min-w-0"><span class="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 shrink-0"><i data-lucide="download" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">匯入未登入資料</span><span class="block text-[10px] text-ink-400 mt-0.5">將本機未登入的資料加入目前帳號</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400 shrink-0"></i></button>':''}
+        <button id="myAssistantBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="mail-check" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">AI 日曆助手</span><span class="block text-[10px] text-ink-400 mt-0.5">核對電郵事件建議與連接授權</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
         <button id="myDataBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400"><i data-lucide="database" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">資料備份與還原</span><span class="block text-[10px] text-ink-400 mt-0.5">匯出、匯入與資料管理</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
         <button id="myIcsBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"><i data-lucide="calendar-arrow-down" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">ICS 匯入匯出</span><span class="block text-[10px] text-ink-400 mt-0.5">與其他日曆交換資料</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
         <button id="myCalendarCategoryBtn" class="w-full bg-white dark:bg-ink-900 rounded-2xl border border-ink-200/70 dark:border-ink-800/70 p-4 shadow-soft flex items-center justify-between text-left"><span class="flex items-center space-x-3"><span class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"><i data-lucide="calendar-cog" class="w-5 h-5"></i></span><span><span class="block text-sm font-semibold">日曆與分類</span><span class="block text-[10px] text-ink-400 mt-0.5">查看目前的日曆與分類</span></span></span><i data-lucide="chevron-right" class="w-5 h-5 text-ink-400"></i></button>
@@ -3473,6 +3474,7 @@ select{font-family:inherit}
     document.getElementById('myPhoneFontBtn').addEventListener('click',()=>{setFollowPhoneFont(!followsPhoneFont());renderMySettingsView();});
     if(nativeNotif)window.refreshAndroidReminderStatus();
     document.getElementById('myNotifBtn').addEventListener('click',async()=>{if(nativeNotif){await window.configureAndroidReminders();return;}if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}if(Notification.permission==='granted'){showToast('通知已開啟 ✓');return}if(Notification.permission==='denied'){alert('通知已被封鎖。請到瀏覽器設定允許。');return}const perm=await Notification.requestPermission();if(perm==='granted')showToast('通知已開啟 ✓');else showToast('未開啟通知');renderMySettingsView();});
+    document.getElementById('myAssistantBtn').onclick=()=>window.CalendarAssistant?.open();
     document.getElementById('myDataBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.remove('hidden');});
     document.getElementById('myIcsBtn').addEventListener('click',()=>openIcsModal());
     document.getElementById('myCalendarCategoryBtn').addEventListener('click',()=>{state.view='my-categories';renderAll();});
@@ -3691,67 +3693,12 @@ select{font-family:inherit}
   }
   function updateNoteWordCount(){const out=document.getElementById('noteEditorCount');if(out)out.textContent=`${noteCharacterCount(document.getElementById('noteContent').value)} 字`;}
 
-  function renderNotesView(){
-    const c=document.getElementById('calendarViewContainer');
-    const notes=state.notes||[];
-    const searchQuery=state.searchQuery.trim().toLowerCase();
-    const type=state.noteViewType;
-    const currentTypeNotes=notes.filter(n=>n.type===type);
-    const noteFolders=[...new Set(currentTypeNotes.map(n=>n.folder).filter(f=>f&&f.trim()!==''))].sort();
-    const managedFolders=currentFolderList(type);
-    const allFolders=[...new Set([...noteFolders,...managedFolders])].sort();
-    if(state.noteFolder!=='all'&&state.noteFolder!=='uncategorized'&&!allFolders.includes(state.noteFolder))state.noteFolder='all';
-    let filteredNotes=currentTypeNotes;
-    if(state.noteFolder==='uncategorized')filteredNotes=currentTypeNotes.filter(n=>!n.folder||n.folder.trim()==='');
-    else if(state.noteFolder!=='all')filteredNotes=currentTypeNotes.filter(n=>n.folder===state.noteFolder);
-    if(searchQuery)filteredNotes=filteredNotes.filter(n=>(n.title||'').toLowerCase().includes(searchQuery)||(n.content||'').toLowerCase().includes(searchQuery));
-    filteredNotes.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-    const typeLabel=type==='diary'?'日記':'筆記';
-    let html=`<div class="h-full flex flex-col anim-in bg-white/50 dark:bg-ink-900/50">
-      <div class="p-5 border-b border-ink-200/70 dark:border-ink-800/70 bg-white/60 dark:bg-ink-900/60">
-        <div class="flex items-center justify-between mb-3"><h2 class="text-xl font-extrabold tracking-tight flex items-center space-x-2"><i data-lucide="file-text" class="w-6 h-6 text-brand-500"></i><span>${typeLabel}</span>${type==='diary'?`<span class="text-xs font-semibold text-ink-400 dark:text-ink-500 ml-1">共記 ${notes.filter(n=>n&&n.type==='diary').length} 日日記</span>`:''}</h2></div>
-        <div class="relative mb-3"><i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"></i><input type="text" id="noteSearchInput" value="${escapeHtml(state.searchQuery)}" placeholder="搜尋${typeLabel}..." class="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-950 focus:outline-none focus:ring-2 focus:ring-brand-500/60"><button id="clearNoteSearchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-400 hover:text-ink-600 ${state.searchQuery?'':'hidden'}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>
-        <div class="flex bg-ink-100 dark:bg-ink-800/70 rounded-xl p-1 mb-3"><button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${type==='note'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="note">📝 筆記</button><button class="note-tab-btn flex-1 py-2 text-sm font-semibold rounded-lg transition ${type==='diary'?'bg-white dark:bg-ink-700 text-brand-600 dark:text-brand-300 shadow-sm':'text-ink-500 hover:text-ink-700 dark:hover:text-ink-300'}" data-type="diary">📔 日記</button></div>
-        <div class="flex overflow-x-auto gap-1.5 pb-1 scrollbar-none items-center">
-          <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='all'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="all">全部</button>
-          <button class="note-folder-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${state.noteFolder==='uncategorized'?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'}" data-folder="uncategorized">未分類</button>
-          ${allFolders.map(f=>{const isActive=state.noteFolder===f;const activeClass=isActive?'bg-brand-500 text-white shadow-sm':'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700';const deleteBtnColor=isActive?'text-white/70 hover:text-white':'text-ink-400 hover:text-rose-500';return `<div class="relative group shrink-0"><button class="note-folder-btn pl-3 pr-6 py-1.5 rounded-lg text-xs font-semibold transition ${activeClass}" data-folder="${escapeHtml(f)}">${escapeHtml(f)}</button><button class="delete-folder-btn absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover:block ${deleteBtnColor} transition" data-folder="${escapeHtml(f)}"><i data-lucide="x" class="w-3 h-3 pointer-events-none"></i></button></div>`;}).join('')}
-          <button id="addNoteFolderBtn" class="shrink-0 px-2 py-1.5 rounded-lg text-xs font-semibold bg-ink-100 dark:bg-ink-800 text-ink-500 hover:bg-ink-200 dark:hover:bg-ink-700 transition flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3"></i>新增</button>
-        </div>
-      </div>
-      <div class="flex-1 overflow-y-auto p-5 space-y-3">${filteredNotes.length===0?`<div class="flex flex-col items-center justify-center py-20 text-ink-400 fade-in"><i data-lucide="notebook-pen" class="w-16 h-16 mb-4 opacity-30"></i><p class="text-sm font-medium">這裡還沒有內容</p><p class="text-xs mt-1">點擊右下角「+」開始撰寫</p></div>`:filteredNotes.map(n=>`<div class="note-card group flex flex-col p-4 rounded-2xl bg-white dark:bg-ink-800 border border-ink-100 dark:border-ink-700 shadow-sm hover:shadow-md transition cursor-pointer" data-id="${n.id}"><div class="flex items-start justify-between gap-2"><h3 class="font-bold text-base text-ink-800 dark:text-ink-100 line-clamp-2">${escapeHtml(n.title||'無標題')}</h3><span class="text-[10px] text-ink-400 shrink-0 mt-1">${noteTimestamp(n)}</span></div><p class="text-xs text-ink-500 dark:text-ink-400 mt-2 line-clamp-3">${escapeHtml(n.content||'')}</p>${n.folder?`<div class="mt-2 text-[10px] text-brand-500 font-semibold flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i>${escapeHtml(n.folder)}</div>`:''}</div>`).join('')}</div>
-      <button id="${type==='diary'?'fabAddDiaryBtn':'fabAddNoteBtn'}" class="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg active:scale-95 transition z-40" aria-label="${type==='diary'?'新增日記':'新增筆記'}"><i data-lucide="plus" class="w-6 h-6"></i></button>
-    </div>`;
-    c.innerHTML=html;lucide.createIcons();
-    document.querySelectorAll('.note-tab-btn').forEach(btn=>btn.addEventListener('click',()=>{state.noteViewType=btn.dataset.type;state.noteFolder='all';renderNotesView();}));
-    document.querySelectorAll('.note-folder-btn').forEach(btn=>btn.addEventListener('click',()=>{state.noteFolder=btn.dataset.folder;renderNotesView();}));
-    document.getElementById('addNoteFolderBtn').addEventListener('click',()=>{
-      const name=prompt(`請輸入新的${typeLabel}資料夾名稱：`);
-      if(!name||!name.trim())return;
-      const trimName=name.trim();
-      const list=currentFolderList(type);
-      if(list.includes(trimName)||trimName==='全部'||trimName==='未分類'){showToast('該資料夾已存在或名稱無效');return;}
-      setFolderList(type,[...list,trimName]);saveFolders();state.noteFolder=trimName;renderNotesView();showToast(`已新增${typeLabel}資料夾`);
-    });
-    document.querySelectorAll('.delete-folder-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{
-      e.stopPropagation();const folder=btn.dataset.folder;
-      if(await confirmDelete(`確定要刪除「${folder}」資料夾嗎？該資料夾內的${typeLabel}將移至「未分類」。`,{title:'刪除資料夾'})){
-        setFolderList(type,currentFolderList(type).filter(f=>f!==folder));saveFolders();
-        let moved=0;state.notes.forEach(n=>{if(n.type===type&&n.folder===folder){n.folder='';moved++;}});
-        if(moved>0)saveNotes();if(state.noteFolder===folder)state.noteFolder='all';renderNotesView();
-        showToast(moved>0?`資料夾已刪除，${moved} 則${typeLabel}已移至未分類`:'資料夾已刪除');
-      }
-    }));
-    const searchInput=document.getElementById('noteSearchInput');
-    searchInput.addEventListener('input',(e)=>{state.searchQuery=e.target.value;renderNotesView();const newInput=document.getElementById('noteSearchInput');if(newInput){newInput.focus();newInput.setSelectionRange(newInput.value.length,newInput.value.length)}});
-    document.getElementById('clearNoteSearchBtn').addEventListener('click',()=>{state.searchQuery='';renderNotesView();});
-    const addBtn=document.getElementById(type==='diary'?'fabAddDiaryBtn':'fabAddNoteBtn'); if(addBtn) addBtn.addEventListener('click',()=>openNoteModal(null,type));
-    document.querySelectorAll('.note-card').forEach(card=>card.addEventListener('click',()=>{const note=state.notes.find(n=>n.id===card.dataset.id);if(note)openNoteReader(note);}));
-  }
+  function renderNotesView(){window.mountCalendarNotes();}
+
   function closeNoteReader(){const m=document.getElementById('noteReaderModal');if(!m)return;m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200);currentNoteReaderId='';}
-  function openNoteReader(note){if(!note)return;currentNoteReaderId=note.id;const m=document.getElementById('noteReaderModal');document.getElementById('noteReaderType').textContent=note.type==='diary'?'日記':'筆記';document.getElementById('noteReaderTitle').textContent=note.title||'無標題';document.getElementById('noteReaderDate').textContent=noteTimestamp(note);document.getElementById('noteReaderCount').textContent=`${noteCharacterCount(note.content)} 字`;document.getElementById('noteReaderFolder').textContent=note.folder?` · ${note.folder}`:'';document.getElementById('noteReaderContent').textContent=note.content||'（這篇文章目前沒有內容。）';m.classList.remove('hidden');setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95')},10);if(typeof lucide!=='undefined')lucide.createIcons();}
+  function openNoteReader(note){if(!note)return;if(window.openCalendarRichNote)return window.openCalendarRichNote(note.id);currentNoteReaderId=note.id;const m=document.getElementById('noteReaderModal');document.getElementById('noteReaderType').textContent=note.type==='diary'?'日記':'筆記';document.getElementById('noteReaderTitle').textContent=note.title||'無標題';document.getElementById('noteReaderDate').textContent=noteTimestamp(note);document.getElementById('noteReaderCount').textContent=`${noteCharacterCount(note.content)} 字`;document.getElementById('noteReaderFolder').textContent=note.folder?` · ${note.folder}`:'';document.getElementById('noteReaderContent').textContent=note.content||'（這篇文章目前沒有內容。）';m.classList.remove('hidden');setTimeout(()=>{m.classList.remove('opacity-0');m.querySelector('div').classList.remove('scale-95')},10);if(typeof lucide!=='undefined')lucide.createIcons();}
   function formatDiaryTitleDate(dt=new Date()){const digits=['零','一','二','三','四','五','六','七','八','九'];const toChineseNumber=n=>{if(n<10)return digits[n];if(n===10)return '十';if(n<20)return '十'+digits[n-10];if(n%10===0)return digits[Math.floor(n/10)]+'十';return digits[Math.floor(n/10)]+'十'+digits[n%10];};return `${String(dt.getFullYear()).split('').map(d=>digits[Number(d)]).join('')}年${toChineseNumber(dt.getMonth()+1)}月${toChineseNumber(dt.getDate())}日`;}
-  function openNoteModal(note=null,type='note'){const folderInput=document.getElementById('noteFolder');const modal=document.getElementById('noteModal');const title=document.getElementById('noteModalTitle');const idInput=document.getElementById('noteId');const typeInput=document.getElementById('noteType');const titleInput=document.getElementById('noteTitle');const contentInput=document.getElementById('noteContent');const delBtn=document.getElementById('deleteNoteBtn');if(note){title.textContent=note.type==='diary'?'編輯日記':'編輯筆記';idInput.value=note.id;typeInput.value=note.type;titleInput.value=note.title;contentInput.value=note.content;delBtn.classList.remove('hidden');folderInput.value=note.folder||'';}else{title.textContent=type==='diary'?'新增日記':'新增筆記';idInput.value='';typeInput.value=type;titleInput.value=type==='diary'?formatDiaryTitleDate(new Date()):'';contentInput.value='';delBtn.classList.add('hidden');folderInput.value=state.noteFolder==='all'||state.noteFolder==='uncategorized'?'':state.noteFolder;}updateNoteWordCount();modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0');modal.querySelector('div').classList.remove('scale-95');titleInput.focus();if(type==='diary'&&!note)titleInput.setSelectionRange(titleInput.value.length,titleInput.value.length)},10);}
+  function openNoteModal(note=null,type='note'){if(window.openCalendarRichNote)return window.openCalendarRichNote(note?.id,note?null:type);const folderInput=document.getElementById('noteFolder');const modal=document.getElementById('noteModal');const title=document.getElementById('noteModalTitle');const idInput=document.getElementById('noteId');const typeInput=document.getElementById('noteType');const titleInput=document.getElementById('noteTitle');const contentInput=document.getElementById('noteContent');const delBtn=document.getElementById('deleteNoteBtn');if(note){title.textContent=note.type==='diary'?'編輯日記':'編輯筆記';idInput.value=note.id;typeInput.value=note.type;titleInput.value=note.title;contentInput.value=note.content;delBtn.classList.remove('hidden');folderInput.value=note.folder||'';}else{title.textContent=type==='diary'?'新增日記':'新增筆記';idInput.value='';typeInput.value=type;titleInput.value=type==='diary'?formatDiaryTitleDate(new Date()):'';contentInput.value='';delBtn.classList.add('hidden');folderInput.value=state.noteFolder==='all'||state.noteFolder==='uncategorized'?'':state.noteFolder;}updateNoteWordCount();modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0');modal.querySelector('div').classList.remove('scale-95');titleInput.focus();if(type==='diary'&&!note)titleInput.setSelectionRange(titleInput.value.length,titleInput.value.length)},10);}
   function closeNoteModal(){const m=document.getElementById('noteModal');m.classList.add('opacity-0');m.querySelector('div').classList.add('scale-95');setTimeout(()=>m.classList.add('hidden'),200);}
   async function saveNote(){const id=document.getElementById('noteId').value||`note_${Date.now()}`;const type=document.getElementById('noteType').value;const title=document.getElementById('noteTitle').value.trim();const content=document.getElementById('noteContent').value.trim();const folder=document.getElementById('noteFolder').value.trim();if(folder&&!currentFolderList(type).includes(folder)){setFolderList(type,[...currentFolderList(type),folder]);saveFolders();}if(!title&&!content){showToast('請至少填寫標題或內容');return;}const existingIndex=state.notes.findIndex(n=>n.id===id);const newNote={id,type,title,content,folder,createdAt:existingIndex>=0?state.notes[existingIndex].createdAt:Date.now(),updatedAt:Date.now()};if(existingIndex>=0){state.notes[existingIndex]=newNote}else{state.notes.push(newNote)}saveNotes();closeNoteModal();showToast(type==='diary'?'日記已儲存':'筆記已儲存');renderNotesView();}
   async function deleteNote(){
@@ -4356,6 +4303,7 @@ select{font-family:inherit}
       ensureCategoryActive(catId);
 
       const evt={
+        ...(state.events.find(e=>String(e.id)===String(id))?.emailAssistant ? {emailAssistant:state.events.find(e=>String(e.id)===String(id)).emailAssistant}:{}),
         id,
         title:document.getElementById('eventTitle').value,
         start:startValue,
@@ -4421,13 +4369,13 @@ select{font-family:inherit}
     showToast('日程已刪除');closeEventModal();renderAll();
   });
     document.getElementById('closeDataModalBtn').addEventListener('click',()=>{document.getElementById('dataModal').classList.add('hidden')});
-    document.getElementById('exportJsonBtn').addEventListener('click',()=>{const payload={version:3,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events,tasks:state.tasks,notes:state.notes,folders:{note:state.noteFolders||[],diary:state.diaryFolders||[]},counterMode:state.counterMode,counterSelectedIds:getCounterSelectedIds(state.counterMode),selectedIdsByMode:normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode)};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔');});
-    document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);if(data&&Array.isArray(data.events)){state.events=data.events;}if(data&&Array.isArray(data.tasks)){state.tasks=data.tasks;}if(data&&Array.isArray(data.notes)){state.notes=data.notes;}if(data&&Array.isArray(data.categories)){state.categories=data.categories;}if(data&&Array.isArray(data.activeCategories)){state.activeCategories=data.activeCategories;}if(data&&data.folders&&typeof data.folders==='object'&&!Array.isArray(data.folders)){state.noteFolders=Array.isArray(data.folders.note)?data.folders.note:[];state.diaryFolders=Array.isArray(data.folders.diary)?data.folders.diary:[];state.folders=[...new Set([...state.noteFolders,...state.diaryFolders])];}else if(data&&Array.isArray(data.folders)){
+    document.getElementById('exportJsonBtn').addEventListener('click',async()=>{try{if(await window.flushCalendarNotes?.()===false)throw Error('請先完成筆記儲存');const payload={version:3,exportedAt:new Date().toISOString(),categories:state.categories,activeCategories:state.activeCategories,events:state.events,tasks:state.tasks,notes:await window.CalendarMedia.expandNotes(state.notes),notesPreferences:window.getNotesPreferences?.(),folders:{note:state.noteFolders||[],diary:state.diaryFolders||[]},counterMode:state.counterMode,counterSelectedIds:getCounterSelectedIds(state.counterMode),selectedIdsByMode:normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode)};const ds='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));const a=document.createElement('a');a.setAttribute('href',ds);a.setAttribute('download',`calendar-backup-${new Date().toISOString().slice(0,10)}.json`);a.click();showToast('已匯出 JSON 備份檔');}catch(e){showToast('備份尚未完成：'+e.message);}});
+    document.getElementById('importJsonInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const importUser=window.currentUser?.uid||null,importEpoch=window.__calendarAccountGeneration;const assertImport=()=>{if((window.currentUser?.uid||null)!==importUser||window.__calendarAccountGeneration!==importEpoch)throw Error('帳號已切換，已取消匯入');};window.__calendarImportInProgress=true;const reader=new FileReader();reader.onload=async evt=>{try{const data=JSON.parse(evt.target.result);let importedNotes=null;if(Array.isArray(data.notes)){const rawNotes=await window.CalendarMedia.dehydrate(data.notes);assertImport();importedNotes=await window.CalendarMedia.compactNotes(rawNotes);}assertImport();if(await window.flushCalendarNotes?.()===false)throw Error('筆記尚未儲存，已取消匯入');assertImport();if(data&&Array.isArray(data.events)){state.events=data.events;}if(data&&Array.isArray(data.tasks)){state.tasks=data.tasks;}if(data&&Array.isArray(data.notes)){state.notes=importedNotes;}if(data&&Array.isArray(data.categories)){state.categories=data.categories;}if(data&&Array.isArray(data.activeCategories)){state.activeCategories=data.activeCategories;}if(data&&data.folders&&typeof data.folders==='object'&&!Array.isArray(data.folders)){state.noteFolders=Array.isArray(data.folders.note)?data.folders.note:[];state.diaryFolders=Array.isArray(data.folders.diary)?data.folders.diary:[];state.folders=[...new Set([...state.noteFolders,...state.diaryFolders])];}else if(data&&Array.isArray(data.folders)){
           const nf=new Set(), df=new Set();
           (state.notes||[]).forEach(n=>{if(!n.folder)return;if(n.type==='diary')df.add(n.folder);else nf.add(n.folder);});
           state.noteFolders=[...nf]; state.diaryFolders=[...df];
           state.folders=[...new Set([...state.noteFolders,...state.diaryFolders])];
-        }if(data&&(data.counterMode==='up'||data.counterMode==='down'))state.counterMode=data.counterMode;if(data&&data.selectedIdsByMode&&typeof data.selectedIdsByMode==='object')state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(data.selectedIdsByMode);else if(data&&Array.isArray(data.counterSelectedIds)){state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);if(state.counterMode)state.counterSelectedIdsByMode[state.counterMode]=Array.from(new Set(data.counterSelectedIds.map(String)));}state.counterSelectedIds=getCounterSelectedIds(state.counterMode);saveCounterSettings();saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('JSON 格式不正確：'+err.message)}};reader.readAsText(file);e.target.value='';});
+        }if(data&&(data.counterMode==='up'||data.counterMode==='down'))state.counterMode=data.counterMode;if(data&&data.selectedIdsByMode&&typeof data.selectedIdsByMode==='object')state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(data.selectedIdsByMode);else if(data&&Array.isArray(data.counterSelectedIds)){state.counterSelectedIdsByMode=normalizeCounterSelectedIdsByMode(state.counterSelectedIdsByMode);if(state.counterMode)state.counterSelectedIdsByMode[state.counterMode]=Array.from(new Set(data.counterSelectedIds.map(String)));}state.counterSelectedIds=getCounterSelectedIds(state.counterMode);saveCounterSettings();saveEvents();saveTasks();saveNotes();saveCategories();saveActiveCats();saveFolders();if(data.notesPreferences)await window.saveNotesPreferences?.(data.notesPreferences);renderCategories();renderAll();document.getElementById('dataModal').classList.add('hidden');showToast('已成功匯入 JSON');}catch(err){alert('匯入未完成：'+err.message)}finally{window.__calendarImportInProgress=false;}};reader.onerror=()=>{window.__calendarImportInProgress=false;showToast('無法讀取備份');};reader.readAsText(file);e.target.value='';});
     document.getElementById('resetDemoBtn').addEventListener('click',async()=>{
     if(!(await confirmDelete('確定要清空所有日程嗎？此操作無法復原。分類會保留。',{title:'清空日程',confirmLabel:'清空'})))return;
     if(window.currentUser && typeof window.deleteEventFromCloud === 'function'){
@@ -4487,11 +4435,11 @@ select{font-family:inherit}
   };
   window.recoverCalendarData=async function(source){
     const uid=window.currentUser?.uid,epoch=window.__calendarAccountGeneration;
-    if(!uid){showToast('請先登入原本的帳號，再復原資料');return;}
-    const label=source==='legacy'?'舊版本機資料':'未登入時建立的資料';
+    if(!uid){showToast('請先登入要接收資料的 GitHub 帳號');return;}
+    const label=source==='legacy'?'舊版本機資料':source==='guest'?'未登入時建立的資料':'舊帳號本機資料';
     if(!(await confirmDelete(`請確認這些${label}屬於你。資料會以副本加入目前帳號，保留現有內容與復原備份。`,{title:'復原資料',confirmLabel:'確認並加入'})))return;
     if(window.currentUser?.uid!==uid||window.__calendarAccountGeneration!==epoch)return;
-    const values=CalendarData.recoveryData(source),read=(key,fallback)=>{try{return JSON.parse(values[key]||'null')||fallback;}catch(e){return fallback;}};
+    const values=CalendarData.recoveryData(source);if(source==='guest')await window.CalendarMedia.copyFromGuest(values);if(window.currentUser?.uid!==uid||window.__calendarAccountGeneration!==epoch)return;const read=(key,fallback)=>{try{return JSON.parse(values[key]||'null')||fallback;}catch(e){return fallback;}};
     const newId=kind=>kind+'_'+(window.crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2));
     const catMap=new Map();
     read('calendar_categories_v1',[]).forEach(cat=>{
@@ -4582,176 +4530,7 @@ select{font-family:inherit}
   window.addEventListener('load',__initCalendarApp,{once:true});
 </script>
 
-<script type="module">
-  import{initializeApp}from"./firebase-app.js";
-  import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithCredential,signOut,onAuthStateChanged}from"./libs/firebase-auth.js";
-  import{getFirestore,collection,doc,setDoc,getDoc,onSnapshot,query,where,deleteDoc,serverTimestamp}from"./libs/firebase-firestore.js";
-
-  const app=initializeApp(window.FIREBASE_CONFIG),auth=getAuth(app),db=getFirestore(app);
-  const data=window.CalendarData,store=window.calendarStorage;
-  const gp=new GoogleAuthProvider();gp.setCustomParameters({prompt:'select_account'});
-  window.__widgetBackgroundSync=new URLSearchParams(location.search).get('widgetSync')==='1';
-  window.__widgetAuthReady=false;window.__widgetCloudReady=false;
-  window.__calendarAuthReady=false;window.currentUser=null;
-  let cu=null,generation=0,subscriptions=[];
-  const same=(uid,epoch)=>cu?.uid===uid&&generation===epoch;
-  function getNativeAuthPlugin(){
-    const cap=window.Capacitor;
-    return cap?.isNativePlatform?.() ? (window.FirebaseAuthentication||cap.Plugins?.FirebaseAuthentication) : null;
-  }
-  window.signInWithGoogle=async function(){
-    const plugin=getNativeAuthPlugin();
-    if(plugin){
-      try{
-        const result=await plugin.signInWithGoogle();
-        if(!result?.credential?.idToken)throw new Error('沒有拿到 idToken，請檢查 Firebase SHA-1 指紋與 google-services.json。');
-        await signInWithCredential(auth,GoogleAuthProvider.credential(result.credential.idToken));
-      }catch(e){alert('原生登入失敗：\n'+(e.message||e));}
-      return;
-    }
-    try{await signInWithPopup(auth,gp);}catch(e){
-      if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment'].includes(e.code)){
-        try{await signInWithRedirect(auth,gp);}catch(error){alert('登入失敗：'+(error.message||error));}
-      }else if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request')alert('Google 登入失敗：'+(e.message||e));
-    }
-  };
-  getRedirectResult(auth).catch(e=>console.error('redirect 登入失敗',e));
-  window.signOutUser=async()=>{try{await signOut(auth);const p=getNativeAuthPlugin();if(p?.signOut)await p.signOut();}catch(e){console.error(e);showToast('登出未完成，請重試');}};
-
-  function settingsPayload(){return {categories:state.categories,activeCategories:state.activeCategories,folders:{note:state.noteFolders||[],diary:state.diaryFolders||[]}};}
-  window.saveCategoriesToCloud=()=>data.queueSettings('userSettings',settingsPayload());
-  window.saveEventToCloud=item=>data.queuePut('events',item);
-  window.deleteEventFromCloud=id=>data.queueDelete('events',id);
-  window.saveTaskToCloud=item=>data.queuePut('tasks',item);
-  window.deleteTaskFromCloud=id=>data.queueDelete('tasks',id);
-  window.saveNoteToCloud=item=>data.queuePut('notes',item);
-  window.deleteNoteFromCloud=id=>data.queueDelete('notes',id);
-  window.__counterCloud={
-    read:async uid=>{
-      const epoch=generation;
-      if(!same(uid,epoch))throw new Error('帳號已切換');
-      if(data.pending('counterSettings'))return {exists:true,data:data.pendingSettings('counterSettings')};
-      const snap=await getDoc(doc(db,'counterSettings',uid));
-      if(!same(uid,epoch))throw new Error('帳號已切換');
-      return {exists:snap.exists(),data:data.pendingSettings('counterSettings',snap.exists()?snap.data():{})};
-    },
-    readLegacyUserSettings:async uid=>{
-      const epoch=generation,snap=await getDoc(doc(db,'userSettings',uid));
-      if(!same(uid,epoch))throw new Error('帳號已切換');
-      return {exists:snap.exists(),data:snap.exists()?snap.data():{}};
-    },
-    write:(uid,payload)=>data.queueSettings('counterSettings',payload,uid),
-    listen:(uid,onData,onError)=>{
-      const epoch=generation;
-      return onSnapshot(doc(db,'counterSettings',uid),snap=>{
-        if(!same(uid,epoch))return;
-        if(!snap.exists()&&snap.metadata?.fromCache&&!data.pending('counterSettings'))return;
-        onData(data.pendingSettings('counterSettings',snap.exists()?snap.data():{}));
-      },error=>{if(same(uid,epoch))onError(error);});
-    }
-  };
-
-  let refreshTimer=null;
-  const changedCollections=new Set();
-  function refresh(collection='all'){
-    if(!window.__calendarInitialized)return;
-    changedCollections.add(collection);
-    if(refreshTimer!==null)return;
-    refreshTimer=setTimeout(()=>{
-      refreshTimer=null;
-      const changes=new Set(changedCollections);changedCollections.clear();
-      window.refreshCalendarData(changes);
-      if(window.syncAndroidWidget)window.syncAndroidWidget();
-      if(window.requestAndroidReminderSync)window.requestAndroidReminderSync();
-    },60);
-  }
-  function applySettings(payload){
-    const before=JSON.stringify([state.categories,state.activeCategories,state.noteFolders,state.diaryFolders]);
-    const p=data.pendingSettings('userSettings',payload);
-    if(Array.isArray(p.categories)&&p.categories.length){state.categories=p.categories;store.setItem('calendar_categories_v1',JSON.stringify(p.categories));}
-    if(Array.isArray(p.activeCategories)){state.activeCategories=p.activeCategories.filter(id=>state.categories.some(c=>c.id===id));store.setItem('calendar_active_cats_v1',JSON.stringify(state.activeCategories));}
-    if(p.folders&&typeof p.folders==='object'){
-      if(Array.isArray(p.folders)){
-        state.noteFolders=p.folders.filter(f=>state.notes.some(n=>n.type!=='diary'&&n.folder===f));
-        state.diaryFolders=p.folders.filter(f=>state.notes.some(n=>n.type==='diary'&&n.folder===f));
-      }else{state.noteFolders=p.folders.note||[];state.diaryFolders=p.folders.diary||[];}
-      state.folders=[...new Set([...state.noteFolders,...state.diaryFolders])];
-      store.setItem('calendar_folders_v1',JSON.stringify({note:state.noteFolders,diary:state.diaryFolders}));
-    }
-    if(before!==JSON.stringify([state.categories,state.activeCategories,state.noteFolders,state.diaryFolders]))refresh('settings');
-  }
-  function listenCollection(name,user,epoch){
-    return onSnapshot(query(collection(db,name),where('userId','==',user.uid)),snap=>{
-      if(!same(user.uid,epoch))return;
-      const cloud=[];snap.forEach(d=>{const {userId,...item}=d.data();cloud.push({...item,id:d.id});});
-      const firstCloudEvents=name==='events'&&!window.__widgetCloudReady;
-      const next=data.overlay(name,cloud,!!snap.metadata?.fromCache);
-      const changed=JSON.stringify(state[name])!==JSON.stringify(next);
-      state[name]=next;
-      store.setItem('calendar_'+name+'_v1',JSON.stringify(next));
-      if(name==='events'){
-        if(normalizeSpecialEvents())saveEvents();
-        window.__widgetCloudReady=true;
-      }
-      if(changed)refresh(name);
-      else if(firstCloudEvents&&window.syncAndroidWidget)window.syncAndroidWidget();
-    },error=>{if(same(user.uid,epoch)){console.error(name+' 同步失敗',error);updateStorageHint();}});
-  }
-  onAuthStateChanged(auth,user=>{
-    const epoch=++generation;window.__calendarAccountGeneration=epoch;
-    subscriptions.forEach(stop=>stop());subscriptions=[];
-    window.stopCounterSettingsSync?.();
-    cu=user;window.currentUser=user;store.useAccount(user?.uid);
-    window.__calendarAuthReady=true;window.__widgetAuthReady=true;window.__widgetCloudReady=!user;
-    window.reloadCalendarAccount?.();updateLoginUI(user);updateStorageHint();
-    if(user){
-      const uid=user.uid;
-      data.connect(async op=>{
-        if(!same(uid,epoch)||op.uid!==uid)throw new Error('帳號已切換');
-        const ref=doc(db,op.collection,op.id);
-        if(op.remove)await deleteDoc(ref);
-        else{
-          const payload={...op.data};
-          if(['events','tasks','notes'].includes(op.collection))payload.userId=uid;
-          if(payload.counterSettingsUpdatedAt===true)payload.counterSettingsUpdatedAt=serverTimestamp();
-          await setDoc(ref,payload,{merge:['userSettings','counterSettings'].includes(op.collection)});
-        }
-      });
-      ['events','tasks','notes'].forEach(name=>subscriptions.push(listenCollection(name,user,epoch)));
-      subscriptions.push(onSnapshot(doc(db,'userSettings',uid),snap=>{
-        if(!same(uid,epoch))return;
-        if(snap.exists()||data.pending('userSettings'))applySettings(snap.exists()?snap.data():{});
-      },error=>{if(same(uid,epoch))console.error('設定同步失敗',error);}));
-      // Do not block the UI or the other listeners on a network read.
-      Promise.resolve(loadCounterSettingsFromCloud()).then(()=>{if(same(uid,epoch))startListeningCounterSettings();});
-    }
-    refresh();
-  });
-  window.completeTaskFromWidget=async(taskId,completed)=>{
-    if(!cu)return false;
-    const task=state.tasks.find(t=>String(t.id)===String(taskId));if(!task)return false;
-    task.completed=!!completed;task.completedAt=task.completed?Date.now():null;
-    saveTasks();refresh();return true;
-  };
-  function updateLoginUI(user){
-    const el=id=>document.getElementById(id);
-    el('loginBtn')?.classList.toggle('hidden',!!user);el('userInfo')?.classList.toggle('hidden',!user);el('userInfo')?.classList.toggle('flex',!!user);
-    if(el('userName'))el('userName').textContent=user?.displayName||user?.email||'使用者';
-    if(el('userAvatar')){el('userAvatar').removeAttribute('src');if(user?.photoURL)el('userAvatar').src=user.photoURL;}
-    if(el('sideAvatar')){el('sideAvatar').removeAttribute('src');if(user?.photoURL)el('sideAvatar').src=user.photoURL;el('sideAvatar').classList.toggle('hidden',!user?.photoURL);}
-    el('sideAvatarPlaceholder')?.classList.toggle('hidden',!!user?.photoURL);
-    if(el('sideUserName'))el('sideUserName').textContent=user?.displayName||user?.email||'本地使用者';
-    if(el('sideUserSub'))el('sideUserSub').textContent=user?.email||'資料僅存於此裝置';
-  }
-  function updateStorageHint(){
-    const el=document.getElementById('storageHint');if(!el)return;
-    el.textContent=!cu?'資料儲存在此裝置的未登入空間。':data.error?'資料已保存在本機，雲端同步失敗，將自動重試。':data.pending()?`資料已保存在本機，還有 ${data.pending()} 項等待同步。`:'已登入，資料會自動同步到同一帳號的其他裝置。';
-  }
-  window.addEventListener('calendarSyncStatus',updateStorageHint);
-  window.addEventListener('online',()=>data.flush());
-  window.addEventListener('calendarReady',refresh);
-
-</script>
+<script type="module" src="./github-calendar.js"></script>
 
 <script>
   // 離開頁面前盡量把最後一次事件計日變更送出；一般修改已是即時寫入。
@@ -4777,6 +4556,7 @@ select{font-family:inherit}
     }
 
     function closeTopOverlay(){
+      if(document.getElementById("assistantDialog")?.open){window.CalendarAssistant?.close();return true;}
       if(document.getElementById('counterSheet')?.open){document.getElementById('counterSheet').close();return true;}
       if(window.closeDeleteConfirmation&&window.closeDeleteConfirmation(false))return true;
       // 最高層／目前正在操作中的視窗優先關閉，不改變 state.view。
@@ -5344,5 +5124,11 @@ select{font-family:inherit}
 .stat-date-grid button.calendar-sunday[aria-pressed=true]{background:#ffe4e6;color:#e11d48}
 .dark .stat-date-grid button.calendar-sunday[aria-pressed=true]{background:#4c0519;color:#fb7185}
 </style>
+<script src="./assistant-config.js"></script>
+<script type="module" src="./assistant-ui.js"></script>
+<script src="./github-conflicts.js"></script>
+<script src="./notes-media.js"></script>
+<link rel="stylesheet" href="./notes-host.css">
+<script src="./notes-host.js"></script>
 </body>
 </html>

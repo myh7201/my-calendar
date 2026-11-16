@@ -1,27 +1,12 @@
 {
-  "versionName": "2.0.43",
-  "versionCode": 28,
-  "baseVersion": "2.0.42",
-  "baseVersionCode": 27,
-  "sources": {
-    "v42HtmlSHA256": "2fe3f3206c5d4c740e8a4d320dc1c34fa54b283fce3a9ff666fabfa037986a1d",
-    "mergedHtmlSHA256": "becea8bb57bf4641c36fa863f52c88cb93214f8a531b4e87ab97ad4a96ecda1c",
-    "nativeSundayReceiverSHA256": "86ad31557da21668d249c628881f2196378261596b223f3b40eb6a49a1740e06"
-  },
-  "integrated": [
-    "v40-account-isolation-and-durable-outbox",
-    "other-chat-v41-overlay-and-touch-ui-fixes",
-    "other-chat-v42-performance-and-stat-detail-lists",
-    "this-chat-v41-sunday-colors"
-  ],
-  "provenance": [
-    {
-      "chat": "檢查程式致命錯誤",
-      "version": "v42"
-    },
-    {
-      "chat": "檢查檔案致命錯誤",
-      "version": "Sunday display changes"
-    }
-  ]
+  "versionName": "2.0.45",
+  "versionCode": 30,
+  "baseVersion": "2.0.43",
+  "auth": "github-app",
+  "sync": "private-github-repository",
+  "notes": "liubai-v1-integrated",
+  "productionPagesVersion": "2.0.45",
+  "runtimeGoogleFirebase": false,
+  "realAccountSyncValidation": "pending",
+  "webIndexSHA256": "8c71e8f9491fad08e1db55dd26a5cd013ec3c79ec494b5912eab84bf17d3a810"
 }

@@ -1,0 +1,18 @@
+import {Editor,Node,mergeAttributes} from '@tiptap/core';
+import StarterKit from '@tiptap/starter-kit';
+import {Table,TableRow,TableCell,TableHeader} from '@tiptap/extension-table';
+import Image from '@tiptap/extension-image';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import {TextStyle,Color,BackgroundColor} from '@tiptap/extension-text-style';
+import Highlight from '@tiptap/extension-highlight';
+import DOMPurify from 'dompurify';
+import JSZip from 'jszip';
+import * as docx from 'docx';
+import {toPng} from 'html-to-image';
+const Figure=Node.create({name:'figure',group:'block',content:'image figcaption?',addAttributes(){return {size:{default:'full',parseHTML:e=>e.dataset.size,renderHTML:a=>({'data-size':a.size})}}},parseHTML(){return[{tag:'figure'}]},renderHTML({HTMLAttributes}){return ['figure',HTMLAttributes,0]}});
+const Caption=Node.create({name:'figcaption',content:'inline*',parseHTML(){return[{tag:'figcaption'}]},renderHTML(){return ['figcaption',0]}});
+const Media=Node.create({name:'media',group:'block',atom:true,addAttributes(){return{src:{default:''},kind:{default:'audio'},name:{default:''}}},parseHTML(){return[{tag:'audio',getAttrs:e=>({src:e.getAttribute('src'),kind:'audio',name:e.getAttribute('data-name')||''})},{tag:'video',getAttrs:e=>({src:e.getAttribute('src'),kind:'video',name:e.getAttribute('data-name')||''})}]},renderHTML({node}){return [node.attrs.kind,{src:node.attrs.src,controls:'',preload:'metadata','data-name':node.attrs.name}]} });
+const FileCard=Node.create({name:'fileCard',group:'block',atom:true,addAttributes(){return{href:{default:''},name:{default:'附件'}}},parseHTML(){return[{tag:'a.attachment',getAttrs:e=>({href:e.getAttribute('href'),name:e.getAttribute('download')||e.textContent})}]},renderHTML({node}){return ['a',{class:'attachment',href:node.attrs.href,download:node.attrs.name},'📎 '+node.attrs.name]}});
+window.NoteKit={JSZip,docx,toPng,sanitize:html=>DOMPurify.sanitize(String(html),{ADD_TAGS:['audio','video','source'],ADD_ATTR:['controls','preload','download','data-size','data-name','data-type','data-checked'],ALLOW_DATA_ATTR:true,ADD_DATA_URI_TAGS:['a','audio','video','source'],FORBID_TAGS:['iframe','object','embed','style','script']})};
+window.makeEditor=(host,onUpdate)=>new Editor({element:host,extensions:[StarterKit.configure({link:{openOnClick:false}}),Table.configure({resizable:true}),TableRow,TableCell,TableHeader,Image.configure({allowBase64:true}),TaskList,TaskItem.configure({nested:true}),TextStyle,Color,BackgroundColor,Highlight.configure({multicolor:true}),Figure,Caption,Media,FileCard],editorProps:{attributes:{role:'textbox','aria-label':'筆記正文','aria-multiline':'true',spellcheck:'false'}},onUpdate});
