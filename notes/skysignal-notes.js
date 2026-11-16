@@ -8,7 +8,7 @@
  function distance(a,b,c,d){const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;return 6371000*2*Math.asin(Math.min(1,Math.sqrt(x)));}
  function parse(raw,lat,lon,now=Date.now()){
   const c=raw?.current,u=raw?.current_units;
-  if(!c||u?.temperature_2m!=='°C'||u?.time!=='unixtime'||typeof c.temperature_2m!=='number'||!Number.isFinite(c.temperature_2m)||c.temperature_2m< -90||c.temperature_2m>65||!descriptions[c.weather_code])throw Error('天氣資料不完整，請改用手動輸入。');
+  if(!c||u?.temperature_2m!=='°C'||u?.time!=='unixtime'||typeof c.time!=='number'||typeof c.temperature_2m!=='number'||!Number.isFinite(c.temperature_2m)||c.temperature_2m< -90||c.temperature_2m>65||!Number.isInteger(c.weather_code)||!Object.hasOwn(descriptions,c.weather_code))throw Error('天氣資料不完整，請改用手動輸入。');
   if(!Number.isFinite(raw.latitude)||!Number.isFinite(raw.longitude)||distance(lat,lon,raw.latitude,raw.longitude)>150000)throw Error('天氣網格與定位不符，請重試。');
   const at=c.time*1000;if(!Number.isFinite(at)||now-at>3*3600000||at-now>3600000)throw Error('天氣資料已過期，請稍後再試或手動輸入。');
   return {source:'skysignal',provider:'Open-Meteo',kind:'modelEstimate',description:descriptions[c.weather_code],temperature:c.temperature_2m,weatherCode:c.weather_code,observedAt:new Date(at).toISOString(),retrievedAt:new Date(now).toISOString(),location:`定位地點 ${lat.toFixed(3)}, ${lon.toFixed(3)}`,latitude:Number(lat.toFixed(3)),longitude:Number(lon.toFixed(3)),accuracy:null};
