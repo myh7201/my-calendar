@@ -18,7 +18,7 @@
   };
  }
  window.flushCalendarNotes=()=>frame?.contentWindow?.CalendarNotes?.flush()||Promise.resolve(true);
- window.mountCalendarNotes=function(){const container=document.getElementById('calendarViewContainer');if(frame?.isConnected)return;bridge=createBridge();window.CalendarNotesBridge=bridge;frame=document.createElement('iframe');frame.id='calendarNotesFrame';frame.title='筆記與日記';frame.src='./notes/index.html';frame.style.cssText='border:0;width:100%;height:100%;display:block;min-height:0;';frame.allow='microphone';container.replaceChildren(frame);};
+ window.mountCalendarNotes=function(){const container=document.getElementById('calendarViewContainer');if(frame?.isConnected)return;bridge=createBridge();window.CalendarNotesBridge=bridge;frame=document.createElement('iframe');frame.id='calendarNotesFrame';frame.title='筆記與日記';frame.src='./notes/index.html?v=20261116-2';frame.style.cssText='border:0;width:100%;height:100%;display:block;min-height:0;';frame.allow='microphone; geolocation';container.replaceChildren(frame);};
  window.openCalendarRichNote=function(id,createKind){window.state.view='notes';window.renderAll();if(!id&&!createKind)return;const open=()=>Promise.resolve(id?frame?.contentWindow?.CalendarNotes?.open(String(id)):frame?.contentWindow?.CalendarNotes?.create(createKind)).catch(e=>window.showToast?.(e.message));if(frame?.contentWindow?.CalendarNotes)open();else frame?.addEventListener('load',open,{once:true});};
  window.addEventListener('calendarAccountChanged',()=>{frame?.remove();frame=null;bridge=null;window.CalendarNotesBridge=null;});
  let leaving=false;
